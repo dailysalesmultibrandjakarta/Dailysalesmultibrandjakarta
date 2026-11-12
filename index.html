@@ -1315,6 +1315,7 @@ let state = {
   salesStoreFilter: '',
   selectedStore: '', // toko yang sedang dipilih secara GLOBAL (diklik dari toko mana pun di dashboard) - '' = semua toko. Saat terisi, SELURUH slide/kartu (KPI, kategori, brand, daily/weekly chart, top sales, leader, store, pencapaian per sales) hanya menghitung data toko ini.
   salesAchvZoom: 79, // persen; dipakai utk tombol perkecil/perbesar (zoom) tabel Pencapaian Semua Kategori per Sales
+  storePerfSort: null, // {col, dir} - urutan tabel PERFORMANCE STORE saat header % MTD ROFO / % EST ROFO / GAP TARGET / DAILY SALES diklik. null = urutan asli
   salesAchvSort: null, // {col, dir} - urutan tabel "Pencapaian Semua Kategori per Sales (SPG)" saat header kolom diklik. null = urutan default (Total, terbesar dulu)
   salesAchvMenuOpen: false, // panel "Filter & Tampilan" pada slide Pencapaian per Sales (SPG)
   salesAchvLayout: 'detail', // 'simple' = tampilan ringkas by ERO (baris per ERO + bar komposisi, klik utk rincian) | 'detail' = tabel lebar semua kolom kategori
@@ -2348,6 +2349,9 @@ const CHAIN_RULES = [
   {key:'MEGASTORE', re:/MEGASTORE|MEGA\s*STORE/}
   // XLC & Galeri ISAT kini masuk channel OPERATOR (aturan paling atas); toko tak cocok aturan apa pun tetap digabung ke JB lewat CHAIN_OTHER
 ];
+// Racing kategori (Operator & Boltech) di slide PENCAPAIAN BY KATEGORI: toko channel Erablue, Operator & JB tidak ikut racing -> di-take out.
+const RACING_EXCLUDE_CHAINS = ['ERABLUE','OPERATOR','JB'];
+function racingStoreExcluded(name){ return RACING_EXCLUDE_CHAINS.indexOf(chainOfStore(name))>=0; }
 const CHAIN_OTHER = 'JB'; // toko yang tidak cocok aturan mana pun digabung ke JB
 const _chainCache = {};
 function chainOfStore(name){
@@ -2485,6 +2489,13 @@ function setSalesStoreFilter(v){ state.salesStoreFilter = v; state.selectedStore
 // apa pun, AR, atau SOB) - klik sekali: terbesar dulu; klik lagi kolom yang sama: terkecil dulu
 // (toggle asc/desc). Klik header lain -> pindah urutan ke kolom itu (mulai dari terbesar, kecuali
 // kolom Nama Sales yang mulai dari A-Z).
+// PERFORMANCE STORE: klik header % MTD ROFO / % EST ROFO / GAP TARGET / DAILY SALES -> urut terbesar dulu;
+// klik lagi kolom yang sama -> terkecil dulu (toggle), sama seperti slide PENCAPAIAN ALL KATEGORI ERO.
+function setStorePerfSort(colKey){
+  const cur = state.storePerfSort;
+  state.storePerfSort = (cur && cur.col===colKey) ? { col: colKey, dir: cur.dir==='desc' ? 'asc' : 'desc' } : { col: colKey, dir: 'desc' };
+  render();
+}
 function setSalesAchvSort(colKey){
   state.salesAchvTopMode = null; // klik header kolom membatalkan mode Top 10 AR/SOB, kembali ke tabel lengkap
   const cur = state.salesAchvSort;
@@ -5147,7 +5158,7 @@ function renderCategoryOperator(d){
   if (!state.catOpOpen) return '';
   const tg = getEffectiveTargets();
   const opT = tg.opStore || {};
-  const stores = (d.stores||[]).slice().sort(function(a,b){ return String(a.site_desc).localeCompare(String(b.site_desc),'id'); });
+  const stores = (d.stores||[]).filter(function(st){ return !racingStoreExcluded(st.site_desc); }).sort(function(a,b){ return String(a.site_desc).localeCompare(String(b.site_desc),'id'); });
   const byCode = {};
   stores.forEach(function(st){ byCode[st.site_code]=st; byCode[st.site_desc]=st; });
   const agg = {};
@@ -5177,7 +5188,20 @@ function renderCategoryOperator(d){
   OP_TABLE_GROUPS.forEach(function(g){ scales[g.key] = makeColorScale(rows.map(function(r){ return r.g[g.key].pct; })); });
   function num(n){ return fmt(n); }
   let body = '';
-  rows.forEach(function(r){
+  const totCols = 1+OP_TABLE_GROUPS.length*7;
+  // Baris judul TSH/Area (subtotal) - sama seperti tabel racing lain; format kolom tetap
+  function tshHdr(g){
+    let h = '<tr class="area-hdr"><td class="cat-nm" style="text-align:left;">'+racingAreaLabel(g)+'</td>';
+    OP_TABLE_GROUPS.forEach(function(gr){
+      const t = {t:0,q:0,v:0,eq:0,ev:0,gap:0};
+      g.idx.forEach(function(i){ const c = rows[i].g[gr.key]; t.t+=c.t; t.q+=c.q; t.v+=c.v; t.eq+=c.eq; t.ev+=c.ev; if (c.t>0) t.gap+=c.gap; });
+      const pct = t.t>0 ? t.ev/t.t*100 : null, B = ' style="font-weight:800;"';
+      h += '<td'+B+'>'+num(t.t)+'</td><td'+B+'>'+num(t.q)+'</td><td'+B+'>'+num(t.v)+'</td><td'+B+'>'+num(t.eq)+'</td><td'+B+'>'+num(t.ev)+'</td><td'+B+'>'+(t.t>0?num(t.gap):'-')+'</td><td'+B+'>'+(pct===null?'-':fmtPct(pct))+'</td>';
+    });
+    return h+'</tr>';
+  }
+  racingRowsWithAreas(rows, function(r){ return r.name; }).forEach(function(r){
+    if (r.__hdr){ body += tshHdr(r.__hdr); return; }
     const opSelOn = state.opSel===r.code;
     body += '<tr class="op-store store-row-click'+(opSelOn?' store-row-active':'')+'" onclick="if(!event.target.closest(\'input,button,[contenteditable]\'))selectOpStore(\''+String(r.code).replace(/'/g,"\\'")+'\')" title="Klik untuk lihat pencapaian by ERO &amp; barang terjual by Tipe toko ini"><td'+(opSelOn?' style="background:rgba(255,200,60,.28);font-weight:800;"':'')+'>'+escapeHtml(r.name)+'</td>';
     OP_TABLE_GROUPS.forEach(function(g){
@@ -5660,7 +5684,7 @@ function samIncCompute(d){
   const prevEnd = new Date(Date.UTC(sd.getUTCFullYear(), sd.getUTCMonth(), 0)).toISOString().slice(0,10);
   const prevLbl = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][pS.getUTCMonth()];
   const tOf = function(s){ return st[s.site_desc] || st[s.site_code] || st[canonStoreName(s.site_desc)] || null; };
-  const stores = (d.stores||[]).slice();
+  const stores = (d.stores||[]).filter(function(s){ return !racingStoreExcluded(s.site_desc); }); // Erablue/Operator/JB di-take out dari racing Samsung
   const byName = {}; const act = {}, prev = {}, det = {};
   stores.forEach(function(s){ byName[s.site_desc]=s; byName[s.site_code]=s; act[s.site_code]=0; prev[s.site_code]=0; det[s.site_code]={}; });
   (raw.records||[]).forEach(function(r){
@@ -5857,20 +5881,20 @@ function racingKeyFromName(name){
   const nb = normalizeBrandKey(name); // brand lain (Samsung, Xiaomi, Realme, dst.) -> key dinamis
   return nb ? 'b_'+nb : null;
 }
-// Value racing brand = kolom total_nett_amount_exc_tax (record index 5 = omzet).
+// Value racing brand (Oppo, Vivo, dst.) = kolom total_nett_amount_with_tax (record index 8 = withTax; fallback ke omzet bila kosong).
 // Value racing non-brand (Operator = price, Repair Contract = with_tax) = record index 9; fallback ke omzet (index 5).
 // Racing Operator: Indosat hanya artikel berawalan "INDOSAT-PLATINUM" (sama dengan laporan); provider lain semua.
 function racingOpCounts(r){ return operatorBrandLabel(r[3])!=='Indosat' || /^\s*INDOSAT-PLATINUM/i.test(String(r[7]==null?'':r[7])); }
 // Racing Operator Telkomsel = kolom total_nett_amount_exc_tax (record index 5); Indosat/XL tetap kolom price.
 function racingOpVal(r){ return (r[2]==='Operator' && operatorBrandLabel(r[3])==='Telkomsel') ? r[5] : racingVal(r); }
 function racingVal(r){ return (r[9]!==undefined && r[9]!==null && isFinite(Number(r[9]))) ? Number(r[9]) : r[5]; }
-function racingBrandVal(r){ return r[5]; } // Racing semua brand (Device) = kolom total_nett_amount_exc_tax (record index 5, tanpa pajak)
+function racingBrandVal(r){ return (r[8]!==undefined && r[8]!==null && isFinite(Number(r[8]))) ? Number(r[8]) : r[5]; } // Racing semua brand (Device) = kolom total_nett_amount_with_tax (record index 8, termasuk pajak); fallback exc_tax (index 5)
 function racingMatch(item, r){ // r = [tanggal, toko, kategori, brand, qty, omzet, sales, tipe]
   if (r[2]!==item.cat) return false;
   if (item.key==='oppo') return normalizeBrandKey(r[3])==='OPPO';
   if (item.key==='oppoa7pro') return normalizeBrandKey(r[3])==='OPPO' && item.model.test(String(r[7]==null?'':r[7])); // hanya tipe OPPO A7 Pro (semua varian warna/PO)
   if (item.key==='vivo') return normalizeBrandKey(r[3])==='VIVO' && !r[10]; // baris PO (Ket PO = PO) tidak dihitung, sama dengan laporan
-  if (item.key==='vivo3jt') return normalizeBrandKey(r[3])==='VIVO' && !r[10] && Math.abs(r[5] || racingBrandVal(r))>item.minVal; // Vivo 3Juta+: value TANPA pajak (exc_tax) di atas 2.999.999, sama dengan laporan
+  if (item.key==='vivo3jt') return normalizeBrandKey(r[3])==='VIVO' && !r[10] && Math.abs(r[5])>item.minVal; // Vivo 3Juta+: batas value TANPA pajak (exc_tax) di atas 2.999.999, sama dengan laporan (tidak diubah)
   if (item.key==='indosat') return operatorBrandLabel(r[3])==='Indosat' && /^\s*INDOSAT-PLATINUM/i.test(String(r[7]==null?'':r[7])); // Racing Indosat: hanya artikel berawalan "INDOSAT-PLATINUM" (sama dengan laporan); eSIM, Platinum Plus & Nomor Baru/prepaid tidak dihitung. Value = kolom price per baris.
   if (item.key==='xl') return operatorBrandLabel(r[3])==='XL Axiata';
   if (item.key==='telkomsel') return operatorBrandLabel(r[3])==='Telkomsel';
@@ -5964,7 +5988,7 @@ function racingCompute(key, d){
   const elapsed = sameAsStore ? d.distinctDays : (asOf<start ? 0 : calendarDaysInclusive(start, asOf));
   const remain = Math.max(0, totalDays-elapsed);
   const factor = sameAsStore ? (isProjectionMode() && d.distinctDays>0 ? d.dim/d.distinctDays : 1) : ((hasPeriod && elapsed>0) ? totalDays/elapsed : 0);
-  const stores = (d.stores||[]).slice().sort((a,b)=>String(a.site_desc).localeCompare(String(b.site_desc),'id'));
+  const stores = (d.stores||[]).filter(s=>!racingStoreExcluded(s.site_desc)).sort((a,b)=>String(a.site_desc).localeCompare(String(b.site_desc),'id')); // Racing brand, Operator & Boltech: toko channel Erablue/Operator/JB tidak ikut racing (di-take out)
   const byCode = {}; const agg = {};
   stores.forEach(s=>{ byCode[s.site_code]=s; byCode[s.site_desc]=s; agg[s.site_code]={v:0,q:0}; });
   const srcRecs = sameAsStore ? (d.filtered||[]) : (raw.records||[]);
@@ -6873,11 +6897,32 @@ function renderStoreSection(d){
         mom: pm>0 ? (estVal/pm-1)*100 : null, yoy: ly>0 ? (estVal/ly-1)*100 : null,
         gapT:gapT, daily: remDays>0 ? gapT/remDays : null, hasTarget: target>0});
     });
+    // Urutkan sesuai kolom yang diklik (state.storePerfSort). Toko tanpa target / tanpa nilai selalu di paling bawah.
+    if (state.storePerfSort && state.storePerfSort.col){
+      const spCol = {pctMtd:'pctMtd', pctEst:'pctEst', gapT:'gapT', daily:'daily'}[state.storePerfSort.col];
+      const spAsc = state.storePerfSort.dir==='asc';
+      if (spCol){
+        const spVal = r => (r.hasTarget && r[spCol]!==null && r[spCol]!==undefined && isFinite(r[spCol])) ? r[spCol] : null;
+        rofoRows.sort((a,b)=>{
+          const va = spVal(a), vb = spVal(b);
+          if (va===null && vb===null) return 0;
+          if (va===null) return 1;
+          if (vb===null) return -1;
+          return spAsc ? va-vb : vb-va;
+        });
+      }
+    }
     // Pill % berwarna: hijau >=100, kuning 75-<100, merah <75.
     const pill = v => v===null ? '-' : '<span class="sp-pill '+(v>=100?'g':(v>=75?'y':'r'))+'">'+fmtPct(v)+'</span>';
     const pctCell = v => '<td>'+pill(v)+'</td>';
     // Gap Target = Target - MTD: positif = belum sampai target -> tampil dengan tanda "-"; sudah lewat target -> angka tanpa tanda.
     const gapFmt = v => v>0 ? '-'+fmt(v) : fmt(Math.abs(v));
+    // Header kolom yang bisa diklik (terbesar -> terkecil / sebaliknya) + panah penanda urutan aktif.
+    const spTh = (label, colKey) => {
+      const act = state.storePerfSort && state.storePerfSort.col===colKey;
+      return '<th rowspan="2" style="cursor:pointer;user-select:none;'+(act?'color:var(--blue);':'')+'" onclick="setStorePerfSort(\''+colKey+'\')" title="Klik untuk urutkan '+label+' (terbesar/terkecil)">'
+        +label+(act?' <span style="font-size:9px;">'+(state.storePerfSort.dir==='asc'?'▲':'▼')+'</span>':'')+'</th>';
+    };
     let rows = '';
     rofoRows.forEach(r=>{
       const isSel = state.selectedStore===r.name;
@@ -6913,12 +6958,12 @@ function renderStoreSection(d){
     const head = '<thead><tr>'
       +'<th rowspan="2">SAP CODE</th><th rowspan="2" class="cat-nm">STORE NAME</th><th rowspan="2">TARGET</th>'
       +'<th colspan="2">MTD</th><th colspan="2">EST</th>'
-      +'<th rowspan="2">% MTD ROFO</th><th rowspan="2">% EST ROFO</th><th rowspan="2">GAP TARGET</th><th rowspan="2">DAILY SALES</th></tr>'
+      +spTh('% MTD ROFO','pctMtd')+spTh('% EST ROFO','pctEst')+spTh('GAP TARGET','gapT')+spTh('DAILY SALES','daily')+'</tr>'
       +'<tr><th>QTY</th><th>VALUE</th><th>QTY</th><th>VALUE</th></tr></thead>';
     table = '<div class="achv-table-wrap store-perf"><table class="store-perf-tbl" style="font-size:11px;">'
       +head+'<tbody>'+rows+'</tbody>'+foot
     +'</table></div>'
-    +'<div class="empty-note x-note">💡 Klik nama toko untuk fokus seluruh dashboard ke toko itu saja. Klik lagi untuk membatalkan filter. % MTD Rofo = MTD Value &divide; Target; Gap Target = Target &minus; MTD; Daily Sales = Gap Target &divide; sisa hari ('+remDays+' hari). Baris TOTAL = jumlah semua toko yang tampil. Pill % : hijau &ge;100%, kuning 75&ndash;100%, merah &lt;75%.</div>';
+    +'<div class="empty-note x-note">💡 Klik nama toko untuk fokus seluruh dashboard ke toko itu saja. Klik lagi untuk membatalkan filter. % MTD Rofo = MTD Value &divide; Target; Gap Target = Target &minus; MTD; Daily Sales = Gap Target &divide; sisa hari ('+remDays+' hari). Baris TOTAL = jumlah semua toko yang tampil. Pill % : hijau &ge;100%, kuning 75&ndash;100%, merah &lt;75%. Klik header % MTD ROFO / % EST ROFO / GAP TARGET / DAILY SALES untuk mengurutkan dari terbesar ke terkecil (klik lagi untuk sebaliknya).</div>';
   }
   return '<div class="card'+(collapsed?' collapsed':'')+'">'
     +sectionTitleWithToggle(key, '🏬 PERFORMANCE STORE', (state.locked ? '' : '<button class="btn'+(state.editing?' active':'')+'" onclick="toggleEditing()">'+(state.editing?'✓ Selesai Isi Target':'✎ Isi / Edit Target')+'</button>'))
