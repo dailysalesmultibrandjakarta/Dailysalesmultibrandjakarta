@@ -804,7 +804,7 @@ window.__SRC_HTML__ = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
 function capImgScale(w, h){
   const dpr = window.devicePixelRatio || 1;
   const mobile = /Android|iP(hone|ad|od)|Mobile/i.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
-  const want = Math.max(2, Math.min(4, Math.round(dpr*1.5)));
+  const want = Math.max(3, Math.min(4, Math.round(dpr*2))); // min. 3x supaya teks tabel besar tetap tajam
   const budget = mobile ? 15000000 : 30000000; // iOS Safari membatasi canvas ~16,7 juta piksel
   return Math.max(1, Math.min(want, Math.sqrt(budget / Math.max(1, w*h)), 16000 / Math.max(1, w, h)));
 }
@@ -2235,13 +2235,13 @@ function captureCatPopup(){
   const fname = base+'_'+(state.dateFrom||'')+'_sd_'+(state.dateTo||'')+'.png';
   let cloneH = 0;
   (document.fonts && document.fonts.ready ? document.fonts.ready.catch(function(){}) : Promise.resolve()).then(function(){ return html2canvas(el, {
-    backgroundColor: currentBgColor(), scale: capScale, useCORS: true,
+    backgroundColor: currentBgColor(), scale: capScale, useCORS: true, letterRendering: true,
     width: w, height: h, windowWidth: Math.max(w+40, window.innerWidth), windowHeight: h+80, scrollX: 0, scrollY: 0,
     onclone: function(doc){
       const ov = doc.querySelector('.cat-overlay');
       if (ov){ ov.style.position='static'; ov.style.display='block'; ov.style.overflow='visible'; ov.style.padding='0'; ov.style.background='transparent'; }
       const c = doc.querySelector('.cat-overlay .cat-detail');
-      if (c){ c.style.maxHeight='none'; c.style.overflow='visible'; c.style.width=w+'px'; c.style.maxWidth='none'; c.style.boxShadow='none'; }
+      if (c){ c.style.maxHeight='none'; c.style.overflow='visible'; c.style.width=w+'px'; c.style.maxWidth='none'; c.style.boxShadow='none'; c.style.textRendering='geometricPrecision'; c.style.webkitFontSmoothing='antialiased'; }
       doc.querySelectorAll('.cat-detail-title').forEach(function(t){ t.style.position='static'; });
       doc.querySelectorAll('.achv-table-wrap,.pivot-wrap').forEach(function(t){ t.style.overflow='visible'; });
       doc.querySelectorAll('.pivot-wrap > table').forEach(function(t){ t.style.zoom=''; t.style.width='100%'; t.style.tableLayout='auto'; });
