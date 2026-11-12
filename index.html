@@ -343,6 +343,8 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   .cat-overlay{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.55);display:flex;align-items:flex-start;justify-content:center;padding:max(10px,env(safe-area-inset-top)) 10px 10px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
   .cat-overlay .cat-detail{margin-top:0;width:100%;max-width:980px;max-height:calc(100vh - 24px);overflow-y:auto;background:var(--card,#0f1524);box-shadow:0 12px 40px rgba(0,0,0,.5);}
   .cat-detail-title{position:sticky;top:-12px;z-index:2;background:var(--card,#0f1524);padding:6px 0;}
+  tr.area-hdr td{background:rgba(96,165,250,.16)!important;font-weight:900;color:var(--text-strong);border-top:1px solid var(--border);}
+  tr.area-hdr td.cat-nm{color:var(--blue);}
   tr.store-row-click{cursor:pointer;}
   tr.store-row-click:hover{background:var(--sub);}
   tr.store-row-active{background:var(--sub);}
@@ -1717,6 +1719,7 @@ function parseWorkbook(wb, fileName){
 
   const records = [];
   const sapCodes = {};
+  const tshByArea = {}; // AREA -> nama TSH (kolom TSH sheet By Area)
   const areaByStore = {}; // site_desc -> nama area (dari kolom 'by area' di Master Data / sheet 'By Area ...')
   const categoriesSeen = new Set();
   for (let i=headerIdx+1;i<dataRows.length;i++){
@@ -1866,6 +1869,7 @@ function parseWorkbook(wb, fileName){
       const ar = [row[3], row[2]].map(function(v){ return v==null ? '' : String(v).trim().toUpperCase().replace(/\s+/g,' '); })
         .find(isValidAreaName) || '';
       if (!nm || !ar) return;
+      { const _th = row[2]==null ? '' : String(row[2]).trim(); if (_th && !isValidAreaName(_th.toUpperCase().replace(/\s+/g,' ')) && !tshByArea[ar]) tshByArea[ar] = _th; }
       if (!areaByStore[nm]) areaByStore[nm] = ar;
       // Kode SAP toko juga diambil dari kolom 'Site Code' sheet By Area (toko tanpa transaksi tidak punya kode di Master Data)
       const _sc = row[1]!=null ? String(row[1]).trim() : '';
@@ -1920,7 +1924,7 @@ function parseWorkbook(wb, fileName){
     : null;
 
   return {
-    records, stores, monthlyHistory, brandCards, areas, areaByStore: hasAreaData ? areaByStore : null,
+    records, stores, monthlyHistory, brandCards, areas, areaByStore: hasAreaData ? areaByStore : null, tshByArea,
     targetsByMonth, monthKeysList, defaultMonthKey,
     racing: racingSheetName ? parseRacingSheet(XLSX.utils.sheet_to_json(wb.Sheets[racingSheetName], {header:1, defval:null, raw:true})) : null,
     targets: targetsByMonth[defaultMonthKey] || targetsByMonth['_default'] || emptyTargets(),
@@ -5582,16 +5586,48 @@ function renderBrandPivotPopup(d){
    - Est = Sales / hari berjalan x Hari Estimasi;  % Tier = Est / Target Tier (sesuai laporan Excel).
    - T&C: wajib achieve Target Erajaya min Tier 1 100%, target personal min 100% Tier 1, SL/JSL Erafone min 5 unit/store (NASA 10), wajib aktivasi EULA FOTA. */
 const SAM_INC = {
-  start:'2026-11-01', end:'2026-11-30', lob:'Aris Fachrudin', tsh:'Lukman Wibowo', minUnit:5,
+  start:'2026-11-01', end:'2026-11-30', lob:'Aris Fachrudin', areaLabel:'ALL AREA Pak Aris', minUnit:5,
   tiers:5,
   // cadangan bila sheet Target Racing belum memuat kolom Tier (sama dengan sheet)
   stores: {
     'ERAFONE SABANG JAKPUS':[9,10,11,11,13], 'ERAFONE RUKO PERCETAKAN NEGARA':[4,5,5,6,6], 'ERAFONE RUKO SUMUR BATU':[5,6,6,7,7],
     'ERAFONE MENARA JAKARTA':[4,5,5,6,6], 'ERAFONE GREEN PRAMUKA SQUARE':[12,14,15,16,18], 'ERAFONE MALL ATRIUM SENEN':[7,7,8,9,9],
-    'ERAFONE & MORE RAWASARI':[4,4,4,5,5], 'ERAFONE MB SAMANHUDI':[4,5,5,6,6], 'ERAFONE GARUDA KEMAYORAN':[6,6,7,8,8],
+    'ERAFONE & MORE RAWASARI':[4,4,4,5,5],
+    // JAKBAR 2 (TSH Febrian Tri Wibowo) - dari laporan Excel (Tier 1 & Tier 5); dipakai bila sheet Target Racing belum memuatnya
+    'ERAFONE MAL PURI INDAH':[20,0,0,0,28], 'ERAFONE LIPPO MALL PURI':[23,0,0,0,33], 'ERAFONE RUKO MERUYA':[6,0,0,0,8],
+    'ERAFONE RUKO KEBAYORAN LAMA':[4,0,0,0,6], 'ERAFONE MERUYA SELATAN':[2,0,0,0,3], 'ERAFONE RUKO SRENGSENG':[7,0,0,0,10],
+    'ERAFONE & MORE PURI INDAH MALL 2':[20,0,0,0,28], 'XLC MAL PURI INDAH':[12,0,0,0,17], 'ERAFONE MB SAMANHUDI':[4,5,5,6,6], 'ERAFONE GARUDA KEMAYORAN':[6,6,7,8,8],
     'ERAFONE 1 ITC CEMPAKA MAS':[4,5,5,6,6], 'LOTTEMART GREEN PRAMUKA CITY':[0,0,0,0,0]
   }
 };
+
+/* ===== Pengelompokan racing per AREA (JAKBAR 1, JAKPUS 2, ...) =====
+   Dipakai semua tabel racing: baris judul area (subtotal) lalu toko-toko area itu; TOTAL keseluruhan di bawah. */
+function racingAreaOf(name){ const m = state.raw && state.raw.areaByStore; return m ? (m[name] || 'TANPA AREA') : null; }
+function racingAreaTsh(a){ const m = state.raw && state.raw.tshByArea; return (m && m[a]) || ''; }
+function racingAreaLabel(g){ return escapeHtml(g.area)+(g.tsh ? ' &middot; '+escapeHtml(g.tsh) : ''); }
+// items = array (urutan = urutan tampil); kembalikan [{area, tsh, idx:[indeks item]}] urut nama area, atau null bila tidak ada data area
+function racingGroupByArea(items, nameOf){
+  if (!(state.raw && state.raw.areaByStore)) return null;
+  const g = {};
+  items.forEach(function(it,i){ const a = racingAreaOf(nameOf(it)); (g[a] = g[a] || {area:a, tsh:racingAreaTsh(a), idx:[]}).idx.push(i); });
+  return Object.keys(g).sort(function(a,b){ return a.localeCompare(b,'id',{numeric:true}); }).map(function(k){ return g[k]; });
+}
+// urutan baris tampil: [{__hdr:g}, item, item, {__hdr:g2}, item, ...]
+function racingRowsWithAreas(items, nameOf){
+  const grp = racingGroupByArea(items, nameOf);
+  if (!grp) return items.slice();
+  const out = [];
+  grp.forEach(function(g){ out.push({__hdr:g}); g.idx.forEach(function(i){ out.push(items[i]); }); });
+  return out;
+}
+function xlRound(x){ return x<0 ? -Math.round(-x) : Math.round(x); } // ROUND Excel (setengah menjauhi nol)
+// Penjualan bulan lalu (kolom OCT) dari laporan Excel per kode SAP; dipakai bila Master Data tidak memuat penjualan Oktober toko tsb.
+const SAM_OCT = {E028:19,E029:22,E322:3,E465:2,E514:3,E582:2,E616:1,E679:2,E875:1,E942:0,M219:24,Q022:5,Q108:0,
+  E027:5,E215:10,E233:6,E312:1,E381:0,E453:1,E960:0,E992:5,M068:1,
+  E038:4,E047:3,E137:11,E408:3,E414:3,E663:1,E732:10,E898:3,F080:1,G258:1,M212:1,
+  E037:16,E096:1,E113:30,E216:0,E281:11,E396:7,E678:4,F073:5,G493:0,
+  E158:6,E164:15,E172:6,E413:1,E508:0,E593:7,E923:1,E943:2,E986:0,E991:1,F134:6,M091:35,Q008:0};
 function samSeriesOf(r){
   if (r[2]!=='Device' || normalizeBrandKey(r[3])!=='SAMSUNG') return null;
   const n = String(r[7]==null?'':r[7]);
@@ -5614,17 +5650,25 @@ function samIncCompute(d){
   const asOf = (raw.date_max && raw.date_max<end) ? raw.date_max : end;
   const totalDays = calendarDaysInclusive(start, end);
   const elapsed = asOf<start ? 0 : calendarDaysInclusive(start, asOf);
-  const st = (rc.samTier && rc.samTier.stores && Object.keys(rc.samTier.stores).length) ? rc.samTier.stores : SAM_INC.stores;
-  const estDays = (rc.samTier && rc.samTier.estDays>0) ? rc.samTier.estDays : totalDays;
+  const st = Object.assign({}, SAM_INC.stores, (rc.samTier && rc.samTier.stores) || {}); // sheet Target Racing diutamakan; toko yang belum ada di sheet memakai cadangan
+  const estDays = totalDays; // proyeksi = sales / hari berjalan x jumlah hari periode racing (sama dengan laporan Excel)
+  const remain = Math.max(0, totalDays-elapsed);
+  // bulan sebelumnya (kolom OCT pada laporan) = seluruh bulan sebelum bulan mulai racing
+  const sd = new Date(start+'T00:00:00Z');
+  const pS = new Date(Date.UTC(sd.getUTCFullYear(), sd.getUTCMonth()-1, 1));
+  const prevStart = pS.toISOString().slice(0,10);
+  const prevEnd = new Date(Date.UTC(sd.getUTCFullYear(), sd.getUTCMonth(), 0)).toISOString().slice(0,10);
+  const prevLbl = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][pS.getUTCMonth()];
   const tOf = function(s){ return st[s.site_desc] || st[s.site_code] || st[canonStoreName(s.site_desc)] || null; };
-  const stores = (d.stores||[]).filter(function(s){ return !!tOf(s); })
-    .sort(function(a,b){ return String(a.site_desc).localeCompare(String(b.site_desc),'id'); });
-  const byName = {}; const act = {}, det = {};
-  stores.forEach(function(s){ byName[s.site_desc]=s; byName[s.site_code]=s; act[s.site_code]=0; det[s.site_code]={}; });
+  const stores = (d.stores||[]).slice();
+  const byName = {}; const act = {}, prev = {}, det = {};
+  stores.forEach(function(s){ byName[s.site_desc]=s; byName[s.site_code]=s; act[s.site_code]=0; prev[s.site_code]=0; det[s.site_code]={}; });
   (raw.records||[]).forEach(function(r){
-    if (r[0]<start || r[0]>end) return;
+    const inCur = !(r[0]<start || r[0]>end), inPrev = !(r[0]<prevStart || r[0]>prevEnd);
+    if (!inCur && !inPrev) return;
     const ser = samSeriesOf(r); if (!ser) return;
     const s = byName[r[1]]; if (!s) return;
+    if (inPrev){ prev[s.site_code] += r[4]; return; }
     act[s.site_code] += r[4];
     const o = det[s.site_code][ser] = det[s.site_code][ser] || {q:0, ero:{}, mdl:{}};
     o.q += r[4];
@@ -5632,21 +5676,35 @@ function samIncCompute(d){
     o.ero[en] = (o.ero[en]||0) + r[4];
     const ml = samModelLabel(r); o.mdl[ml] = (o.mdl[ml]||0) + r[4];
   });
-  const mk = function(t, sales){
+  const mk = function(t, sales, oct){
     const est = elapsed>0 ? sales/elapsed*estDays : 0;
-    return {t:t, sales:sales, est:est, pct:t.map(function(x){ return x>0 ? est/x*100 : 0; })};
+    return {t:t, sales:sales, oct:oct, est:est,
+      pct:t.map(function(x){ return x>0 ? est/x*100 : 0; }),
+      mtm: oct>0 ? (est/oct-1)*100 : 0,                       // % Est vs bulan lalu
+      daily: remain>0 ? xlRound((sales - t[4])/remain) : 0};  // (Sales - Target Tier 5) / sisa hari
   };
   const rows = stores.map(function(s){
-    const o = mk(tOf(s).slice(0,5), act[s.site_code]);
-    o.code = sapCodeOf(s.site_desc); o.key = s.site_code; o.name = s.site_desc; o.det = det[s.site_code];
-    o.minOk = o.sales >= SAM_INC.minUnit;
+    const t = tOf(s); const tt = t ? t.slice(0,5) : [0,0,0,0,0];
+    const code0 = sapCodeOf(s.site_desc);
+    const octV = (SAM_OCT[code0]!==undefined) ? SAM_OCT[code0] : prev[s.site_code];
+    const o = mk(tt, act[s.site_code], octV);
+    o.code = code0; o.key = s.site_code; o.name = s.site_desc; o.det = det[s.site_code];
+    o.part = tt[0]>0; o.area = racingAreaOf(s.site_desc);
     return o;
-  });
-  const sumT = [0,1,2,3,4].map(function(i){ return rows.reduce(function(a,r){ return a+r.t[i]; },0); });
-  const tot = mk(sumT, rows.reduce(function(a,r){ return a+r.sales; },0));
-  let tierOk = 0; tot.pct.forEach(function(p,i){ if (sumT[i]>0 && p>=100) tierOk = i+1; });
+  }).sort(function(a,b){ return String(a.code).localeCompare(String(b.code),'id',{numeric:true}) || String(a.name).localeCompare(String(b.name),'id'); });
+  const sum = function(list){
+    return mk([0,1,2,3,4].map(function(i){ return list.reduce(function(a,r){ return a+r.t[i]; },0); }),
+      list.reduce(function(a,r){ return a+r.sales; },0), list.reduce(function(a,r){ return a+r.oct; },0));
+  };
+  const groups = [];
+  if (raw.areaByStore){
+    const m = {}; rows.forEach(function(r){ (m[r.area] = m[r.area] || {area:r.area, tsh:racingAreaTsh(r.area), rows:[]}).rows.push(r); });
+    Object.keys(m).sort(function(a,b){ return a.localeCompare(b,'id',{numeric:true}); }).forEach(function(k){ m[k].tot = sum(m[k].rows); groups.push(m[k]); });
+  } else { groups.push({area:'', tsh:'', rows:rows, tot:sum(rows)}); }
+  const tot = sum(rows);
+  let tierOk = 0; tot.pct.forEach(function(p,i){ if (tot.t[i]>0 && p>=100) tierOk = i+1; });
   rows.forEach(function(r){ r.tierOk = 0; r.pct.forEach(function(p,i){ if (r.t[i]>0 && p>=100) r.tierOk = i+1; }); });
-  return {rows:rows, tot:tot, tierOk:tierOk, start:start, end:end, asOf:asOf, totalDays:totalDays, elapsed:elapsed, remain:Math.max(0,totalDays-elapsed), estDays:estDays};
+  return {rows:rows, groups:groups, tot:tot, tierOk:tierOk, start:start, end:end, asOf:asOf, totalDays:totalDays, elapsed:elapsed, remain:remain, estDays:estDays, prevLbl:prevLbl, nPart:rows.filter(function(r){ return r.part; }).length};
 }
 function openSamInc(){
   state.samIncOpen = true; state.samIncSel = null;
@@ -5676,50 +5734,57 @@ function renderSamIncPopup(d){
   };
   const t1 = c.tot.pct[0];
   const tiles = '<div style="display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 12px;">'
-    +tile('SALES', 'unit Samsung Flagship', fmt(c.tot.sales))
+    +tile('SALES', 'unit Samsung Flagship terjual (sudah '+fmt(c.tot.sales)+' dari target Tier 1 '+fmt(c.tot.t[0])+')', fmt(c.tot.sales)+' unit')
     +tile('ESTIMASI', 'proyeksi '+fmt(c.estDays)+' hari', fmt(c.tot.est))
-    +tile('TARGET TIER 1', 'TSH '+escapeHtml(SAM_INC.tsh), fmt(c.tot.t[0]))
+    +tile('TARGET TIER 1', escapeHtml(SAM_INC.areaLabel), fmt(c.tot.t[0]))
     +tile('% EST TIER 1', 'wajib min 100%', fmtPct(t1), t1>=100?'var(--green)':'var(--red)')
     +tile('TIER TERCAPAI (EST)', 'berdasarkan estimasi', c.tierOk>0 ? ('Tier '+c.tierOk) : 'Belum', c.tierOk>0?'var(--green)':'var(--red)')
     +'</div>';
-  const pcell = function(p, t){
-    if (!(t>0)) return '<td style="color:var(--muted);">0,0%</td>';
+  const pcell = function(p, t, bold){
+    if (!(t>0)) return '<td style="color:var(--muted);">0%</td>';
     const ok = p>=100;
     return '<td style="font-weight:800;background:'+(ok?'rgba(74,222,156,.18)':'rgba(255,214,102,.16)')+';color:'+(ok?'var(--green)':'var(--text-strong)')+';">'+fmtPct(p)+'</td>';
   };
-  const head = '<thead><tr><th rowspan="2">SAP CODE</th><th rowspan="2" class="cat-nm">STORE NAME</th><th colspan="5">TARGET</th><th colspan="2">SALES</th><th colspan="5">% (EST &divide; TARGET TIER)</th><th rowspan="2">MIN '+SAM_INC.minUnit+' UNIT</th></tr>'
-    +'<tr>'+[1,2,3,4,5].map(function(i){ return '<th>Tier '+i+'</th>'; }).join('')+'<th>Sales</th><th>Est</th>'+[1,2,3,4,5].map(function(i){ return '<th>% Tier '+i+'</th>'; }).join('')+'</tr></thead>';
+  const head = '<thead><tr><th rowspan="2">LOB</th><th rowspan="2">SAP CODE</th><th rowspan="2" class="cat-nm">STORE NAME</th><th rowspan="2">'+c.prevLbl+'</th><th colspan="2">TARGET</th><th colspan="2">SALES</th><th colspan="2">% (EST &divide; TARGET)</th><th rowspan="2" title="% Estimasi dibanding penjualan bulan lalu">%MTM</th><th rowspan="2" title="(Sales &minus; Target Tier 5) &divide; sisa hari = kebutuhan/lebihan unit per hari untuk Tier 5">DAILY T5</th></tr>'
+    +'<tr><th>Tier 1</th><th>Tier 5</th><th>Sales</th><th>Est</th><th>% Tier 1</th><th>% Tier 5</th></tr></thead>';
   const numCells = function(o){
-    return o.t.map(function(x){ return '<td>'+fmt(x)+'</td>'; }).join('')
+    return '<td>'+fmt(o.oct)+'</td><td>'+fmt(o.t[0])+'</td><td>'+fmt(o.t[4])+'</td>'
       +'<td style="font-weight:800;">'+fmt(o.sales)+'</td><td style="font-weight:800;">'+fmt(o.est)+'</td>'
-      +o.pct.map(function(p,i){ return pcell(p, o.t[i]); }).join('');
+      +pcell(o.pct[0], o.t[0])+pcell(o.pct[4], o.t[4])
+      +'<td style="'+(o.oct>0 && o.mtm<0 ? 'color:var(--red);' : '')+'">'+(o.oct>0 ? fmtPct(o.mtm) : '0%')+'</td>'
+      +'<td style="font-weight:800;'+(o.daily<0?'color:var(--red);':'')+'">'+fmt(o.daily)+'</td>';
   };
-  const ncol = 2 + 5 + 2 + 5 + 1;
-  let body = '<tr style="font-weight:900;"><td></td><td class="cat-nm" style="font-weight:900;color:var(--blue);">TSH '+escapeHtml(SAM_INC.tsh)+'</td>'+numCells(c.tot)
-    +'<td>'+(c.tot.sales>0?'':'-')+'</td></tr>';
-  c.rows.forEach(function(r){
-    const isSel = state.samIncSel===r.key;
-    const minTxt = !(r.t[0]>0) ? '-' : (r.minOk ? '<span style="color:var(--green);font-weight:800;">&#10003; '+fmt(r.sales)+'</span>' : '<span style="color:var(--red);font-weight:800;">&#10007; '+fmt(r.sales)+'</span>');
-    body += '<tr class="store-row-click'+(isSel?' store-row-active':'')+'" onclick="selectSamIncRow(\''+String(r.key).replace(/'/g,"\\'")+'\')" title="Klik untuk lihat penjualan per seri, model, dan ERO">'
-      +'<td>'+escapeHtml(r.code)+'</td><td class="cat-nm" style="font-weight:700;color:var(--text-strong);">'+escapeHtml(r.name)+'</td>'
-      +numCells(r)+'<td>'+minTxt+'</td></tr>';
-    if (isSel){
-      const sers = ['S Series','S FE Series','S Edge Series','Z Series'];
-      const det = sers.filter(function(k){ return r.det[k] && r.det[k].q!==0; }).map(function(k){
-        const o = r.det[k];
-        const eroTxt = Object.keys(o.ero).filter(function(e){ return o.ero[e]!==0; }).sort(function(a,b){ return o.ero[b]-o.ero[a]; }).map(function(e){ return escapeHtml(e)+' ('+fmt(o.ero[e])+')'; }).join(', ') || '-';
-        const mdlTxt = Object.keys(o.mdl).filter(function(e){ return o.mdl[e]!==0; }).sort(function(a,b){ return o.mdl[b]-o.mdl[a]; }).map(function(e){ return escapeHtml(e)+' ('+fmt(o.mdl[e])+')'; }).join(', ') || '-';
-        return '<tr><td class="cat-nm" style="font-weight:700;color:var(--text-strong);">'+k+'</td><td style="font-weight:800;">'+fmt(o.q)+'</td><td class="cat-nm" style="white-space:normal;">'+mdlTxt+'</td><td class="cat-nm" style="white-space:normal;">'+eroTxt+'</td></tr>';
-      }).join('') || '<tr><td colspan="4" style="color:var(--muted);">Belum ada penjualan Samsung Flagship pada periode racing.</td></tr>';
-      const need = [1,2,3,4,5].map(function(i){ const g = r.t[i-1]-r.sales; return r.t[i-1]>0 ? ('Tier '+i+': '+(g>0?'kurang '+fmt(g)+' unit':'tercapai')) : null; }).filter(Boolean).join(' &middot; ');
-      body += '<tr class="ero-expand-row"><td colspan="'+ncol+'" style="padding:0 0 8px 0;border-bottom:1px solid var(--border);">'
-        +'<div class="cat-ero-box" style="margin:4px 0 0 10px;padding:6px 10px 6px 10px;border-left:3px solid var(--green);text-align:left;">'
-        +'<h4 style="margin-top:4px;">📱 RINCIAN SAMSUNG FLAGSHIP &ndash; '+escapeHtml(r.name)+'</h4>'
-        +'<div class="achv-table-wrap"><table><thead><tr><th class="cat-nm">SERI</th><th>UNIT</th><th class="cat-nm">MODEL (UNIT)</th><th class="cat-nm">BY ERO (UNIT)</th></tr></thead><tbody>'+det+'</tbody></table></div>'
-        +(need ? '<div class="cat-hint" style="margin-top:4px;">Gap sales ke target: '+need+'</div>' : '')
-        +'</div></td></tr>';
+  const ncol = 12;
+  let body = '<tr class="area-hdr"><td colspan="3" class="cat-nm" style="text-align:left;">'+escapeHtml(SAM_INC.lob)+' &middot; '+escapeHtml(SAM_INC.areaLabel)+'</td>'+numCells(c.tot)+'</tr>';
+  c.groups.forEach(function(g){
+    if (g.area){
+      body += '<tr class="area-hdr"><td colspan="3" class="cat-nm" style="text-align:left;">'+racingAreaLabel(g)+'</td>'+numCells(g.tot)+'</tr>';
     }
+    g.rows.forEach(function(r){
+      const isSel = state.samIncSel===r.key;
+      const lob = r.part ? '<span style="color:var(--green);font-weight:700;">Participant Racing</span>' : '<span style="color:var(--muted);">Not Participant</span>';
+      body += '<tr class="store-row-click'+(isSel?' store-row-active':'')+'" onclick="selectSamIncRow(\''+String(r.key).replace(/'/g,"\\'")+'\')" title="Klik untuk lihat penjualan per seri, model, dan ERO">'
+        +'<td style="text-align:left;white-space:nowrap;">'+lob+'</td><td>'+escapeHtml(r.code)+'</td><td class="cat-nm" style="font-weight:700;color:var(--text-strong);">'+escapeHtml(r.name)+'</td>'
+        +numCells(r)+'</tr>';
+      if (isSel){
+        const sers = ['S Series','S FE Series','S Edge Series','Z Series'];
+        const det = sers.filter(function(k){ return r.det[k] && r.det[k].q!==0; }).map(function(k){
+          const o = r.det[k];
+          const eroTxt = Object.keys(o.ero).filter(function(e){ return o.ero[e]!==0; }).sort(function(a,b){ return o.ero[b]-o.ero[a]; }).map(function(e){ return escapeHtml(e)+' ('+fmt(o.ero[e])+')'; }).join(', ') || '-';
+          const mdlTxt = Object.keys(o.mdl).filter(function(e){ return o.mdl[e]!==0; }).sort(function(a,b){ return o.mdl[b]-o.mdl[a]; }).map(function(e){ return escapeHtml(e)+' ('+fmt(o.mdl[e])+')'; }).join(', ') || '-';
+          return '<tr><td class="cat-nm" style="font-weight:700;color:var(--text-strong);">'+k+'</td><td style="font-weight:800;">'+fmt(o.q)+'</td><td class="cat-nm" style="white-space:normal;">'+mdlTxt+'</td><td class="cat-nm" style="white-space:normal;">'+eroTxt+'</td></tr>';
+        }).join('') || '<tr><td colspan="4" style="color:var(--muted);">Belum ada penjualan Samsung Flagship pada periode racing.</td></tr>';
+        const need = r.part ? [1,2,3,4,5].map(function(i){ const gp = r.t[i-1]-r.sales; return r.t[i-1]>0 ? ('Tier '+i+': '+(gp>0?'kurang '+fmt(gp)+' unit':'tercapai')) : null; }).filter(Boolean).join(' &middot; ') : '';
+        body += '<tr class="ero-expand-row"><td colspan="'+ncol+'" style="padding:0 0 8px 0;border-bottom:1px solid var(--border);">'
+          +'<div class="cat-ero-box" style="margin:4px 0 0 10px;padding:6px 10px 6px 10px;border-left:3px solid var(--green);text-align:left;">'
+          +'<h4 style="margin-top:4px;">📱 RINCIAN SAMSUNG FLAGSHIP &ndash; '+escapeHtml(r.name)+'</h4>'
+          +'<div class="achv-table-wrap"><table><thead><tr><th class="cat-nm">SERI</th><th>UNIT</th><th class="cat-nm">MODEL (UNIT)</th><th class="cat-nm">BY ERO (UNIT)</th></tr></thead><tbody>'+det+'</tbody></table></div>'
+          +(need ? '<div class="cat-hint" style="margin-top:4px;">Gap sales ke target: '+need+'</div>' : '')
+          +'</div></td></tr>';
+      }
+    });
   });
+  const foot = '<tfoot><tr><td></td><td></td><td class="cat-nm" style="font-weight:900;color:var(--text-strong);">GRAND TOTAL &middot; '+escapeHtml(SAM_INC.areaLabel)+'</td>'+numCells(c.tot)+'</tr></tfoot>';
   const tcList = [
     'Participant Racing ini adalah operation level LOB, TSH, SL, dan JSL. Store peserta mengikuti Remark Store Participant Racing di lampiran Target.',
     'Berlaku untuk penjualan produk Samsung Flagship (S Series, Z Series, S FE Series, S Edge Series) di Erajaya Retail.',
@@ -5733,7 +5798,7 @@ function renderSamIncPopup(d){
   const tc = '<h4 style="margin-top:14px;">📋 T&amp;C PROGRAM</h4><ol style="margin:4px 0 0 18px;padding:0;font-size:11.5px;color:var(--text-mid);line-height:1.55;">'
     +tcList.map(function(t){ return '<li>'+escapeHtml(t)+'</li>'; }).join('')+'</ol>';
   const note = '<div class="cat-note">*Sales = unit Samsung Flagship (S Series, Z Series, S FE, S Edge; net retur) pada periode racing, bukan dari filter tanggal dashboard. '
-    +'Est = Sales &divide; hari berjalan &times; '+fmt(c.estDays)+' hari; % Tier = Est &divide; Target Tier (sama dengan laporan Excel). Hijau = estimasi sudah mencapai tier tsb. Kolom MIN '+SAM_INC.minUnit+' UNIT = syarat SL/JSL Erafone (dilihat dari Sales aktual). '
+    +'Est = Sales &divide; hari berjalan &times; '+fmt(c.estDays)+' hari; % Tier = Est &divide; Target Tier (sama dengan laporan Excel). Hijau = estimasi sudah mencapai tier tsb. Toko tanpa target Tier 1 ditampilkan sebagai Not Participant. '
     +'Target Tier, periode, dan hari estimasi diatur di sheet <b>Target Racing</b>. Ranking Best LOB/TSH/SL/JSL (% Achievement, Qty Growth, Qty Selling) dan aktivasi EULA FOTA tidak bisa dihitung dari Master Data saja.</div>';
   const nodata = hasData ? '' : '<div class="cat-hint">Upload Master Data terlebih dulu agar aktual terisi.</div>';
   return '<div class="cat-overlay" onclick="if(event.target===this)closeSamInc()">'
@@ -5743,10 +5808,8 @@ function renderSamIncPopup(d){
       +'<span class="x cap-hide" onclick="closeSamInc()" title="Tutup (Esc)">✕ Tutup</span></span></div>'
     +'<div class="pv-ctl cap-hide" style="margin:4px 0 8px;"><button class="pv-btn" onclick="openBrandRacing(\'SAMSUNG\')">🏁 Racing Samsung</button><button class="pv-btn on">🏆 Racing Tier Samsung</button></div>'
     +info+nodata+tiles
-    +'<h4>🏬 BY STORE &middot; LOB '+escapeHtml(SAM_INC.lob)+'</h4>'
-    +'<div class="achv-table-wrap"><table>'+head+'<tbody>'+body+'</tbody></table></div>'
-    +'<div class="cat-hint x-note" style="margin-top:6px;">👆 Klik nama toko untuk melihat penjualan per seri, model, dan ERO.</div>'
-    +tc+note
+    +'<h4>🏬 BY AREA &middot; LOB '+escapeHtml(SAM_INC.lob)+' &middot; '+escapeHtml(SAM_INC.areaLabel)+'</h4>'
+    +'<div class="achv-table-wrap"><table>'+head+'<tbody>'+body+'</tbody>'+foot+'</table></div>'
   +'</div></div>';
 }
 
@@ -6035,14 +6098,24 @@ function racingBrandTable(d, c){
         + '<td style="font-weight:800;color:'+(!has ? 'var(--muted-2)' : (ok ? 'var(--green)' : 'var(--red)'))+';">'+(!has ? '-' : (ok ? 'ACHIEVE' : 'BELUM'))+'</td>';
     }
     const t = {a60:0, aEd:0, t60:0, tEd:0}; let n = 0, okN = 0;
-    Object.keys(infMap).forEach(function(k){ const m = infMap[k]; t.a60+=m.a60; t.aEd+=m.aEd; t.t60+=m.t60; t.tEd+=m.tEd; if (m.t60>0 || m.tEd>0){ n++; if (infOk(m)) okN++; } });
+    (x.codes || Object.keys(infMap)).forEach(function(k){ const m = infMap[k]; if (!m) return; t.a60+=m.a60; t.aEd+=m.aEd; t.t60+=m.t60; t.tEd+=m.tEd; if (m.t60>0 || m.tEd>0){ n++; if (infOk(m)) okN++; } });
     return cell(t.a60, t.t60) + cell(t.aEd, t.tEd) + '<td style="font-weight:800;">'+okN+' / '+n+' toko</td>';
   }
   const hasV = c.showV, ncol = 9 + (showQ?3:0) + (inf?3:0);
   const qCells = (x, bold) => showQ ? ('<td'+(bold?' style="font-weight:800;"':'')+'>'+(x.tq>0?fmt(x.tq):'-')+'</td><td'+(bold?' style="font-weight:800;"':'')+'>'+(x.tq>0?gapTxt(x.gapQ):'-')+'</td>'
     +'<td style="font-weight:800;'+(x.pctQ!==null&&x.pctQ<100?lowStyle:'')+'">'+(x.pctQ===null?'-':fmtPct(x.pctQ))+'</td>') : '';
   let body = '';
-  rows.forEach(r=>{
+  const areaHdr = function(g){
+    const sm = {tv:0,tq:0,aq:0,av:0}; g.idx.forEach(function(i){ const q = c.rows[i]; sm.tv+=q.tv; sm.tq+=q.tq; sm.aq+=q.aq; sm.av+=q.av; });
+    const x = mkP(Object.assign({name:g.area}, sm)); x.codes = g.idx.map(function(i){ return c.rows[i].code; });
+    const B = ' style="font-weight:800;"';
+    return '<tr class="area-hdr"><td></td><td class="cat-nm">'+racingAreaLabel(g)+'</td>'
+      +'<td'+B+'>'+(x.tv>0?fmt(x.tv):'-')+'</td><td'+B+'>'+fmt(x.aq)+'</td><td'+B+'>'+fmt(x.av)+'</td><td'+B+'>'+fmt(x.eq)+'</td><td'+B+'>'+fmt(x.ev)+'</td>'
+      +'<td'+B+'>'+(x.tv>0?gapTxt(x.gap):'-')+'</td><td style="font-weight:800;'+(x.pct!==null&&x.pct<100?lowStyle:'')+'">'+(x.pct===null?'-':fmtPct(x.pct))+'</td>'+qCells(x,true)+infCells(x,true)+'</tr>';
+  };
+  const rowsOut = racingRowsWithAreas(rows, function(r){ return r.name; });
+  rowsOut.forEach(r=>{
+    if (r.__hdr){ body += areaHdr(r.__hdr); return; }
     const isSel = state.racingSel===r.code;
     const low = r.pct!==null && r.pct<100;
     body += '<tr class="store-row-click'+(isSel?' store-row-active':'')+'" onclick="selectRacingRow(\''+String(r.code).replace(/'/g,"\\'")+'\')" title="Klik untuk lihat tipe yang terjual di toko ini"><td>'+escapeHtml(sapCodeOf(r.name))+'</td><td class="cat-nm" style="font-weight:700;color:var(--text-strong);">'+escapeHtml(r.name)+'</td>'
@@ -6058,8 +6131,7 @@ function racingBrandTable(d, c){
     +'<td style="font-weight:800;">'+(tot.tv>0?gapTxt(tot.gap):'-')+'</td>'
     +'<td style="font-weight:800;'+(tot.pct!==null&&tot.pct<100?lowStyle:'')+'">'+(tot.pct===null?'-':fmtPct(tot.pct))+'</td>'+qCells(tot,true)+infCells(tot,true)+'</tr></tfoot>';
   return '<div class="pv-ctl" style="margin:4px 0 8px;"><button class="pv-btn'+(netRetur?' on':'')+'" '+(item.key==='telkomsel'?'':'onclick=\"toggleRacingRetur()\" ')+'title=\"'+(item.key==='telkomsel'?'Telkomsel: value mengikuti total By Tipe (Barang Terjual), retur ikut dihitung':'Klik untuk mengganti perlakuan retur')+'\">\u21A9 Retur: '+(netRetur?'MENGURANGI capaian':'TIDAK mengurangi capaian')+'</button></div>'
-    +'<div class="achv-table-wrap"><table>'+head+'<tbody>'+body+'</tbody>'+foot+'</table></div>'
-    +'<div class="cat-hint x-note" style="margin-top:6px;">\uD83D\uDC46 Klik nama toko untuk melihat tipe yang terjual di toko tersebut.</div>';
+    +'<div class="achv-table-wrap"><table>'+head+'<tbody>'+body+'</tbody>'+foot+'</table></div>';
 }
 function openBrandRacing(bk){
   state.racingKey = racingBrandKey(bk); state.racingFrom = null; state.racingFromBrand = bk; state.racingSel = null; state.samIncOpen = false; state.samIncSel = null;
@@ -6189,7 +6261,19 @@ function racingBoltechTable(d, c){
     return '<div class="cat-ero-box" style="margin:4px 0 0 10px;padding:6px 0 2px 10px;border-left:3px solid var(--green);border-top:0;">'+tabs+inner+'</div>';
   }
   let body = '';
-  rows.forEach(r=>{
+  const areaHdr = function(g){
+    const sm = {tv:0,tq:0,aq:0,av:0}, ar = {rc:0,dev:0}, tc = {racing:0, add:0, total:0};
+    g.idx.forEach(function(i){ const q = c.rows[i]; sm.tv+=q.tv; sm.tq+=q.tq; sm.aq+=q.aq; sm.av+=q.av; const b0 = byStore[q.code]||{rcQty:0,devQty:0}; ar.rc+=b0.rcQty; ar.dev+=b0.devQty; const t0 = tecRows[q.code]; if (t0){ tc.racing+=t0.racing; tc.add+=t0.add; tc.total+=t0.total; } });
+    const x = mk(sm); const B = ' style="font-weight:800;"';
+    const pc = '<td style="font-weight:800;'+(x.pct!==null&&x.pct<100?lowStyle:'')+'">'+(x.pct===null?'-':fmtPct(x.pct))+'</td>';
+    if (isInc) return '<tr class="area-hdr"><td></td><td class="cat-nm">'+racingAreaLabel(g)+'</td><td'+B+'>'+(x.tv>0?fmt(x.tv):'-')+'</td>'+pc+arCell(ar.rc,ar.dev)
+      +'<td style="text-align:right;font-weight:800;color:var(--green);">Rp '+fmt(tc.racing)+'</td><td style="text-align:right;font-weight:800;color:var(--green);">Rp '+fmt(tc.add)+'</td><td style="text-align:right;font-weight:800;">Rp '+fmt(tc.total)+'</td></tr>';
+    return '<tr class="area-hdr"><td></td><td class="cat-nm">'+racingAreaLabel(g)+'</td><td'+B+'>'+(x.tv>0?fmt(x.tv):'-')+'</td><td'+B+'>'+fmt(x.aq)+'</td><td'+B+'>'+fmt(x.av)+'</td><td'+B+'>'+fmt(x.eq)+'</td><td'+B+'>'+fmt(x.ev)+'</td>'
+      +'<td'+B+'>'+(x.tv>0?gapTxt(x.gap):'-')+'</td>'+pc+qCells(x,true)+arCell(ar.rc,ar.dev)+'</tr>';
+  };
+  const rowsOut = racingRowsWithAreas(rows, function(r){ return r.name; });
+  rowsOut.forEach(r=>{
+    if (r.__hdr){ body += areaHdr(r.__hdr); return; }
     const isSel = state.racingSel===r.code;
     const low = r.pct!==null && r.pct<100;
     const sx = byStore[r.code]||{rcQty:0,devQty:0};
@@ -6207,9 +6291,7 @@ function racingBoltechTable(d, c){
   const viewBtns = '<div class="cap-hide" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:4px 0 8px;"><span style="font-size:10.5px;color:var(--muted);font-weight:800;">Tampilan:</span>'
     +'<button class="pv-btn'+(isInc?'':' on')+'" onclick="setRacingBoltView(\'aktual\')">📊 Capaian Racing</button>'
     +'<button class="pv-btn'+(isInc?' on':'')+'" onclick="setRacingBoltView(\'insentif\')">💰 Estimasi Pendapatan Racing</button></div>';
-  return viewBtns+'<div class="achv-table-wrap"><table>'+(isInc?headInc:head)+'<tbody>'+body+'</tbody>'+(isInc?footInc:footAkt)+'</table></div>'
-    +'<div class="cat-hint x-note" style="margin-top:6px;">\uD83D\uDC46 Klik nama toko untuk melihat pencapaian by ERO &amp; barang terjual by Tipe di toko tersebut.</div>'
-    +(!isInc ? '' : '<div class="cat-hint x-note" style="margin-top:6px;line-height:1.5;">\uD83D\uDCB0 <b>Estimasi pendapatan racing (skema TecProtec Q4 2026)</b>: <b>(1) Monthly Racing</b> = insentif per unit terjual &times; unit proyeksi akhir periode (qty MTD &times; faktor EST), tier berdasarkan <b>EST %</b> revenue vs target &mdash; 1%&ndash;60%: Rp3.000 / Rp6.150 / Rp10.500; &gt;60%&ndash;85%: Rp3.800 / Rp7.200 / Rp13.500; &gt;85%&ndash;100%: Rp6.000 / Rp11.200 / Rp17.600; &gt;100%: Rp6.400 / Rp12.000 / Rp19.500 (urutan tenor 12 / 24 / 36 bulan). <b>(2) Additional Incentive</b> berdasarkan Attachment Rate (AR Boltech): &ge;25%&ndash;&lt;30% Rp1.000.000; &ge;30%&ndash;&lt;35% Rp1.250.000; &ge;35% Rp1.500.000. Tenor dibaca dari angka 12 / 24 / 36 pada nama kontrak (item_name)'+(tecTot.unk>0 ? ' &mdash; <span style="color:var(--yellow);">&#9888; '+fmt(tecTot.unk)+' unit tenornya tidak terbaca sehingga belum dihitung</span>' : '')+'. Bila target revenue toko belum diisi, tier tidak bisa ditentukan.</div>');
+  return viewBtns+'<div class="achv-table-wrap"><table>'+(isInc?headInc:head)+'<tbody>'+body+'</tbody>'+(isInc?footInc:footAkt)+'</table></div>';
 }
 function hasItemNameCol(){ return !!(state.raw && state.raw.hasItemNameColumn); }
 function openRacing(key, fromCat){
@@ -6279,7 +6361,8 @@ function renderRacingPopup(d, optKey, opts){
   if (!c) return '';
   const item = c.item;
   const tabs = item.dynamic ? [] : RACING_ITEMS.filter(x=>x.group===item.group && (item.group!=='brand' || x.brand===item.brand)); // tab racing brand hanya yang sesuai brand-nya (Oppo: Oppo + Oppo A7 Pro; Vivo: Vivo + Vivo 3Juta+)
-  const samTabs = item.key==='b_SAMSUNG' ? '<div class="pv-ctl cap-hide" style="margin:4px 0 8px;"><button class="pv-btn on">🏁 Racing Samsung</button><button class="pv-btn" onclick="openSamInc()">🏆 Racing Tier Samsung</button></div>' : '';
+  let samUnits = ''; if (item.key==='b_SAMSUNG'){ try { const sc = samIncCompute(d); if (sc) samUnits = ' &middot; '+fmt(sc.tot.sales)+' unit'; } catch(e){} }
+  const samTabs = item.key==='b_SAMSUNG' ? '<div class="pv-ctl cap-hide" style="margin:4px 0 8px;"><button class="pv-btn on">🏁 Racing Samsung</button><button class="pv-btn" onclick="openSamInc()">🏆 Racing Tier Samsung'+samUnits+'</button></div>' : '';
   const tabsHtml = samTabs + (tabs.length>1 ? '<div class="pv-ctl" style="margin:4px 0 8px;">'+tabs.map(t=>'<button class="pv-btn'+(t.key===key?' on':'')+'" onclick="'+(opts.tabFn||'setRacingTab')+'(\''+t.key+'\')">'+escapeHtml(t.label)+'</button>').join('')+'</div>' : '');
   const chip = (txt, color) => '<span style="font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:999px;border:1px solid var(--border);color:'+(color||'var(--green)')+';">'+txt+'</span>';
   const periodTxt = c.hasPeriod ? (fmtDMY(c.start)+' &ndash; '+fmtDMY(c.end)) : ('belum diisi &rarr; memakai rentang dashboard ('+fmtDMY(c.start)+' &ndash; '+fmtDMY(c.end)+')');
@@ -6315,7 +6398,12 @@ function renderRacingPopup(d, optKey, opts){
   const clickOp = item.group==='operator';
   const ncolG = noTarget ? 4 : (2 + (c.showV?(showEst?5:4):0) + (c.showQ?(showEst?5:4):0));
   const recsOp = clickOp ? ((state.raw && state.raw.records)||[]).filter(function(x){ return x[0]>=c.start && x[0]<=c.end && racingMatch(item, x); }) : null;
-  c.rows.forEach(r=>{
+  const gAreaHdr = function(g){
+    const sm = {tv:0,tq:0,av:0,aq:0}; g.idx.forEach(function(i){ const q = c.rows[i]; sm.tv+=q.tv; sm.tq+=q.tq; sm.av+=q.av; sm.aq+=q.aq; });
+    return '<tr class="area-hdr">'+rowHtml(racingAreaLabel(g),'',sm.tv,sm.tq,sm.av,sm.aq,true)+'</tr>';
+  };
+  racingRowsWithAreas(c.rows, function(r){ return r.name; }).forEach(r=>{
+    if (r.__hdr){ body += gAreaHdr(r.__hdr); return; }
     if (!clickOp){ body += '<tr>'+rowHtml(escapeHtml(r.name), escapeHtml(sapCodeOf(r.name)), r.tv, r.tq, r.av, r.aq, false)+'</tr>'; return; }
     const isSel = state.racingSel===r.code;
     body += '<tr class="store-row-click'+(isSel?' store-row-active':'')+'" onclick="selectRacingRow(\''+String(r.code).replace(/'/g,"\\'")+'\')" title="Klik untuk lihat pencapaian by ERO &amp; barang terjual by Tipe toko ini">'+rowHtml(escapeHtml(r.name), escapeHtml(sapCodeOf(r.name)), r.tv, r.tq, r.av, r.aq, false)+'</tr>';
@@ -6344,8 +6432,8 @@ function renderRacingPopup(d, optKey, opts){
   const noteBolt = '*Periode & target racing diambil dari sheet <b>Target Racing</b>; MTD = aktual seluruh kategori Repair Contract (Boltech) pada periode racing (tidak terpengaruh filter tanggal dashboard). '+(c.hasPeriod?'EST = proyeksi akhir periode (aktual &divide; hari berjalan &times; total hari periode). ':'')+'GAP = MTD Value &minus; Target (tanda kurung = masih kurang). TARGET total = jumlah target toko; bila kosong dipakai TARGET AREA (TOTAL). AR Boltech = Qty Repair Contract (semua transaksi) &divide; (Qty Device + Qty CE) pada periode racing; warna: hijau &ge;25%, kuning &ge;20%, merah &lt;20%. Bila target QTY diisi, kolom TARGET QTY / GAP QTY / % QTY ikut tampil. Sel % merah = belum mencapai 100%.';
   const qtyHint = (item.group==='brand' && c.showQ && !c.showV) ? '<div class="cat-hint">ℹ Target racing '+escapeHtml(item.label)+' dihitung berdasarkan <b>QTY (unit)</b>: TARGET QTY, GAP QTY, dan % QTY memakai jumlah unit terjual'+(c.hasPeriod?' (GAP = MTD qty &minus; target; % memakai EST qty)':'')+'. '+(state.racingNetRetur?'Retur (qty minus) ikut mengurangi capaian.':'Retur (qty minus) tidak mengurangi capaian (ubah lewat tombol Retur di bawah).')+'</div>' : '';
   const inner = tabsHtml+info+hint+qtyHint
-    +(item.group==='brand' ? racingBrandTable(d, c) : (item.group==='boltech' ? racingBoltechTable(d, c) : '<div class="achv-table-wrap"><table>'+head+'<tbody>'+body+'</tbody>'+foot+'</table></div>'+(item.group==='operator' ? '<div class="cat-hint x-note" style="margin-top:6px;">👆 Klik nama toko untuk melihat pencapaian by ERO &amp; barang terjual by Tipe di toko tersebut.</div>' : '')))
-    +'<div class="cat-note">'+(item.group==='brand' ? noteBrand : (item.group==='boltech' ? noteBolt : note))+'</div>';
+    +(item.group==='brand' ? racingBrandTable(d, c) : (item.group==='boltech' ? racingBoltechTable(d, c) : '<div class="achv-table-wrap"><table>'+head+'<tbody>'+body+'</tbody>'+foot+'</table></div>'))
+;
   if (opts.embed) return inner;
   return '<div class="cat-overlay" onclick="if(event.target===this)closeRacing()">'
     +'<div class="cat-detail" style="max-width:min(1300px,98vw);">'
