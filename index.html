@@ -910,6 +910,7 @@ function normalizeBrandKey(raw){
   return b;
 }
 function fmt(n){ return Math.round(n||0).toLocaleString('id-ID'); }
+function fmtT(n){ return fmt(n); } // target/gap QTY racing model: tampil bilangan bulat (sama dengan format Excel), hitungan tetap memakai nilai asli
 function fmtJuta(n){
   n = n||0;
   const sign = n<0? '-' : '';
@@ -5870,10 +5871,37 @@ function racingGetItem(key){
   }
   return null;
 }
+/* ===== Racing OTOMATIS per MODEL (mis. "Vivo V80 Lite") =====
+   Cukup tambah di sheet Target Racing: (1) baris di tabel PERIODE RACING dengan nama "<Brand> <Seri>" dan (2) satu blok kolom
+   berjudul "<Brand> <Seri>" (boleh diawali "TARGET RACING ...") di baris 30. Dashboard otomatis:
+   - membuat tab racing baru di popup racing brand tsb (mis. Vivo | Vivo 3Juta+ | Vivo V80 Lite),
+   - menghitung capaian dari penjualan Device brand tsb yang nama barangnya memuat seri itu (semua varian warna/memori),
+   - membaca target QTY (kolom "...Regular Target" / "QTY") dan target tambahan "...Pick Up Target" bila ada. */
+const RACING_KNOWN_BRANDS = ['OPPO','VIVO','SAMSUNG','XIAOMI','INFINIX','TECNO','REALME','HONOR','HUAWEI','APPLE','MOTOROLA','SHARP','IQOO','LENOVO','ASUS','ITEL','NOKIA','ZTE','POCO'];
+const RACING_NOISE = ['TARGET','RACING','PERIODE','TIER','QTY','UNIT','VALUE','RP','SD','S/D','SERIES','PER','TOKO','PICK','UP','REGULAR','JANUARI','FEBRUARI','MARET','APRIL','MEI','JUNI','JULI','AGUSTUS','SEPTEMBER','OKTOBER','NOVEMBER','DESEMBER','JAN','FEB','MAR','APR','JUN','JUL','AGU','AGT','SEP','OKT','NOV','DES'];
+function racingAutoModel(name, s){
+  const toks = String(name==null?'':name).trim().split(/[\s\u2014\u2013,;:()]+/).filter(Boolean);
+  let brand = null; const rest = [];
+  toks.forEach(function(t){
+    const u = t.toUpperCase();
+    if (!brand && RACING_KNOWN_BRANDS.indexOf(normalizeBrandKey(u))>=0){ brand = normalizeBrandKey(u); return; }
+    if (RACING_NOISE.indexOf(u)>=0 || /^[0-9]+$/.test(u)) return;
+    rest.push(t);
+  });
+  if (!brand || !rest.length || !rest.some(function(t){ return /[a-z]/i.test(t) && /[0-9]/.test(t); })) return null; // wajib ada kode seri (huruf+angka, mis. V80 / A7 / S25)
+  const key = 'm_'+brand+'_'+rest.join('').toUpperCase().replace(/[^A-Z0-9]/g,'');
+  if (!RACING_ITEMS.some(function(x){ return x.key===key; })){
+    const label = brand.charAt(0)+brand.slice(1).toLowerCase()+' '+rest.map(function(t){ return /[0-9]/.test(t) ? t : t.charAt(0).toUpperCase()+t.slice(1).toLowerCase(); }).join(' ');
+    const model = new RegExp('(?:^|[^A-Za-z0-9])'+rest.map(function(t){ return t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }).join('[\\s\\-_.]*')+'(?![A-Za-z0-9])','i');
+    RACING_ITEMS.push({key:key, label:label, group:'brand', cat:'Device', brand:brand, model:model, auto:true});
+  }
+  return key;
+}
 function racingKeyFromName(name){
   const s = String(name==null?'':name).trim().toLowerCase();
   if (!s) return null;
   if (/a7\s*-?\s*pro/.test(s)) return 'oppoa7pro'; // harus sebelum cek 'oppo'
+  if (!/(3\s*(juta|jt)|3[.,]?000[.,]?000|2[.,]?999[.,]?999)/.test(s)){ const am = racingAutoModel(name, s); if (am) return am; } // brand + seri baru (mis. Vivo V80 Lite) -> item racing otomatis
   if (s.indexOf('oppo')>=0) return 'oppo';
   if (s.indexOf('vivo')>=0) return /(3\s*(juta|jt)|3[.,]?000[.,]?000|2[.,]?999[.,]?999)/.test(s) ? 'vivo3jt' : 'vivo';
   if (s.indexOf('indosat')>=0) return 'indosat';
@@ -5881,6 +5909,8 @@ function racingKeyFromName(name){
   if (s.indexOf('telkomsel')>=0 || s.indexOf('tsel')>=0) return 'telkomsel';
   if (s.indexOf('bolt')>=0) return 'boltech';
   if (s.indexOf('infinix')>=0) return 'b_INFINIX'; // Racing Infinix (header blok boleh bertambah teks, mis. "TARGET RACING INFINIX NOVEMBER")
+  const kb = RACING_KNOWN_BRANDS.find(function(b){ return new RegExp('(^|[^a-z])'+b.toLowerCase()+'([^a-z]|$)').test(s); }); // judul blok boleh bertambah teks, mis. "TARGET RACING REALME NOVEMBER"
+  if (kb && normalizeBrandKey(name)!==kb) return 'b_'+kb;
   const nb = normalizeBrandKey(name); // brand lain (Samsung, Xiaomi, Realme, dst.) -> key dinamis
   return nb ? 'b_'+nb : null;
 }
@@ -5896,6 +5926,7 @@ function racingMatch(item, r){ // r = [tanggal, toko, kategori, brand, qty, omze
   if (r[2]!==item.cat) return false;
   if (item.key==='oppo') return normalizeBrandKey(r[3])==='OPPO';
   if (item.key==='oppoa7pro') return normalizeBrandKey(r[3])==='OPPO' && item.model.test(String(r[7]==null?'':r[7])); // hanya tipe OPPO A7 Pro (semua varian warna/PO)
+  if (item.auto) return normalizeBrandKey(r[3])===item.brand && item.model.test(String(r[7]==null?'':r[7])); // racing model otomatis (mis. Vivo V80 Lite): semua varian warna/memori, baris PO ikut dihitung
   if (item.key==='vivo') return normalizeBrandKey(r[3])==='VIVO' && !r[10]; // baris PO (Ket PO = PO) tidak dihitung, sama dengan laporan
   if (item.key==='vivo3jt') return normalizeBrandKey(r[3])==='VIVO' && !r[10] && Math.abs(r[5])>item.minVal; // Vivo 3Juta+: batas value TANPA pajak (exc_tax) di atas 2.999.999, sama dengan laporan (tidak diubah)
   if (item.key==='indosat') return operatorBrandLabel(r[3])==='Indosat' && /^\s*INDOSAT-PLATINUM/i.test(String(r[7]==null?'':r[7])); // Racing Indosat: hanya artikel berawalan "INDOSAT-PLATINUM" (sama dengan laporan); eSIM, Platinum Plus & Nomor Baru/prepaid tidak dihitung. Value = kolom price per baris.
@@ -5908,6 +5939,7 @@ function racingMatch(item, r){ // r = [tanggal, toko, kategori, brand, qty, omze
 }
 // Parse sheet "Target Racing": blok PERIODE RACING + blok TARGET RACING PER TOKO (VALUE & QTY).
 function parseRacingSheet(trows){
+  for (let i=RACING_ITEMS.length-1;i>=0;i--){ if (RACING_ITEMS[i].auto) RACING_ITEMS.splice(i,1); } // item model otomatis dibangun ulang dari sheet setiap kali file di-upload
   const out = {periods:{}, area:{}, stores:{}, samTier:{stores:{}, estDays:null}};
   const norm = v => String(v==null?'':v).trim().toUpperCase();
   let pIdx=-1, tIdx=-1;
@@ -5941,6 +5973,7 @@ function parseRacingSheet(trows){
       const st = norm(sub[c]);
       if (st.indexOf('VALUE')===0) cols.push({c:c, key:cur, f:'v'});
       else if (st.indexOf('QTY')===0) cols.push({c:c, key:cur, f:'q'});
+      else if (cur.indexOf('m_')===0 && st) cols.push({c:c, key:cur, f:(/PICK/.test(st) ? 'pu' : 'q')}); // item model otomatis: "...Pick Up Target" = target pick up, kolom lain ("...Regular Target") = target QTY
       else if (/^NOTE\s*-?\s*60\s*-?\s*PRO/.test(st)) cols.push({c:c, key:cur, f:'q', m:'n60'}); // target per MODEL (Infinix Note 60 Pro)
       else if (/^NOTE\s*-?\s*EDGE/.test(st)) cols.push({c:c, key:cur, f:'q', m:'edge'}); // target per MODEL (Infinix Note Edge)
     }
@@ -5961,10 +5994,10 @@ function parseRacingSheet(trows){
       cols.forEach(m=>{
         const raw = row[m.c];
         if (raw==null || raw==='') return;
-        const n = Number(raw);
+        const n = Number(raw); // target racing model disimpan apa adanya (pecahan) dan hanya DITAMPILKAN bulat seperti format Excel; total = jumlah nilai asli lalu dibulatkan
         if (!isFinite(n) || n===0) return;
         const o = bucket[m.key] = bucket[m.key] || {v:0, q:0};
-        o[m.f] += n;
+        o[m.f] = (o[m.f]||0) + n;
         if (m.m){ o.m = o.m || {n60:0, edge:0}; o.m[m.m] += n; } // simpan target per model
       });
     }
@@ -5991,7 +6024,7 @@ function racingCompute(key, d){
   const elapsed = sameAsStore ? d.distinctDays : (asOf<start ? 0 : calendarDaysInclusive(start, asOf));
   const remain = Math.max(0, totalDays-elapsed);
   const factor = sameAsStore ? (isProjectionMode() && d.distinctDays>0 ? d.dim/d.distinctDays : 1) : ((hasPeriod && elapsed>0) ? totalDays/elapsed : 0);
-  const stores = (d.stores||[]).filter(s=>!racingStoreExcluded(s.site_desc)).sort((a,b)=>String(a.site_desc).localeCompare(String(b.site_desc),'id')); // Racing brand, Operator & Boltech: toko channel Erablue/Operator/JB tidak ikut racing (di-take out)
+  const stores = (d.stores||[]).filter(s=>!racingStoreExcluded(s.site_desc) || (item.auto && (function(){ const t = (rc.stores[s.site_desc] || rc.stores[s.site_code] || {})[key] || {}; return (t.q>0 || t.pu>0); })())).sort((a,b)=>String(a.site_desc).localeCompare(String(b.site_desc),'id')); // Racing brand, Operator & Boltech: toko channel Erablue/Operator/JB tidak ikut racing (di-take out)
   const byCode = {}; const agg = {};
   stores.forEach(s=>{ byCode[s.site_code]=s; byCode[s.site_desc]=s; agg[s.site_code]={v:0,q:0}; });
   const srcRecs = sameAsStore ? (d.filtered||[]) : (raw.records||[]);
@@ -6028,7 +6061,7 @@ function racingBrandTable(d, c){
   const item = c.item, raw = state.raw;
   const f = (c.hasPeriod && c.factor>0) ? c.factor : 1;
   const lowStyle = 'background:rgba(255,122,92,.22);color:var(--red);';
-  const gapTxt = g => g<0 ? '('+fmt(-g)+')' : fmt(g);
+  const gapTxt = g => g<0 ? '('+fmtT(-g)+')' : fmtT(g);
   // Mode QTY: bila target hanya diisi di kolom QTY (mis. Vivo 3Juta+), kolom TARGET / GAP / % utama dihitung by QTY
   // dan tiga kolom tambahan TARGET QTY | GAP QTY | % QTY tidak perlu ditampilkan lagi.
   const qtyMode = c.showQ && !c.showV;
@@ -6076,8 +6109,8 @@ function racingBrandTable(d, c){
       else {
         const tq = tr.reduce((a,x)=>a+(x.info?0:x.qty),0), to = tr.reduce((a,x)=>a+(x.info?0:x.omzet),0);
         inner = '<table><thead><tr><th class="cat-nm">TIPE TERJUAL</th><th>QTY</th><th>VALUE</th></tr></thead><tbody>'
-          + tr.map(x=>{ const neg = !!x.neg; return '<tr'+(neg?' style="color:var(--red);"':'')+'><td class="cat-nm" style="font-weight:700;color:'+(neg?'var(--red)':'var(--text-strong)')+';">'+escapeHtml(x.n)+(neg?(x.info?' (RETUR - tidak mengurangi capaian)':' (RETUR)'):'')+'</td><td>'+fmt(x.qty)+'</td><td>'+fmt(x.omzet)+'</td></tr>'; }).join('')
-          + '</tbody><tfoot><tr><td class="cat-nm" style="font-weight:800;color:var(--text-strong);">TOTAL</td><td style="font-weight:800;">'+fmt(tq)+'</td><td style="font-weight:800;">'+fmt(to)+'</td></tr></tfoot></table>';
+          + tr.map(x=>{ const neg = !!x.neg; return '<tr'+(neg?' style="color:var(--red);"':'')+'><td class="cat-nm" style="font-weight:700;color:'+(neg?'var(--red)':'var(--text-strong)')+';">'+escapeHtml(x.n)+(neg?(x.info?' (RETUR - tidak mengurangi capaian)':' (RETUR)'):'')+'</td><td>'+fmtT(x.qty)+'</td><td>'+fmtT(x.omzet)+'</td></tr>'; }).join('')
+          + '</tbody><tfoot><tr><td class="cat-nm" style="font-weight:800;color:var(--text-strong);">TOTAL</td><td style="font-weight:800;">'+fmtT(tq)+'</td><td style="font-weight:800;">'+fmtT(to)+'</td></tr></tfoot></table>';
       }
     }
     return '<div class="cat-ero-box" style="margin:4px 0 0 10px;padding:6px 10px 6px 10px;border-left:3px solid var(--green);"><h4 style="margin-top:4px;">\uD83D\uDCF1 TIPE TERJUAL &ndash; '+escapeHtml(name)+' ('+escapeHtml(item.label)+')</h4>'+inner+'</div>';
@@ -6113,11 +6146,30 @@ function racingBrandTable(d, c){
     });
     head = head.replace('</tr><tr><th>QTY</th>', '<th rowspan="2">NOTE 60 PRO<br>AKTUAL / TARGET</th><th rowspan="2">NOTE EDGE<br>AKTUAL / TARGET</th><th rowspan="2">STATUS<br>(wajib keduanya)</th></tr><tr><th>QTY</th>');
   }
+  // Racing model otomatis (mis. Vivo V80 Lite): kolom tambahan TARGET PICK UP bila sheet memuat "...Pick Up Target"
+  const puMap = {}; let puOn = false;
+  if (item.auto){
+    const rcAll = (raw && raw.racing) || {stores:{}};
+    c.rows.forEach(function(r){ const t = (rcAll.stores[r.name] || rcAll.stores[r.code] || {})[item.key] || {}; puMap[r.code] = t.pu||0; if (t.pu>0) puOn = true; });
+    if (puOn){
+      head = head.replace('>TARGET QTY<','>TARGET REGULAR<').replace('>GAP QTY<','>GAP REGULAR<').replace('>% QTY<','>% REGULAR<');
+      head = head.replace('</tr><tr><th>QTY</th>', '<th rowspan=\"2\">TARGET<br>PICK UP</th><th rowspan=\"2\">GAP<br>PICK UP</th><th rowspan=\"2\">% PICK UP</th></tr><tr><th>QTY</th>');
+    }
+  }
+  function puCells(x, bold){
+    if (!puOn) return '';
+    const b = bold ? 'font-weight:800;' : '';
+    let t = 0;
+    if (x.code!==undefined) t = puMap[x.code]||0; else (x.codes || Object.keys(puMap)).forEach(function(k){ t += puMap[k]||0; });
+    if (!(t>0)) return '<td style=\"'+b+'\">-</td><td style=\"'+b+'\">-</td><td style=\"'+b+'\">-</td>';
+    const gap = (x.aq||0) - t, p = (x.eq||0)/t*100;
+    return '<td style=\"'+b+'\">'+fmtT(t)+'</td><td style=\"'+b+'\">'+gapTxt(gap)+'</td><td style=\"font-weight:800;'+(p<100?lowStyle:'')+'\">'+fmtPct(p)+'</td>';
+  }
   function infOk(m){ return (m.t60>0 || m.tEd>0) && (m.t60<=0 || m.a60>=m.t60) && (m.tEd<=0 || m.aEd>=m.tEd); }
   function infCells(x, bold){
     if (!inf) return '';
     const b = bold ? 'font-weight:800;' : '';
-    const cell = function(a, t){ return '<td style="'+b+(t>0 && a<t ? lowStyle : '')+'">'+fmt(a)+' / '+(t>0 ? fmt(t) : '-')+'</td>'; };
+    const cell = function(a, t){ return '<td style="'+b+(t>0 && a<t ? lowStyle : '')+'">'+fmtT(a)+' / '+(t>0 ? fmtT(t) : '-')+'</td>'; };
     if (x.code!==undefined){
       const m = infMap[x.code] || {a60:0, aEd:0, t60:0, tEd:0};
       const has = m.t60>0 || m.tEd>0, ok = infOk(m);
@@ -6128,8 +6180,8 @@ function racingBrandTable(d, c){
     (x.codes || Object.keys(infMap)).forEach(function(k){ const m = infMap[k]; if (!m) return; t.a60+=m.a60; t.aEd+=m.aEd; t.t60+=m.t60; t.tEd+=m.tEd; if (m.t60>0 || m.tEd>0){ n++; if (infOk(m)) okN++; } });
     return cell(t.a60, t.t60) + cell(t.aEd, t.tEd) + '<td style="font-weight:800;">'+okN+' / '+n+' toko</td>';
   }
-  const hasV = c.showV, ncol = 9 + (showQ?3:0) + (inf?3:0);
-  const qCells = (x, bold) => showQ ? ('<td'+(bold?' style="font-weight:800;"':'')+'>'+(x.tq>0?fmt(x.tq):'-')+'</td><td'+(bold?' style="font-weight:800;"':'')+'>'+(x.tq>0?gapTxt(x.gapQ):'-')+'</td>'
+  const hasV = c.showV, ncol = 9 + (showQ?3:0) + (inf?3:0) + (puOn?3:0);
+  const qCells = (x, bold) => showQ ? ('<td'+(bold?' style="font-weight:800;"':'')+'>'+(x.tq>0?fmtT(x.tq):'-')+'</td><td'+(bold?' style="font-weight:800;"':'')+'>'+(x.tq>0?gapTxt(x.gapQ):'-')+'</td>'
     +'<td style="font-weight:800;'+(x.pctQ!==null&&x.pctQ<100?lowStyle:'')+'">'+(x.pctQ===null?'-':fmtPct(x.pctQ))+'</td>') : '';
   let body = '';
   const areaHdr = function(g){
@@ -6137,8 +6189,8 @@ function racingBrandTable(d, c){
     const x = mkP(Object.assign({name:g.area}, sm)); x.codes = g.idx.map(function(i){ return c.rows[i].code; });
     const B = ' style="font-weight:800;"';
     return '<tr class="area-hdr"><td></td><td class="cat-nm">'+racingAreaLabel(g)+'</td>'
-      +'<td'+B+'>'+(x.tv>0?fmt(x.tv):'-')+'</td><td'+B+'>'+fmt(x.aq)+'</td><td'+B+'>'+fmt(x.av)+'</td><td'+B+'>'+fmt(x.eq)+'</td><td'+B+'>'+fmt(x.ev)+'</td>'
-      +'<td'+B+'>'+(x.tv>0?gapTxt(x.gap):'-')+'</td><td style="font-weight:800;'+(x.pct!==null&&x.pct<100?lowStyle:'')+'">'+(x.pct===null?'-':fmtPct(x.pct))+'</td>'+qCells(x,true)+infCells(x,true)+'</tr>';
+      +'<td'+B+'>'+(x.tv>0?fmtT(x.tv):'-')+'</td><td'+B+'>'+fmtT(x.aq)+'</td><td'+B+'>'+fmtT(x.av)+'</td><td'+B+'>'+fmtT(x.eq)+'</td><td'+B+'>'+fmtT(x.ev)+'</td>'
+      +'<td'+B+'>'+(x.tv>0?gapTxt(x.gap):'-')+'</td><td style="font-weight:800;'+(x.pct!==null&&x.pct<100?lowStyle:'')+'">'+(x.pct===null?'-':fmtPct(x.pct))+'</td>'+qCells(x,true)+infCells(x,true)+puCells(x,true)+'</tr>';
   };
   const rowsOut = racingRowsWithAreas(rows, function(r){ return r.name; });
   rowsOut.forEach(r=>{
@@ -6146,17 +6198,17 @@ function racingBrandTable(d, c){
     const isSel = state.racingSel===r.code;
     const low = r.pct!==null && r.pct<100;
     body += '<tr class="store-row-click'+(isSel?' store-row-active':'')+'" onclick="selectRacingRow(\''+String(r.code).replace(/'/g,"\\'")+'\')" title="Klik untuk lihat tipe yang terjual di toko ini"><td>'+escapeHtml(sapCodeOf(r.name))+'</td><td class="cat-nm" style="font-weight:700;color:var(--text-strong);">'+escapeHtml(r.name)+'</td>'
-      +'<td>'+(r.tv>0?fmt(r.tv):'-')+'</td>'
-      +'<td>'+fmt(r.aq)+'</td><td>'+fmt(r.av)+'</td><td>'+fmt(r.eq)+'</td><td>'+fmt(r.ev)+'</td>'
+      +'<td>'+(r.tv>0?fmtT(r.tv):'-')+'</td>'
+      +'<td>'+fmtT(r.aq)+'</td><td>'+fmtT(r.av)+'</td><td>'+fmtT(r.eq)+'</td><td>'+fmtT(r.ev)+'</td>'
       +'<td>'+(r.tv>0?gapTxt(r.gap):'-')+'</td>'
-      +'<td style="font-weight:800;'+(low?lowStyle:'')+'">'+(r.pct===null?'-':fmtPct(r.pct))+'</td>'+qCells(r,false)+infCells(r,false)+'</tr>';
+      +'<td style="font-weight:800;'+(low?lowStyle:'')+'">'+(r.pct===null?'-':fmtPct(r.pct))+'</td>'+qCells(r,false)+infCells(r,false)+puCells(r,false)+'</tr>';
     if (isSel) body += '<tr class="ero-expand-row"><td colspan="'+ncol+'" style="padding:0 0 8px 0;border-bottom:1px solid var(--border);">'+typeBoxHtml(r.code)+'</td></tr>';
   });
-  const foot = '<tfoot><tr><td></td><td class="cat-nm" style="font-weight:800;color:var(--text-strong);">TOTAL</td><td style="font-weight:800;">'+(tot.tv>0?fmt(tot.tv):'-')+'</td>'
-    +'<td style="font-weight:800;">'+fmt(tot.aq)+'</td><td style="font-weight:800;">'+fmt(tot.av)+'</td>'
-    +'<td style="font-weight:800;">'+fmt(tot.eq)+'</td><td style="font-weight:800;">'+fmt(tot.ev)+'</td>'
+  const foot = '<tfoot><tr><td></td><td class="cat-nm" style="font-weight:800;color:var(--text-strong);">TOTAL</td><td style="font-weight:800;">'+(tot.tv>0?fmtT(tot.tv):'-')+'</td>'
+    +'<td style="font-weight:800;">'+fmtT(tot.aq)+'</td><td style="font-weight:800;">'+fmtT(tot.av)+'</td>'
+    +'<td style="font-weight:800;">'+fmtT(tot.eq)+'</td><td style="font-weight:800;">'+fmtT(tot.ev)+'</td>'
     +'<td style="font-weight:800;">'+(tot.tv>0?gapTxt(tot.gap):'-')+'</td>'
-    +'<td style="font-weight:800;'+(tot.pct!==null&&tot.pct<100?lowStyle:'')+'">'+(tot.pct===null?'-':fmtPct(tot.pct))+'</td>'+qCells(tot,true)+infCells(tot,true)+'</tr></tfoot>';
+    +'<td style="font-weight:800;'+(tot.pct!==null&&tot.pct<100?lowStyle:'')+'">'+(tot.pct===null?'-':fmtPct(tot.pct))+'</td>'+qCells(tot,true)+infCells(tot,true)+puCells(tot,true)+'</tr></tfoot>';
   return '<div class="pv-ctl" style="margin:4px 0 8px;"><button class="pv-btn'+(netRetur?' on':'')+'" '+(item.key==='telkomsel'?'':'onclick=\"toggleRacingRetur()\" ')+'title=\"'+(item.key==='telkomsel'?'Telkomsel: value mengikuti total By Tipe (Barang Terjual), retur ikut dihitung':'Klik untuk mengganti perlakuan retur')+'\">\u21A9 Retur: '+(netRetur?'MENGURANGI capaian':'TIDAK mengurangi capaian')+'</button></div>'
     +'<div class="achv-table-wrap"><table>'+head+'<tbody>'+body+'</tbody>'+foot+'</table></div>';
 }
