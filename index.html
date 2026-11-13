@@ -768,6 +768,40 @@ body.theme-soft .cat-detail table.pivot-tbl.pv-hp tbody td,body.theme-soft .cat-
   .cmp-d{display:inline-block;margin-left:5px;font-size:10px;font-weight:800;white-space:nowrap;vertical-align:middle;}
   .cmp-d.up{color:var(--green);} .cmp-d.dn{color:var(--red);}
 </style>
+<style id="stk-css">
+.stk-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0;}
+.stk-tab{border:1px solid var(--green);background:var(--sub);color:var(--green);border-radius:8px;padding:5px 11px;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;}
+.stk-catdd{position:relative;display:inline-block;}
+.stk-catbtn{background:var(--sub);color:var(--text-strong);border:1px solid var(--green);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;display:inline-flex;gap:6px;align-items:center;}
+.stk-catpanel{position:absolute;z-index:30;top:calc(100% + 4px);left:0;min-width:270px;max-width:92vw;background:var(--card);border:1px solid var(--divider);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.35);padding:8px;}
+.stk-catpanel .stk-in{width:100%;box-sizing:border-box;margin-bottom:6px;}
+.stk-catopt{display:flex;align-items:center;gap:8px;padding:5px 4px;border-radius:6px;font-size:12px;color:var(--text);cursor:pointer;user-select:none;}
+.stk-catopt:hover{background:var(--sub);}
+.stk-catopt .bx{width:14px;height:14px;border:1.5px solid var(--muted);border-radius:3px;flex:none;box-sizing:border-box;}
+.stk-catopt.on .bx{background:var(--green);border-color:var(--green);}
+.stk-catopt i{margin-left:auto;font-style:normal;color:var(--muted);font-size:11px;font-weight:700;}
+.stk-tab.on{background:var(--green);color:var(--card);}
+.stk-in{background:var(--sub);color:var(--text-strong);border:1px solid var(--divider);border-radius:8px;padding:5px 8px;font-size:12px;font-family:inherit;max-width:100%;}
+.stk-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:6px;}
+.stk-kpi{background:var(--sub);border:1px solid var(--border);border-radius:10px;padding:8px 10px;}
+.stk-kl{font-size:10.5px;color:var(--muted);font-weight:700;}
+.stk-kv{font-size:17px;font-weight:800;color:var(--text-strong);font-variant-numeric:tabular-nums;}
+.stk-scroll{overflow:auto;max-height:520px;border:1px solid var(--border);border-radius:10px;}
+.stk-tbl{width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;}
+.stk-tbl th{position:sticky;top:0;background:var(--sub);color:var(--text-mid);font-size:11px;padding:6px 8px;white-space:nowrap;z-index:1;}
+.stk-tbl td{padding:5px 8px;border-top:1px solid var(--border);text-align:right;}
+.stk-tbl td:first-child{text-align:left;}
+.stk-found{background:var(--sub);border:1px solid var(--border);border-radius:12px;padding:8px 10px;margin:6px 0;}
+.stk-found-h{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:7px;font-size:11.5px;color:var(--muted);}
+.stk-found-h b{color:var(--text-strong);}
+.stk-clear{border:1px solid var(--red);color:var(--red);border-radius:999px;padding:2px 10px;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;}
+.stk-chips{display:flex;flex-wrap:wrap;gap:6px;max-height:112px;overflow:auto;padding-right:2px;}
+.stk-chip{display:inline-flex;align-items:center;gap:7px;background:var(--card);border:1px solid var(--border);color:var(--text-mid);border-radius:999px;padding:3px 4px 3px 11px;font-size:11.5px;font-weight:600;text-decoration:none;}
+.stk-chip:hover{border-color:var(--green);color:var(--green);}
+.stk-chip i{font-style:normal;background:var(--sub);color:var(--green);border-radius:999px;padding:1px 8px;font-weight:800;font-size:11px;font-variant-numeric:tabular-nums;}
+.stk-chip.on{background:var(--green);border-color:var(--green);color:var(--card);}
+.stk-chip.on i{background:var(--card);color:var(--green);}
+</style>
 </head>
 <body>
 <div id="app"></div>
@@ -1526,6 +1560,7 @@ function findMasterDataHeader(rows, maxScan){
         if (idx!==-1){ colMap.sap_code = idx; break; }
       }
       colMap.ket_po = norm.indexOf('ket po'); if (colMap.ket_po===-1) colMap.ket_po = norm.indexOf('ket_po');
+      colMap.article = -1; ['article_code','article code','article'].forEach(function(a){ if (colMap.article===-1){ const ix = norm.indexOf(a); if (ix!==-1) colMap.article = ix; } });
       colMap.by_area = -1;
       ['by area','by_area','area'].forEach(function(a){ if (colMap.by_area===-1){ const ix = norm.indexOf(a); if (ix!==-1) colMap.by_area = ix; } });
       colMap.invoice = -1;
@@ -1706,6 +1741,7 @@ function parseWorkbook(wb, fileName){
   // nama bulan (cuma "Target") tetap didukung sebagai target default/fallback.
   const racingSheetName = sheetNames.find(n => /racing/i.test(n));
   const targetSheetNames = sheetNames.filter(n => n.toLowerCase().includes('target') && !/racing/i.test(n));
+  const stockSheetName = sheetNames.find(n => n.trim().toLowerCase()==='stock') || sheetNames.find(n => /stock/i.test(n) && !/target/i.test(n));
   const historySheetName = sheetNames.find(n => n.trim().toLowerCase()==='riwayat bulanan') || sheetNames.find(n => n.toLowerCase().includes('riwayat'));
 
   if (!dataSheetName) throw new Error("Sheet 'Master Data' tidak ditemukan di file Excel.");
@@ -1724,6 +1760,7 @@ function parseWorkbook(wb, fileName){
   const tshByArea = {}; // AREA -> nama TSH (kolom TSH sheet By Area)
   const areaByStore = {}; // site_desc -> nama area (dari kolom 'by area' di Master Data / sheet 'By Area ...')
   const categoriesSeen = new Set();
+  const soldMap = {}, devMap = {}; // penjualan per (tanggal, toko, article) utk DOS di Stock Monitoring
   for (let i=headerIdx+1;i<dataRows.length;i++){
     const row = dataRows[i];
     if (!row || row.every(c=>c===null||c==='')) continue;
@@ -1759,6 +1796,14 @@ function parseWorkbook(wb, fileName){
     const isPO = (col.ket_po!==-1 && row[col.ket_po]!=null && String(row[col.ket_po]).trim().toUpperCase()==='PO') ? 1 : 0;
     const invoiceNo = col.invoice!==-1 && row[col.invoice]!=null ? String(row[col.invoice]).trim() : ''; // index 11 = nomor nota/invoice (dipakai analisis Kontribusi VAS by Brand)
     records.push([dateISO, siteDesc, category, brand, qty, omzet, salesName, itemName, withTax, racingValue, isPO, invoiceNo]);
+    if (col.article!==-1 && row[col.article]!=null && String(row[col.article]).trim()!==''){
+      const _art = String(row[col.article]).trim();
+      devMap[_art] = (category==='Device');
+      if (category!=='Operator' && category!=='Repair Contract'){
+        const _k = dateISO+'|'+siteDesc+'|'+_art;
+        if (soldMap[_k]) soldMap[_k][3] += qty; else soldMap[_k] = [dateISO, siteDesc, _art, qty, category==='Device'];
+      }
+    }
   }
   const hasItemNameColumn = col.item_name!==-1;
   const hasInvoiceColumn = col.invoice!==-1;
@@ -1860,7 +1905,7 @@ function parseWorkbook(wb, fileName){
   // pemetaan ('By Area ...': Nama Toko | Site Code | AREA); sisanya ditebak dari leader yang sama.
   // Sheet pemetaan toko-AREA: 'By Area ...' diprioritaskan, lalu sheet lain (mis. 'Sheet1') selama kolom C berisi nama area sah.
   const areaSheetNames = sheetNames.filter(n => /by\s*area/i.test(n))
-    .concat(sheetNames.filter(n => !/by\s*area/i.test(n) && n!==dataSheetName && n!==racingSheetName && n!==historySheetName && targetSheetNames.indexOf(n)===-1));
+    .concat(sheetNames.filter(n => !/by\s*area/i.test(n) && n!==dataSheetName && n!==racingSheetName && n!==historySheetName && n!==stockSheetName && targetSheetNames.indexOf(n)===-1));
   areaSheetNames.forEach(function(areaSheetName){
     const arows = XLSX.utils.sheet_to_json(wb.Sheets[areaSheetName], {header:1, defval:null, raw:true});
     arows.forEach(function(row){
@@ -1909,6 +1954,26 @@ function parseWorkbook(wb, fileName){
     }
   }
 
+  /* ---- Stock: sheet "Stock" (Plant | Nama Toko | Article | Article Description | Brand Name | Quantity). Tanggal stock opsional di sel H2. ---- */
+  let stockObj = null;
+  if (stockSheetName){
+    const srows = XLSX.utils.sheet_to_json(wb.Sheets[stockSheetName], {header:1, defval:null, raw:true});
+    let hi = -1, nm = [];
+    for (let i=0;i<Math.min(srows.length,20);i++){
+      nm = (srows[i]||[]).map(c => c!=null ? String(c).trim().toLowerCase() : '');
+      if (nm.includes('plant') && nm.includes('article') && nm.includes('quantity')){ hi = i; break; }
+    }
+    if (hi!==-1){
+      const cP = nm.indexOf('plant'), cA = nm.indexOf('article'), cD = nm.indexOf('article description'), cB = nm.indexOf('brand name'), cQ = nm.indexOf('quantity');
+      const srowsOut = [];
+      for (let i=hi+1;i<srows.length;i++){
+        const r = srows[i]; if (!r || r[cP]==null || r[cA]==null) continue;
+        srowsOut.push([String(r[cP]).trim(), String(r[cA]).trim(), cD!==-1&&r[cD]!=null ? String(r[cD]).trim() : '', cB!==-1&&r[cB]!=null ? String(r[cB]).trim() : '', Number(r[cQ])||0]);
+      }
+      let sdate = ''; const dv = (srows[hi+1]||[])[7]; if (dv!=null && dv!=='') sdate = excelDateToISO(dv) || '';
+      stockObj = {rows: srowsOut, date: sdate, sold: Object.keys(soldMap).map(function(k){ return soldMap[k]; }), dev: devMap};
+    }
+  }
   const dates = records.map(r=>r[0]).sort();
   const dateMin = dates[0], dateMax = dates[dates.length-1];
   const extraCategories = [...categoriesSeen].filter(c => !CATEGORY_ORDER.includes(c));
@@ -1926,7 +1991,7 @@ function parseWorkbook(wb, fileName){
     : null;
 
   return {
-    records, stores, monthlyHistory, brandCards, areas, areaByStore: hasAreaData ? areaByStore : null, tshByArea,
+    records, stores, stock: stockObj, monthlyHistory, brandCards, areas, areaByStore: hasAreaData ? areaByStore : null, tshByArea,
     targetsByMonth, monthKeysList, defaultMonthKey,
     racing: racingSheetName ? parseRacingSheet(XLSX.utils.sheet_to_json(wb.Sheets[racingSheetName], {header:1, defval:null, raw:true})) : null,
     targets: targetsByMonth[defaultMonthKey] || targetsByMonth['_default'] || emptyTargets(),
@@ -3516,7 +3581,7 @@ function renderSalesAchievementCard(d){
             OPERATOR_BRANDS.forEach((ob,k)=>{ rows += catCell(s.opBrand[ob]||0, s.opBrandQty[ob]||0, k===0); });
             return;
           }
-          rows += catCell(s.cat[cat]||0, s.catQty[cat]||0, true);
+          rows += catCell(s.cat[cat]||0, (cat==='Accessories' ? (s.accQty10k||0) : (s.catQty[cat]||0)), true); // qty Accessories disamakan dgn qty AR Aksesoris (value > Rp10.000)
         });
         rows += '<td class="gs" style="color:var(--green);font-weight:800;"><div>'+fmt(s.total)+'</div>'
           +'<div style="font-size:'+fz(11)+';color:var(--muted);margin-top:2px;">'+fmt(s.totalQty)+' pcs</div></td>'
@@ -3533,7 +3598,7 @@ function renderSalesAchievementCard(d){
           OPERATOR_BRANDS.forEach((ob,k)=>{ foot += footCell(t.opBrand[ob]||0, t.opBrandQty[ob]||0, k===0); });
           return;
         }
-        foot += footCell((t.cat[cat])||0, (t.catQty[cat])||0, true);
+        foot += footCell((t.cat[cat])||0, (cat==='Accessories' ? (t.accQty10k||0) : ((t.catQty[cat])||0)), true); // qty Accessories disamakan dgn qty AR Aksesoris
       });
       foot += '<td class="gs" style="color:var(--green);font-weight:800;"><div>'+fmt(t.total)+'</div>'
         +'<div style="font-size:'+fz(11)+';color:var(--muted);margin-top:2px;">'+fmt(t.totalQty)+' pcs</div></td>'
@@ -7028,12 +7093,12 @@ function renderStoreSection(d){
 
 /* ============ COLLAPSE HELPERS ============ */
 // Header section dengan judul di kiri + tombol +/- di kanan untuk sembunyikan/tampilkan isi card.
-function sectionTitleWithToggle(key, titleHtml, extraRightHtml){
+function sectionTitleWithToggle(key, titleHtml, extraRightHtml, hideCam){
   const collapsed = !!state.collapsed[key];
   return '<div class="section-title">'
     +'<span class="section-title-left">'+titleHtml+'</span>'
     +'<span style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;row-gap:6px;">'+(extraRightHtml||'')
-      +(collapsed? '' : '<button class="slide-download-btn" onclick="downloadCardAsImage(this)" title="Download slide ini sebagai gambar (PNG)">📷</button>')
+      +((collapsed||hideCam)? '' : '<button class="slide-download-btn" onclick="downloadCardAsImage(this)" title="Download slide ini sebagai gambar (PNG)">📷</button>')
       +'<button class="collapse-btn" onclick="toggleSection(\''+key+'\')" title="'+(collapsed?'Tampilkan':'Sembunyikan')+'">'+(collapsed?'+':'&minus;')+'</button>'
     +'</span>'
   +'</div>';
@@ -7075,6 +7140,7 @@ function buildAppHTML(){
     + renderStoreSection(d)
     + '<div class="row-top">' + renderTopStoreCard(d) + renderTopSalesCard(d) + '</div>'
     + renderSalesAchievementCard(d)
+    + renderStockCard(d)
     + renderRacingPopup(d)
     + renderSamIncPopup(d);
 }
@@ -7114,6 +7180,65 @@ function slideFileName(card, index){
   base = base.replace(/[^\p{L}\p{N}]+/gu,'_').replace(/^_+|_+$/g,'').slice(0,50) || 'slide';
   return (index!=null? 'slide_'+String(index).padStart(2,'0')+'_' : '') + base + '.png';
 }
+
+/* ============ CAPTURE SLIDE/CARD ANTI-PECAH (HP & laptop) ============
+   Masalah lama: gambar dibuat dari tampilan layar apa adanya. Di HP tabel "Pencapaian All Kategori ERO" di-auto-fit
+   ke zoom kecil (font ~5px) & lebar layar sempit, sehingga hasil capture kecil, teks bertumpuk/pecah, dan beda dengan di laptop.
+   Sekarang: (1) tunggu font siap, (2) tabel ERO digambar pada ukuran 100% (font normal) dgn lebar alami tabel -> hasil
+   SAMA di HP maupun laptop, (3) kolom sticky dimatikan (html2canvas salah menggambarnya), (4) teks pakai geometricPrecision +
+   letterRendering supaya tidak saling tumpang, (5) skala piksel mengikuti kerapatan layar (capImgScale). */
+function capCardCanvas(card){
+  const wraps = card.querySelectorAll('.salesAchvTableWrap');
+  const z = (state.salesAchvZoom||100)/100, k = wraps.length ? 1/z : 1;
+  let W = card.offsetWidth, H = card.offsetHeight;
+  if (wraps.length){
+    let natTbl = 0, padX = 0;
+    wraps.forEach(function(wrap){
+      const t = wrap.querySelector('table'); if (!t) return;
+      natTbl = Math.max(natTbl, Math.ceil(t.scrollWidth * k));
+      padX = Math.max(padX, card.offsetWidth - wrap.clientWidth);
+    });
+    W = Math.max(natTbl + padX + 6, 900);
+    H = Math.ceil(H * Math.max(1, k));
+  }
+  if (!wraps.length){ // slide lain: tidak diubah, sama persis seperti sebelumnya
+    return html2canvas(card, {backgroundColor: currentBgColor(), scale: capImgScale(card.offsetWidth, card.offsetHeight), useCORS: true, onclone: function(doc, el){ capHideCtl(doc); sanitizeCaptureColors(el); }, ignoreElements: function(el){ return !!(el.classList && el.classList.contains('achv-panel')); }});
+  }
+  const scale = capImgScale(W, H);
+  const ready = (document.fonts && document.fonts.ready) ? document.fonts.ready.catch(function(){}) : Promise.resolve();
+  return ready.then(function(){ return html2canvas(card, {
+    backgroundColor: currentBgColor(), scale: scale, useCORS: true, letterRendering: true,
+    windowWidth: wraps.length ? W + 80 : Math.max(window.innerWidth, card.offsetWidth + 40),
+    ignoreElements: function(el){ return !!(el.classList && el.classList.contains('achv-panel')); },
+    onclone: function(doc, el){
+      capHideCtl(doc);
+      try{
+        doc.body.style.textRendering = 'geometricPrecision';
+        doc.body.style.webkitFontSmoothing = 'antialiased';
+        doc.body.style.webkitTextSizeAdjust = '100%'; doc.body.style.textSizeAdjust = '100%';
+        doc.querySelectorAll('.achv-table-wrap .c-rank, .achv-table-wrap .c-name, .ety-in').forEach(function(c){ c.style.setProperty('position','static','important'); });
+        const cw = doc.querySelectorAll('.salesAchvTableWrap');
+        if (cw.length){
+          el.style.width = W + 'px'; el.style.maxWidth = 'none'; el.style.overflow = 'visible';
+          cw.forEach(function(wrap){
+            wrap.style.overflow = 'visible'; wrap.style.maxWidth = 'none';
+            if (k !== 1){
+              if (wrap.style.getPropertyValue('--ep-y')){ wrap.style.setProperty('--ep-y','7px'); wrap.style.setProperty('--ep-x','7px'); wrap.style.setProperty('--ep-k','1'); }
+              wrap.querySelectorAll('[style*="font-size"]').forEach(function(n){
+                const f = n.style.fontSize; if (f && /px$/.test(f)) n.style.fontSize = (parseFloat(f)*k).toFixed(2)+'px';
+              });
+            }
+          });
+          // pastikan kartu cukup lebar untuk tabel (tidak terpotong di kanan)
+          let need = 0;
+          cw.forEach(function(wrap){ const t = wrap.querySelector('table'); if (t) need = Math.max(need, t.scrollWidth - wrap.clientWidth); });
+          if (need > 1) el.style.width = (W + need + 4) + 'px';
+        }
+      }catch(e){ console.warn('capCardCanvas clone', e); }
+      sanitizeCaptureColors(el);
+    }
+  }); });
+}
 // Download satu card/slide sebagai PNG. Dipanggil dari tombol 📷 di tiap section.
 // Tombol kontrol di judul slide (⇄ banding, 📷, −) tidak ikut masuk ke gambar hasil download.
 function capHideCtl(doc){ try{ doc.querySelectorAll('.slide-download-btn,.collapse-btn,.cmp-ctl').forEach(function(e){ e.style.setProperty('display','none','important'); }); }catch(e){} }
@@ -7123,7 +7248,7 @@ function downloadCardAsImage(btn){
   if (!card) return;
   const original = btn.innerHTML;
   btn.disabled = true; btn.innerHTML = '⏳';
-  html2canvas(card, {backgroundColor: currentBgColor(), scale: capImgScale(card.offsetWidth, card.offsetHeight), useCORS: true, onclone: function(doc, el){ capHideCtl(doc); sanitizeCaptureColors(el); }, ignoreElements: function(el){ return !!(el.classList && el.classList.contains('achv-panel')); }}).then(function(canvas){
+  capCardCanvas(card).then(function(canvas){
     savePngCanvas(canvas, slideFileName(card, null));
   }).catch(function(err){
     alert('Gagal membuat gambar slide: '+err.message);
@@ -7141,7 +7266,7 @@ function downloadAllSlides(){
   function next(){
     if (i >= cards.length) return;
     const card = cards[i]; i++;
-    html2canvas(card, {backgroundColor: currentBgColor(), scale: capImgScale(card.offsetWidth, card.offsetHeight), useCORS: true, onclone: function(doc, el){ capHideCtl(doc); sanitizeCaptureColors(el); }}).then(function(canvas){
+    capCardCanvas(card).then(function(canvas){
       savePngCanvas(canvas, slideFileName(card, i));
       setTimeout(next, 600);
     }).catch(function(err){
@@ -7150,6 +7275,236 @@ function downloadAllSlides(){
     });
   }
   next();
+}
+
+/* ============ STOCK MONITORING ============
+   Sumber: sheet "Stock" di Master_Data_Area_Pak_Aris.xlsx (Plant | Nama Toko | Article | Article Description | Brand Name | Quantity).
+   Toko dicocokkan lewat KODE (Plant = Site Code), bukan nama (nama di sheet Stock terpotong 30 huruf).
+   DOS (Days of Stock) = stock / rata-rata jual per hari pada periode terpilih (qty bersih, Master Data s/d tanggal transaksi terakhir). */
+const STK_T = {low:7, ok:14, high:60}; // batas DOS: <7 Kritis | 7-14 Sehat (2 minggu) | 15-60 Berlebih | >60 / tak terjual = Slow
+function stk(){ return state.stk || (state.stk = {view:'store', win:30, cat:'', q:'', iq:'', iqArt:'', cq:'', st:'', sort:null, all:false, art:'', store:'', a:'', b:'', cats:[], catOpen:false, catq:''}); }
+function stkSet(k,v){ const c=stk(); c[k]=v; if(k!=='all') c.all=false; if(k!=='art') c.art=''; render(); }
+function stkKpiStatus(st){ // klik KPI "SKU Kritis / Slow" -> buka tab DOS Barang terfilter status tsb
+  const c = stk(); c.view='dos'; c.st=st; c.q=''; c.store=''; c.art=''; c.all=false;
+  c.sort = st==='KH' ? {k:'dos',dir:1} : {k:'qty',dir:-1}; // Kritis: DOS terkecil dulu; Slow: stok terbanyak dulu
+  render();
+}
+
+/* ===== Filter Category_Name (Stok per Toko): klasifikasi SKU di tiap toko =====
+   Dihitung per SKU per toko dari stok, DOS (stok / rata-rata jual per hari) dan tren penjualan
+   (periode jual terpilih dibanding periode sebelumnya dgn jumlah hari sama; bila data periode sebelumnya tidak ada, tren dianggap 0).
+   Urutan aturan: Supply Bottleneck > Star / Priority Restock > Dead Stock > Declining > Overstocked > Healthy Growth > Watchlist. */
+const STK_CATS = [
+  ['Star / Priority Restock','Laku & stok tipis (DOS < '+STK_T.low+' hari) - prioritas isi ulang'],
+  ['Supply Bottleneck','Stok kosong padahal ada penjualan'],
+  ['Healthy Growth','DOS '+STK_T.low+'-30 hari & penjualan tidak turun'],
+  ['Watchlist / Trend','Sisanya: DOS 30-'+STK_T.high+' hari atau tren menurun ringan'],
+  ['Overstocked','DOS > '+STK_T.high+' hari (stok berlebih)'],
+  ['Declining / Phase-out','Penjualan turun >= 50% dari periode sebelumnya'],
+  ['Dead Stock / Liquidation','Ada stok, tidak ada penjualan sama sekali']
+];
+function stkCatOf(qty, sold, prev, days){
+  if (qty<=0) return sold>0 ? 'Supply Bottleneck' : null;
+  if (!(sold>0)) return 'Dead Stock / Liquidation';
+  const dos = qty/(sold/days);
+  if (dos<STK_T.low) return 'Star / Priority Restock';
+  if (prev>0 && sold<=prev*0.5) return 'Declining / Phase-out';
+  if (dos>STK_T.high) return 'Overstocked';
+  if (dos<=30 && !(prev>0 && sold<prev)) return 'Healthy Growth';
+  return 'Watchlist / Trend';
+}
+function stkItems(D){ const cats = stk().cats||[]; return cats.length ? D.items.concat(D.noStock||[]).filter(function(r){ return cats.indexOf(r.cat)>=0; }) : D.items; }
+function stkCatToggle(enc){ const c=stk(), n=decodeURIComponent(enc), i=c.cats.indexOf(n); if (i>=0) c.cats.splice(i,1); else c.cats.push(n); c.all=false; render(); }
+function stkCatMenu(e){ if(e) e.stopPropagation(); const c=stk(); c.catOpen=!c.catOpen; render(); }
+function stkCatClear(e){ if(e) e.stopPropagation(); const c=stk(); c.cats=[]; c.all=false; render(); }
+document.addEventListener('click', function(e){
+  const c = state.stk; if (c && c.catOpen && !e.target.closest('[data-menu="stkcat"]')){ c.catOpen = false; render(); }
+});
+function stkArt(a){ const c=stk(); c.art = (c.art===a) ? '' : a; render(); }
+function stkIqArt(a){ const c=stk(); c.iqArt = (c.iqArt===a) ? '' : a; render(); }
+function stkIn(k,el){ const c=stk(); c[k]=el.value; if(k==='iq') c.iqArt=''; c.all=false; scheduleRender(250); }
+function stkSort(k){ const c=stk(), s=c.sort; c.sort = (s&&s.k===k) ? {k:k,dir:-s.dir} : {k:k,dir:-1}; render(); }
+function stkEsc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]; }); }
+function stkInfo(qty, sold, days){
+  if (!(sold>0)) return {dos:null, s: qty>0?'Tak bergerak':'-', c: qty>0?'var(--blue)':'var(--muted)'};
+  const dos = qty/(sold/days);
+  if (qty<=0) return {dos:0, s:'Habis', c:'var(--red)'};
+  if (dos<STK_T.low) return {dos:dos, s:'Kritis', c:'var(--red)'};
+  if (dos<=STK_T.ok) return {dos:dos, s:'Sehat', c:'var(--green)'};
+  if (dos<=STK_T.high) return {dos:dos, s:'Berlebih', c:'var(--yellow)'};
+  return {dos:dos, s:'Slow', c:'var(--blue)'};
+}
+function stkData(){
+  const f = state.rawFull; if (!f || !f.stock || !f.stock.rows.length) return null;
+  const S = f.stock, c = stk(), raw = state.raw || f, end = f.date_max, start0 = f.date_min;
+  const days = c.win>0 ? c.win : calendarDaysInclusive(start0, end);
+  const start = c.win>0 ? addDaysISO(end, -(c.win-1)) : start0;
+  const code2desc = {}, scope = {};
+  Object.keys(f.sapCodes||{}).forEach(function(d){ code2desc[f.sapCodes[d]] = d; });
+  (raw.stores||[]).forEach(function(s){ if (!state.selectedStore || s.site_desc===state.selectedStore) scope[s.site_desc] = s.area||''; });
+  const sold = {}, soldStoreD = {}, soldStoreA = {}, prevSold = {}, soldDev = {};
+  const pEnd = addDaysISO(start,-1), pStart = addDaysISO(start,-days);
+  S.sold.forEach(function(r){
+    if (c.win>0 && r[0]>=pStart && r[0]<=pEnd && (r[1] in scope)) prevSold[r[1]+'|'+r[2]] = (prevSold[r[1]+'|'+r[2]]||0)+r[3];
+    if (r[0]<start || r[0]>end || !(r[1] in scope)) return;
+    soldDev[r[1]+'|'+r[2]] = r[4];
+    sold[r[1]+'|'+r[2]] = (sold[r[1]+'|'+r[2]]||0)+r[3];
+    const m = r[4] ? soldStoreD : soldStoreA; m[r[1]] = (m[r[1]]||0)+r[3];
+  });
+  const items = [], stores = {}, arts = {}, _stockKeys = {}, _artName = {};
+  S.rows.forEach(function(r){ _artName[r[1]] = [r[2], r[3]]; });
+  S.rows.forEach(function(r){
+    const d = code2desc[r[0]]; if (!d || !(d in scope)) return;
+    const dev = S.dev[r[1]] !== undefined ? S.dev[r[1]] : /\d+\s*\/\s*\d+\s*GB|IPHONE|IPAD|SMARTPHONE/i.test(r[2]);
+    if (c.cat && (c.cat==='D') !== dev) return;
+    const sd = sold[d+'|'+r[1]]||0;
+    const _seen = (_stockKeys[d+'|'+r[1]] = 1);
+    items.push({d:d, art:r[1], name:r[2], brand:r[3], qty:r[4], sold:sd, dev:dev, cat:stkCatOf(r[4], sd, prevSold[d+'|'+r[1]]||0, days)});
+    const s = stores[d] || (stores[d] = {d:d, area:scope[d], sku:0, qD:0, qA:0});
+    s.sku++; if (dev) s.qD += r[4]; else s.qA += r[4];
+    const a = arts[r[1]] || (arts[r[1]] = {art:r[1], name:r[2], brand:r[3], dev:dev, qty:0, sold:0, n:0});
+    a.qty += r[4]; a.sold += sd; a.n++;
+  });
+  Object.keys(stores).forEach(function(d){ const s=stores[d]; s.sD = soldStoreD[d]||0; s.sA = soldStoreA[d]||0; });
+  // SKU yang terjual di toko tetapi tidak ada baris stoknya (stok kosong) -> kandidat Supply Bottleneck (hanya dipakai filter Category_Name)
+  const noStock = [];
+  Object.keys(sold).forEach(function(k){
+    if (_stockKeys[k] || !(sold[k]>0)) return;
+    const i = k.indexOf('|'), d = k.slice(0,i), art = k.slice(i+1), nm = _artName[art] || [art,''], dev = soldDev[k];
+    if (c.cat && (c.cat==='D') !== !!dev) return;
+    noStock.push({d:d, art:art, name:nm[0], brand:nm[1], qty:0, sold:sold[k], dev:!!dev, cat:'Supply Bottleneck'});
+  });
+  return {S:S, days:days, start:start, end:end, items:items, stores:Object.keys(stores).map(function(k){return stores[k];}), arts:Object.keys(arts).map(function(k){return arts[k];}), scope:scope, noStock:noStock};
+}
+function stkSorted(rows, defKey, getters){
+  const s = stk().sort, k = s ? s.k : defKey, dir = s ? s.dir : -1, g = getters[k] || function(){return 0;};
+  return rows.slice().sort(function(a,b){ const x=g(a), y=g(b); if (typeof x==='string') return dir*(-1)*x.localeCompare(y); return dir*((x==null?-1:x)-(y==null?-1:y)); });
+}
+function stkTh(cols){
+  const s = stk().sort;
+  return '<tr>'+cols.map(function(c){ return '<th style="cursor:pointer;text-align:'+(c.l?'left':'right')+';" onclick="stkSort(\''+c.k+'\')">'+c.t+(s&&s.k===c.k?(s.dir<0?' ▼':' ▲'):'')+'</th>'; }).join('')+'</tr>';
+}
+function stkDosCell(i){ return '<td style="text-align:right;font-weight:700;color:'+i.c+';">'+(i.dos==null?'–':(i.dos>=100?'>99':pf(i.dos)))+'</td><td style="text-align:center;"><span class="pill" style="color:'+i.c+';border:1px solid '+i.c+';min-width:64px;">'+i.s+'</span></td>'; }
+function stkMore(n, shown){ return n>shown ? '<div class="empty-note x-note">Menampilkan '+shown+' dari '+n+' baris. <a href="#" onclick="stkSet(\'all\',true);return false;" style="color:var(--green);font-weight:700;">Tampilkan semua</a></div>' : ''; }
+function stkViewStore(D){
+  const g = {cc:function(r){ let n=0; Object.keys(r.cc||{}).forEach(function(k){ n+=r.cc[k]; }); return n; }, d:function(r){return r.d;}, area:function(r){return r.area;}, sku:function(r){return r.sku;}, qD:function(r){return r.qD;}, qA:function(r){return r.qA;}, dosD:function(r){const i=stkInfo(r.qD,r.sD,D.days);return i.dos==null?1e9:i.dos;}, dosA:function(r){const i=stkInfo(r.qA,r.sA,D.days);return i.dos==null?1e9:i.dos;}, tot:function(r){return r.qD+r.qA;}};
+  const q = stk().q.toLowerCase(), iq = stk().iq.toLowerCase().split(/\s+/).filter(Boolean);
+  const cats = stk().cats || [];
+  let stores = D.stores, chips = '';
+  if (iq.length || cats.length){ // cari barang/brand & filter Category_Name: stok & DOS tiap toko dihitung hanya dari barang yang cocok
+    const mm = {}, al = {}, ia = stk().iqArt;
+    (cats.length ? D.items.concat(D.noStock||[]) : D.items).forEach(function(r){
+      if (cats.length && cats.indexOf(r.cat)<0) return;
+      const t = (r.name+' '+r.brand).toLowerCase(); if (!iq.every(function(w){ return t.indexOf(w)>=0; })) return;
+      const x = al[r.art] || (al[r.art] = {art:r.art, name:r.name, qty:0, n:0}); x.qty += r.qty; x.n++;
+      if (ia && r.art!==ia) return;
+      const o = mm[r.d] || (mm[r.d] = {d:r.d, area:D.scope[r.d], sku:0, qD:0, qA:0, sD:0, sA:0, cc:{}});
+      o.cc[r.cat] = (o.cc[r.cat]||0)+1; o.sku++; if (r.dev){ o.qD += r.qty; o.sD += r.sold; } else { o.qA += r.qty; o.sA += r.sold; }
+    });
+    stores = Object.keys(mm).map(function(k){ return mm[k]; });
+    const list = Object.keys(al).map(function(k){ return al[k]; }).sort(function(a,b){ return b.qty-a.qty; });
+    if (iq.length) chips = '<div class="stk-found"><div class="stk-found-h"><span>🔎 <b>'+list.length+'</b> barang cocok · klik nama barang untuk melihat toko yang memilikinya</span>'+(ia?'<a href="#" class="stk-clear" onclick="stkIqArt(\'\');return false;">✕ Tampilkan semua</a>':'')+'</div><div class="stk-chips">'
+      +list.slice(0,80).map(function(x){ return '<a href="#" class="stk-chip'+(ia===x.art?' on':'')+'" onclick="stkIqArt(\''+x.art+'\');return false;" title="'+x.n+' toko">'+stkEsc(x.name)+'<i>'+fmt(x.qty)+'</i></a>'; }).join('')+'</div></div>';
+  }
+  const rows = stkSorted(stores.filter(function(r){ return !q || (r.d+' '+r.area).toLowerCase().indexOf(q)>=0; }), 'tot', g);
+  const cols = [{k:'area',t:'Area',l:1},{k:'d',t:'Toko',l:1},{k:'sku',t:'SKU'},{k:'qD',t:'Stok Device'},{k:'dosD',t:'DOS Device'},{k:'st',t:'Status'},{k:'qA',t:'Stok Aksesoris'},{k:'dosA',t:'DOS Aks.'},{k:'tot',t:'Total Stok'}].concat(cats.length?[{k:'cc',t:'Kategori (jml SKU)',l:1}]:[]);
+  const tb = rows.map(function(r){
+    const iD = stkInfo(r.qD, r.sD, D.days), iA = stkInfo(r.qA, r.sA, D.days);
+    return '<tr style="cursor:pointer;" onclick="stkPick(\''+encodeURIComponent(r.d)+'\')"><td>'+stkEsc(r.area)+'</td><td style="text-align:left;">'+stkEsc(r.d)+'</td><td>'+fmt(r.sku)+'</td><td>'+fmt(r.qD)+'</td><td style="text-align:right;font-weight:700;color:'+iD.c+';">'+(iD.dos==null?'–':(iD.dos>=100?'>99':pf(iD.dos)))+'</td><td style="text-align:center;"><span class="pill" style="color:'+iD.c+';border:1px solid '+iD.c+';min-width:64px;">'+iD.s+'</span></td><td>'+fmt(r.qA)+'</td><td style="text-align:right;color:'+iA.c+';font-weight:700;">'+(iA.dos==null?'–':(iA.dos>=100?'>99':pf(iA.dos)))+'</td><td style="font-weight:800;">'+fmt(r.qD+r.qA)+'</td>'+(cats.length?'<td style="text-align:left;">'+cats.map(function(n){ return (r.cc&&r.cc[n]) ? '<span class="pill" style="border:1px solid var(--green);color:var(--green);margin:1px 3px 1px 0;">'+stkEsc(n)+' <b>'+r.cc[n]+'</b></span>' : ''; }).join('')+'</td>':'')+'</tr>';
+  }).join('');
+  return chips+'<div class="stk-scroll"><table class="stk-tbl">'+stkTh(cols)+tb+'</table></div><div class="empty-note x-note">💡 Klik baris toko untuk melihat DOS per barang di toko itu.'+(cats.length?' Filter Category_Name aktif: angka stok/SKU/DOS hanya dari SKU pada kategori terpilih.':'')+'</div>';
+}
+function stkPick(enc){ const c=stk(); c.store=decodeURIComponent(enc); c.view='dos'; c.sort=null; c.all=false; render(); }
+function stkViewDos(D){
+  const c = stk(), q = c.q.toLowerCase().split(/\s+/).filter(Boolean);
+  let src;
+  if (c.store){ src = stkItems(D).filter(function(r){ return r.d===c.store; }).map(function(r){ return {art:r.art, name:r.name, brand:r.brand, dev:r.dev, qty:r.qty, sold:r.sold, n:1}; }); }
+  else if ((c.cats||[]).length){ const m = {}; stkItems(D).forEach(function(r){ const a = m[r.art] || (m[r.art] = {art:r.art, name:r.name, brand:r.brand, dev:r.dev, qty:0, sold:0, n:0}); a.qty += r.qty; a.sold += r.sold; a.n++; }); src = Object.keys(m).map(function(k){ return m[k]; }); }
+  else src = D.arts;
+  src = src.filter(function(r){
+    const t = (r.name+' '+r.brand).toLowerCase(); if (q.some(function(w){ return t.indexOf(w)<0; })) return false;
+    if (c.st){ const i = stkInfo(r.qty, r.sold, D.days); if (c.st==='KH' ? (i.s!=='Kritis' && i.s!=='Habis') : i.s!==c.st) return false; } return true;
+  });
+  const g = {name:function(r){return r.name;}, brand:function(r){return r.brand;}, qty:function(r){return r.qty;}, sold:function(r){return r.sold;}, pd:function(r){return r.sold/D.days;}, n:function(r){return r.n;}, dos:function(r){const i=stkInfo(r.qty,r.sold,D.days);return i.dos==null?1e9:i.dos;}};
+  const rows = stkSorted(src, 'qty', g), shown = c.all ? rows.length : 150;
+  const cols = [{k:'name',t:'Barang',l:1},{k:'brand',t:'Brand',l:1},{k:'qty',t:'Stok'},{k:'sold',t:'Terjual ('+(c.win>0?c.win+' hr':'semua')+')'},{k:'pd',t:'Jual/hari'},{k:'dos',t:'DOS'},{k:'st',t:'Status'}].concat(c.store?[]:[{k:'n',t:'Jml Toko'}]);
+  const tb = rows.slice(0, shown).map(function(r){
+    const i = stkInfo(r.qty, r.sold, D.days);
+    const open = c.art===r.art;
+    return '<tr><td style="text-align:left;"><a href="#" onclick="stkArt(\''+r.art+'\');return false;" style="color:var(--green);font-weight:700;text-decoration:underline dotted;">'+(open?'▾ ':'▸ ')+stkEsc(r.name)+'</a></td><td style="text-align:left;">'+stkEsc(r.brand)+'</td><td>'+fmt(r.qty)+'</td><td>'+fmt(r.sold)+'</td><td>'+pf(r.sold/D.days)+'</td>'+stkDosCell(i)+(c.store?'':'<td>'+r.n+'</td>')+'</tr>'+(open?stkArtDetail(D, r.art, cols.length):'');
+  }).join('');
+  const chip = c.store ? '<div style="margin-bottom:6px;"><span class="pill" style="border:1px solid var(--green);color:var(--green);">Toko: '+stkEsc(c.store)+' <a href="#" onclick="stkSet(\'store\',\'\');return false;" style="color:var(--red);margin-left:6px;">✕</a></span></div>' : '';
+  return chip+'<div class="stk-scroll"><table class="stk-tbl">'+stkTh(cols)+tb+'</table></div>'+stkMore(rows.length, shown);
+}
+function stkArtDetail(D, art, span){
+  const its = D.items.filter(function(x){ return x.art===art; }).sort(function(a,b){ return b.qty-a.qty; });
+  const tb = its.map(function(x){ const i = stkInfo(x.qty, x.sold, D.days);
+    return '<tr><td style="text-align:left;">'+stkEsc(x.d)+'</td><td>'+stkEsc(D.scope[x.d])+'</td><td style="font-weight:800;">'+fmt(x.qty)+'</td><td>'+fmt(x.sold)+'</td>'+stkDosCell(i)+'</tr>'; }).join('');
+  return '<tr><td colspan="'+span+'" style="padding:6px 8px 10px 24px;background:var(--sub);text-align:left;"><div style="font-size:11px;font-weight:800;color:var(--green);margin-bottom:4px;">Tersedia di '+its.length+' toko (urut stok terbanyak)</div><table class="stk-tbl"><tr><th style="text-align:left;">Toko</th><th>Area</th><th>Stok</th><th>Terjual</th><th>DOS</th><th>Status</th></tr>'+tb+'</table></td></tr>';
+}
+function stkCatDropdown(D){
+  const c = stk(), cnt = {}, seen = {};
+  D.items.concat(D.noStock||[]).forEach(function(r){ if (!r.cat) return; const k = r.cat+'|'+r.d; if (seen[k]) return; seen[k]=1; cnt[r.cat] = (cnt[r.cat]||0)+1; });
+  const q = (c.catq||'').toLowerCase();
+  const lab = c.cats.length ? (c.cats.length<=1 ? c.cats[0] : c.cats.length+' kategori dipilih') : 'Semua';
+  let h = '<span class="stk-catdd" data-menu="stkcat"><button type="button" class="stk-catbtn" onclick="stkCatMenu(event)" title="Filter toko berdasarkan Category_Name">Category_Name: <b>'+stkEsc(lab)+'</b> <span>'+(c.catOpen?'▴':'▾')+'</span></button>';
+  if (c.catOpen){
+    h += '<div class="stk-catpanel"><input class="stk-in" data-focuskey="stkcatq" value="'+stkEsc(c.catq||'')+'" placeholder="🔎 Cari" oninput="stkIn(\'catq\',this)">'
+      + STK_CATS.filter(function(x){ return !q || x[0].toLowerCase().indexOf(q)>=0; }).map(function(x){
+          const on = c.cats.indexOf(x[0])>=0;
+          return '<div class="stk-catopt'+(on?' on':'')+'" onclick="stkCatToggle(\''+encodeURIComponent(x[0])+'\')" title="'+stkEsc(x[1])+'"><span class="bx"></span><span>'+stkEsc(x[0])+'</span><i>'+(cnt[x[0]]||0)+' toko</i></div>';
+        }).join('')
+      + (c.cats.length ? '<div style="text-align:right;margin-top:4px;"><a href="#" onclick="stkCatClear(event);return false;" style="color:var(--red);font-size:11px;font-weight:700;">✕ Hapus pilihan</a></div>' : '')
+      + '</div>';
+  }
+  return h+'</span>';
+}
+function stkViewCmp(D){
+  const c = stk(), q = c.cq.toLowerCase().split(/\s+/).filter(Boolean), names = Object.keys(D.scope).sort();
+  const hit = function(r){ const t=(r.name+' '+r.brand).toLowerCase(); return q.every(function(w){ return t.indexOf(w)>=0; }); };
+  const opt = function(v){ return '<option value="">'+(v?'':'— semua toko —')+'</option>'+names.map(function(n){ return '<option value="'+stkEsc(n)+'"'+(n===v?' selected':'')+'>'+stkEsc(n)+'</option>'; }).join(''); };
+  const bar = '<div class="stk-bar"><input class="stk-in" data-focuskey="stkcq" value="'+stkEsc(c.cq)+'" placeholder="Cari barang/model, mis. iphone 17 / A6X 6/256" oninput="stkIn(\'cq\',this)" style="min-width:240px;">'
+    +'<select class="stk-in" onchange="stkSet(\'a\',this.value)">'+opt(c.a)+'</select><span style="color:var(--muted);">vs</span><select class="stk-in" onchange="stkSet(\'b\',this.value)">'+opt(c.b)+'</select></div>';
+  const items = stkItems(D).filter(function(r){ return !q.length || hit(r); });
+  if (!q.length && !(c.a && c.b)) return bar+'<div class="empty-note x-note">Ketik nama barang/model untuk membandingkan stok antar toko, atau pilih Toko A dan Toko B untuk membandingkan dua toko sekaligus.</div>';
+  if (c.a && c.b){
+    const m = {};
+    items.forEach(function(r){ if (r.d!==c.a && r.d!==c.b) return; const o = m[r.art] || (m[r.art] = {name:r.name, a:0, b:0, sa:0, sb:0}); if (r.d===c.a){ o.a += r.qty; o.sa += r.sold; } else { o.b += r.qty; o.sb += r.sold; } });
+    const rows = Object.keys(m).map(function(k){ return m[k]; }).sort(function(x,y){ return Math.abs(y.a-y.b)-Math.abs(x.a-x.b); }), shown = c.all ? rows.length : 150;
+    const tb = rows.slice(0,shown).map(function(r){ const ia=stkInfo(r.a,r.sa,D.days), ib=stkInfo(r.b,r.sb,D.days), df=r.a-r.b;
+      return '<tr><td style="text-align:left;">'+stkEsc(r.name)+'</td><td>'+fmt(r.a)+'</td><td style="color:'+ia.c+';font-weight:700;">'+(ia.dos==null?'–':pf(ia.dos))+'</td><td>'+fmt(r.b)+'</td><td style="color:'+ib.c+';font-weight:700;">'+(ib.dos==null?'–':pf(ib.dos))+'</td><td style="font-weight:800;color:'+(df>0?'var(--green)':df<0?'var(--red)':'var(--muted)')+';">'+(df>0?'+':'')+df+'</td></tr>'; }).join('');
+    return bar+'<div class="stk-scroll"><table class="stk-tbl"><tr><th style="text-align:left;">Barang</th><th>Stok A</th><th>DOS A</th><th>Stok B</th><th>DOS B</th><th>Selisih (A−B)</th></tr>'+tb+'</table></div>'+stkMore(rows.length, shown)+'<div class="empty-note x-note">A: '+stkEsc(c.a)+' · B: '+stkEsc(c.b)+'. Selisih positif = A lebih banyak.</div>';
+  }
+  const m = {};
+  items.forEach(function(r){ const o = m[r.d] || (m[r.d] = {d:r.d, area:D.scope[r.d], qty:0, sold:0}); o.qty += r.qty; o.sold += r.sold; });
+  const rows = Object.keys(m).map(function(k){ return m[k]; }).sort(function(x,y){ return y.qty-x.qty; });
+  const tot = rows.reduce(function(a,r){ return a+r.qty; },0), avg = rows.length ? tot/rows.length : 0;
+  const tb = rows.map(function(r){ const i = stkInfo(r.qty, r.sold, D.days), df = r.qty-avg;
+    return '<tr><td>'+stkEsc(r.area)+'</td><td style="text-align:left;">'+stkEsc(r.d)+'</td><td style="font-weight:800;">'+fmt(r.qty)+'</td><td>'+fmt(r.sold)+'</td><td>'+pf(r.sold/D.days)+'</td>'+stkDosCell(i)+'<td style="color:'+(df>=0?'var(--green)':'var(--red)')+';">'+(df>=0?'+':'')+pf(df)+'</td></tr>'; }).join('');
+  return bar+'<div class="stk-scroll"><table class="stk-tbl"><tr><th>Area</th><th style="text-align:left;">Toko</th><th>Stok</th><th>Terjual</th><th>Jual/hari</th><th>DOS</th><th>Status</th><th>vs Rata-rata</th></tr>'+tb+'<tr style="font-weight:800;"><td></td><td style="text-align:left;">TOTAL ('+rows.length+' toko punya stok)</td><td>'+fmt(tot)+'</td><td colspan="5"></td></tr></table></div><div class="empty-note x-note">Toko dengan DOS &lt; '+STK_T.low+' hari = kandidat isi ulang; DOS &gt; '+STK_T.ok+' hari = kandidat sumber transfer.</div>';
+}
+function renderStockCard(d){
+  const key = 'stock', c = stk();
+  const D = stkData();
+  const tabs = [['store','🏬 Stok per Toko'],['dos','📦 DOS Barang'],['cmp','⚖️ Komparasi Toko']].map(function(t){ return '<button class="stk-tab'+(c.view===t[0]?' on':'')+'" onclick="stkSet(\'view\',\''+t[0]+'\')">'+t[1]+'</button>'; }).join('')+(D?stkCatDropdown(D):'');
+  let body;
+  if (!D) body = '<div class="empty-note x-note">Sheet <b>Stock</b> belum ada di Master Data. Tambahkan sheet bernama "Stock" (kolom: Plant, Nama Toko, Article, Article Description, Brand Name, Quantity), lalu muat ulang/upload file.</div>';
+  else {
+    const sum = function(a,k){ return a.reduce(function(x,r){ return x+r[k]; },0); };
+    const qD = sum(D.stores,'qD'), qA = sum(D.stores,'qA'), sD = sum(D.stores,'sD'), sA = sum(D.stores,'sA');
+    const iD = stkInfo(qD,sD,D.days), iA = stkInfo(qA,sA,D.days);
+    const kritis = D.arts.filter(function(r){ const i=stkInfo(r.qty,r.sold,D.days); return i.s==='Kritis'||i.s==='Habis'; }).length;
+    const slow = D.arts.filter(function(r){ return stkInfo(r.qty,r.sold,D.days).s==='Slow'; }).length;
+    const kp = function(l,v,col){ return '<div class="stk-kpi"><div class="stk-kl">'+l+'</div><div class="stk-kv"'+(col?' style="color:'+col+'"':'')+'>'+v+'</div></div>'; };
+    const sel = function(k,opts,v){ return '<select class="stk-in" onchange="stkSet(\''+k+'\',this.value===\'\'?\'\':(isNaN(this.value)?this.value:+this.value))">'+opts.map(function(o){ return '<option value="'+o[0]+'"'+(String(o[0])===String(v)?' selected':'')+'>'+o[1]+'</option>'; }).join('')+'</select>'; };
+    const ctl = '<div class="stk-bar">'+sel('win',[[7,'Jual 7 hari'],[14,'Jual 14 hari'],[30,'Jual 30 hari'],[0,'Semua data']],c.win)+sel('cat',[['','Semua kategori'],['D','Device'],['A','Aksesoris & lain']],c.cat)
+      +(c.view==='dos'?sel('st',[['','Semua status'],['KH','Kritis + Habis'],['Habis','Habis'],['Kritis','Kritis'],['Sehat','Sehat'],['Berlebih','Berlebih'],['Slow','Slow'],['Tak bergerak','Tak bergerak']],c.st):'')
+      +(c.view==='store'?'<input class="stk-in" data-focuskey="stkiq" value="'+stkEsc(c.iq)+'" placeholder="🔎 Cari barang / brand" oninput="stkIn(\'iq\',this)">':'')+(c.view!=='cmp'?'<input class="stk-in" data-focuskey="stkq" value="'+stkEsc(c.q)+'" placeholder="Cari '+(c.view==='store'?'toko / area':'barang / brand')+'" oninput="stkIn(\'q\',this)">':'')+'</div>';
+    body = '<div class="stk-kpis">'+kp('Total Stok',fmt(qD+qA)+' unit')+kp('Toko / SKU',D.stores.length+' / '+fmt(D.arts.length))+kp('DOS Device',iD.dos==null?'–':pf(iD.dos)+' hr',iD.c)+kp('DOS Aksesoris',iA.dos==null?'–':pf(iA.dos)+' hr',iA.c)+kp('SKU Kritis / Slow','<span onclick="stkKpiStatus(\'KH\')" title="Klik untuk lihat daftar SKU Kritis" style="cursor:pointer;text-decoration:underline dotted;">'+kritis+'</span> / <span onclick="stkKpiStatus(\'Slow\')" title="Klik untuk lihat daftar SKU Slow" style="cursor:pointer;text-decoration:underline dotted;color:var(--blue);">'+slow+'</span>',kritis?'var(--red)':null)+'</div>'
+      +'<div class="stk-bar">'+tabs+'</div>'+ctl+(c.view==='store'?stkViewStore(D):c.view==='dos'?stkViewDos(D):stkViewCmp(D))
+      +'<div class="empty-note x-note">Stok per '+formatDateLabelShort(D.S.date||D.end)+(D.S.date?'':' (mengikuti transaksi terakhir)')+' · penjualan '+formatDateLabelShort(D.start)+' – '+formatDateLabelShort(D.end)+' ('+D.days+' hari) · DOS = stok ÷ rata-rata jual per hari · ikut filter Area/Channel/Toko di atas.</div>';
+  }
+  return '<div class="card'+(state.collapsed[key]?' collapsed':'')+'">'+sectionTitleWithToggle(key,'📦 STOCK MONITORING')+collapsibleBody(key, body)+'</div>';
 }
 
 render();
