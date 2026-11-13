@@ -1999,6 +1999,9 @@ async function autoLoadMaster(){
     state.storeFilter = '';
     state.selectedStore = '';
     state.salesStoreFilter = '';
+    // Versi yang dibagikan ke tim: kunci tampilan (tombol Isi/Edit Target, Hapus data & Bagikan File disembunyikan).
+    // Pemilik membuka dengan menambahkan ?admin pada link (mis. .../index.html?admin) untuk memunculkan kembali semua tombol.
+    if (!/[?&]admin(=|&|$)/.test(location.search)){ state.locked = true; state.editing = false; }
     render();
   }catch(err){ console.warn('Auto-load gagal:', err); }
 }
