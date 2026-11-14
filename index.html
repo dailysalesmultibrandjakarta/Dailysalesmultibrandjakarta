@@ -956,6 +956,8 @@ function fmtJuta(n){
 }
 /* pf: format persen REAL 1 desimal, koma desimal (gaya Excel Indonesia, mis. 54,3) - tanpa pembulatan ke bilangan bulat */
 /* RC_EXCL: Repair Contract PR4-IPHONE18-ADLD24 dengan value 0 rupiah tidak dihitung dalam AR (Qty RC) */
+/* CONSENT CARD VIDIO LITE (Operator, Rp 1) bukan VAS: tidak dihitung di Kontribusi Brand terhadap Produktivitas VAS */
+function isConsentCardVidioLite(r){ return r[2]==='Operator' && String(r[7]==null?'':r[7]).toUpperCase().indexOf('CONSENT CARD VIDIO LITE')>=0; }
 function isRcZeroExcluded(r){ return r[2]==='Repair Contract' && !(Number(r[5])>0) && String(r[7]==null?'':r[7]).toUpperCase().indexOf('PR4-IPHONE18-ADLD24')>=0; }
 function pf(v){ return (Number(v)||0).toFixed(1).replace('.',','); }
 function fmtPct(n){ if (n===null||n===undefined||!isFinite(n)) return '-'; return pf(n)+'%'; }
@@ -1385,6 +1387,7 @@ let state = {
   catDetailStore: null, // site_code toko yang diklik di popup rincian kategori (null = belum pilih toko) -> menampilkan pencapaian by ERO toko itu
   catDetailView: 'store', // tampilan popup rincian kategori: 'store' (by Store/ERO) | 'type' (barang terjual by Tipe)
   opSel: null, opSub: 'ero', // toko yang rincian By ERO / By Tipe-nya terbuka di popup Racing Operator
+  catSort: null, // popup rincian Handphone: urutan kolom EST % / Omzet / Qty / Kontribusi {col, dir}; null = urutan asli (Omzet terbesar)
   catEroSel: null, // nama ERO (sales) yang rincian tipe terjualnya terbuka di popup kategori
   catEroAll: false, // rincian tipe ERO hanya menampilkan kategori yang sedang dibuka
   catPivotEro: null, // 'kodeToko||namaERO' yang rincian tipenya terbuka di popup 📊 By ERO / Tabel Pivot
@@ -1401,6 +1404,8 @@ let state = {
   racingFromBrand: null, // key brand asal popup racing (tombol 🏁 Racing di dalam Pencapaian by Store) - utk tombol kembali
   brandVasView: 'brand', // 'brand' | 'store' - tampilan popup Kontribusi VAS
   brandVasSel: null, // nama toko yang rincian brand-nya terbuka (view By Store)
+  brandVasBrand: null, // brand yang rincian nota-nya terbuka (format 'KEY@@NAMA TOKO'; toko kosong = semua toko)
+  brandVasFilter: 'all', // 'all' | 'vas' | 'novas' - filter daftar nota pada rincian brand
   brandVasOpen: false, // popup Kontribusi Brand terhadap Produktivitas VAS (Operator, Repair Contract, Accessories) terbuka
   racingBoltView: 'aktual', // tampilan racing Boltech: 'aktual' (capaian MTD/EST) | 'insentif' (estimasi pendapatan racing TecProtec)
   racingSub: 'ero', // sub-tampilan di bawah toko yang diklik pada racing Boltech: 'ero' | 'type'
@@ -2393,6 +2398,14 @@ function pivEroWrap(d, rowHtml, code, desc, name, cat){
   return h;
 }
 
+// Popup rincian Handphone: klik header EST % / Omzet / Qty / Kontribusi -> terbesar dulu; klik lagi -> terkecil dulu; klik ketiga -> kembali ke urutan asli.
+function setCatSort(col){
+  const cur = state.catSort;
+  if (!cur || cur.col!==col) state.catSort = {col:col, dir:'desc'};
+  else if (cur.dir==='desc') state.catSort = {col:col, dir:'asc'};
+  else state.catSort = null;
+  render();
+}
 function selectCatDetailStore(code){ state.catDetailStore = (state.catDetailStore===code) ? null : code; state.catEroSel = null; state.catStoreSub = 'ero'; state.catTypeQ = ''; render(); }
 function setCatStoreSub(v){ state.catEroSel = null; state.catStoreSub = (v==='type') ? 'type' : (v==='top') ? 'top' : 'ero'; state.catTypeQ = ''; render(); }
 function setCatStoreTopBy(k){ state.catStoreTopBy = (k==='val') ? 'val' : 'qty'; render(); }
@@ -4419,7 +4432,23 @@ function renderCategoryDetailStore(d){
   }
   function tbl(rows, firstHead, showN, achvMap, achvTotal, noTarget, clickStore, totO, totQ){
     if (totO===undefined) totO = totalOmzet; if (totQ===undefined) totQ = totalQty;
-    const head = '<thead><tr>'+(noTarget?'<th>#</th>':'')+'<th class="cat-nm">'+firstHead+'</th>'+(noTarget?'':'<th>Target*</th><th>'+(isProjectionMode()?'EST %':'Ach %')+'</th>')+'<th>Omzet</th><th>Qty</th><th>Kontribusi</th>'
+    // Handphone (Device): header EST % / Omzet / Qty / Kontribusi bisa diklik untuk mengurutkan.
+    const sortable = (cat==='Device'), srt = sortable ? state.catSort : null;
+    if (srt && !(noTarget && srt.col==='pct')){
+      const keyOf = {pct:function(r){ return r.hasTarget ? r.pct : null; }, omzet:function(r){ return r.omzet; }, qty:function(r){ return r.qty; }, share:function(r){ return r.share; }}[srt.col];
+      const sgn = srt.dir==='asc' ? 1 : -1;
+      if (keyOf) rows = rows.slice().sort(function(a,b){
+        const x = keyOf(a), y = keyOf(b), nx = (x===null||x===undefined||!isFinite(x)), ny = (y===null||y===undefined||!isFinite(y));
+        if (nx && ny) return 0; if (nx) return 1; if (ny) return -1; // nilai kosong (-) selalu di bawah
+        return (x-y)*sgn;
+      });
+    }
+    const sth = function(k, label){
+      if (!sortable) return '<th>'+label+'</th>';
+      const on = srt && srt.col===k;
+      return '<th class="cat-sort" style="cursor:pointer;user-select:none;white-space:nowrap;'+(on?'color:var(--blue);':'')+'" onclick="setCatSort(\''+k+'\')" title="Klik untuk urutkan: terbesar &rarr; terkecil &rarr; urutan asli">'+label+(on?(srt.dir==='asc'?' \u25B2':' \u25BC'):' \u2195')+'</th>';
+    };
+    const head = '<thead><tr>'+(noTarget?'<th>#</th>':'')+'<th class="cat-nm">'+firstHead+'</th>'+(noTarget?'':'<th>Target*</th>'+sth('pct', isProjectionMode()?'EST %':'Ach %'))+sth('omzet','Omzet')+sth('qty','Qty')+sth('share','Kontribusi')
       +extraCols.map(function(c){ return '<th>'+c[0]+'</th>'; }).join('')+'</thead>';
     let body = '';
     rows.forEach((r,ri)=>{
@@ -6711,9 +6740,11 @@ function brandViewToggle(){
    dibagi proporsional qty device tiap brand. Nota VAS tanpa device tidak dihitung. */
 function openBrandVas(){ state.brandVasOpen = true; render(); }
 function closeBrandVas(){ state.brandVasOpen = false; render(); }
-function setBrandVasView(v){ state.brandVasView = (v==='store') ? 'store' : 'brand'; state.brandVasSel = null; render(); }
-function toggleBrandVasStore(name){ state.brandVasSel = (state.brandVasSel===name) ? null : name; render(); }
-function setBrandVasStore(v){ state.selectedStore = v || ''; state.salesStoreFilter = state.selectedStore; state.brandVasSel = null; render(); } // sama dengan filter Toko global di header
+function setBrandVasView(v){ state.brandVasView = (v==='store') ? 'store' : 'brand'; state.brandVasSel = null; state.brandVasBrand = null; render(); }
+function toggleBrandVasBrand(key, store){ const id = key+'@@'+(store||''); state.brandVasBrand = (state.brandVasBrand===id) ? null : id; state.brandVasFilter = 'all'; render(); }
+function setBrandVasFilter(f){ state.brandVasFilter = f; render(); }
+function toggleBrandVasStore(name){ state.brandVasSel = (state.brandVasSel===name) ? null : name; state.brandVasBrand = null; render(); }
+function setBrandVasStore(v){ state.selectedStore = v || ''; state.salesStoreFilter = state.selectedStore; state.brandVasSel = null; state.brandVasBrand = null; render(); } // sama dengan filter Toko global di header
 function computeBrandVas(d){
   const raw = state.raw;
   const hasInv = !!(raw && raw.hasInvoiceColumn);
@@ -6725,11 +6756,12 @@ function computeBrandVas(d){
     if (cat!=='Device' && cat!=='Operator' && cat!=='Repair Contract' && cat!=='Accessories') return;
     const inv = hasInv ? String(r[11]==null?'':r[11]).trim() : '';
     const key = r[1]+'|'+(inv ? ('#'+inv) : (r[0]+'|'+String(r[6]==null?'':r[6]))); // fallback bila nomor nota kosong: toko+tanggal+sales
-    const n = notas[key] || (notas[key] = {store:r[1], dev:{}, op:{q:0,v:0}, rc:{q:0,v:0}, acc:{q:0,v:0}});
-    if (cat==='Device'){ const bk = normalizeBrandKey(r[3]) || 'LAINNYA'; n.dev[bk] = (n.dev[bk]||0) + r[4]; }
-    else if (cat==='Operator'){ n.op.q += r[4]; n.op.v += racingVal(r); }
-    else if (cat==='Repair Contract'){ if (isRcZeroExcluded(r)) return; n.rc.q += r[4]; n.rc.v += r[5]; }
-    else if (cat==='Accessories'){ if (!(r[5]>10000)) return; n.acc.q += r[4]; n.acc.v += r[5]; }
+    const n = notas[key] || (notas[key] = {store:r[1], date:r[0], inv:inv, sales:String(r[6]==null?'':r[6]).trim(), dev:{}, devItems:[], vasItems:[], op:{q:0,v:0}, rc:{q:0,v:0}, acc:{q:0,v:0}});
+    if (r[0]<n.date) n.date = r[0];
+    if (cat==='Device'){ const bk = normalizeBrandKey(r[3]) || 'LAINNYA'; n.dev[bk] = (n.dev[bk]||0) + r[4]; n.devItems.push({b:bk, item:String(r[7]==null?'':r[7]).trim(), q:r[4], v:Number(r[5])||0}); }
+    else if (cat==='Operator'){ if (isConsentCardVidioLite(r)) return; n.op.q += r[4]; n.op.v += racingVal(r); n.vasItems.push({c:'op', item:String(r[7]==null?'':r[7]).trim(), q:r[4], v:Number(racingVal(r))||0}); }
+    else if (cat==='Repair Contract'){ if (isRcZeroExcluded(r)) return; n.rc.q += r[4]; n.rc.v += r[5]; n.vasItems.push({c:'rc', item:String(r[7]==null?'':r[7]).trim(), q:r[4], v:Number(r[5])||0}); }
+    else if (cat==='Accessories'){ if (!(r[5]>10000)) return; n.acc.q += r[4]; n.acc.v += r[5]; n.vasItems.push({c:'acc', item:String(r[7]==null?'':r[7]).trim(), q:r[4], v:Number(r[5])||0}); }
   });
   const zero = function(){ return {devQty:0, notaDev:0, notaVas:0, opN:0, rcN:0, accN:0, opV:0, rcV:0, accV:0, opQ:0, rcQ:0, accQ:0}; };
   const out = {}, tot = zero(), byStore = {}; let orphanN = 0, orphanV = 0, totNota = 0;
@@ -6755,7 +6787,7 @@ function computeBrandVas(d){
       addTo(sb.out[b] || (sb.out[b] = zero()), n, n.dev[b], sh, fl);
     });
   });
-  return {out:out, tot:tot, byStore:byStore, hasInv:hasInv, orphanN:orphanN, orphanV:orphanV, notaCount:totNota};
+  return {out:out, tot:tot, byStore:byStore, notas:notas, hasInv:hasInv, orphanN:orphanN, orphanV:orphanV, notaCount:totNota};
 }
 // tabel VAS generik: items = [{label, o, click, active}], tot = agregat pembanding (kontribusi %), firstHead = 'BRAND' | 'TOKO'
 function brandVasTable(items, tot, firstHead, totalRow){
@@ -6763,9 +6795,9 @@ function brandVasTable(items, tot, firstHead, totalRow){
   const vasOf = function(o){ return o.opV+o.rcV+o.accV; };
   const totVas = vasOf(tot);
   const num = function(n){ return fmt(Math.round(n)); };
-  const row = function(label, o, bold, click, active){
+  const row = function(label, o, bold, click, active, rowTitle){
     const v = vasOf(o), st = bold ? ' style="font-weight:800;"' : '';
-    return '<tr'+(click?' class="store-row-click'+(active?' store-row-active':'')+'" onclick="'+click+'" title="Klik untuk lihat rincian per brand toko ini"':'')+'><td class="cat-nm" style="font-weight:'+(bold?800:700)+';color:var(--text-strong);">'+escapeHtml(label)+'</td>'
+    return '<tr'+(click?' class="store-row-click'+(active?' store-row-active':'')+'" onclick="'+click+'" title="'+(rowTitle||'Klik untuk lihat rincian per brand toko ini')+'"':'')+'><td class="cat-nm" style="font-weight:'+(bold?800:700)+';color:var(--text-strong);">'+escapeHtml(label)+(click&&rowTitle?' <span style="color:var(--blue);font-size:10px;">'+(active?'&#9660;':'&#9654;')+'</span>':'')+'</td>'
       +'<td'+st+'>'+num(o.devQty)+'</td><td'+st+'>'+num(o.notaDev)+'</td><td'+st+'>'+num(o.notaVas)+'</td>'
       +'<td style="font-weight:800;color:var(--green);">'+pct(o.notaVas,o.notaDev)+'</td>'
       +'<td'+st+'>'+pct(o.opN,o.notaDev)+'</td><td'+st+'>'+num(o.opV)+'</td>'
@@ -6781,11 +6813,61 @@ function brandVasTable(items, tot, firstHead, totalRow){
     +'<th rowspan="2">TOTAL VAS<br>(Rp)</th><th rowspan="2" title="Total VAS &divide; unit device">VAS / UNIT<br>DEVICE (Rp)</th><th rowspan="2" title="Share unit device terhadap total unit device">KONTRIB.<br>DEVICE %</th><th rowspan="2" title="Share nilai VAS terhadap total VAS nota device">KONTRIB.<br>VAS %</th></tr>'
     +'<tr><th>% NOTA</th><th>VALUE</th><th>% NOTA</th><th>VALUE</th><th>% NOTA</th><th>VALUE</th></tr></thead>';
   const body = items.map(function(it){
-    let h = row(it.label, it.o, false, it.click, it.active);
+    let h = row(it.label, it.o, false, it.click, it.active, it.title);
     if (it.extra) h += '<tr class="ero-expand-row"><td colspan="15" style="padding:0 0 8px 0;border-bottom:1px solid var(--border);">'+it.extra+'</td></tr>';
     return h;
   }).join('');
   return '<div class="achv-table-wrap"><table>'+head+'<tbody>'+body+'</tbody>'+(totalRow===false?'':'<tfoot>'+row('TOTAL', tot, true)+'</tfoot>')+'</table></div>';
+}
+/* Rincian satu brand: breakdown penjualan (tipe device & VAS) + daftar nomor nota (ada VAS / tanpa VAS) */
+function brandVasDetail(R, bk, store, label){
+  const list = Object.keys(R.notas).map(function(k){ return R.notas[k]; }).filter(function(n){ return n.dev[bk]>0 && (!store || n.store===store); });
+  list.forEach(function(n){ n.__vas = n.op.q>0 || n.rc.q>0 || n.acc.q>0; });
+  const nVas = list.filter(function(n){ return n.__vas; }).length, nNo = list.length-nVas;
+  const f = state.brandVasFilter || 'all';
+  const shown = list.filter(function(n){ return f==='vas' ? n.__vas : (f==='novas' ? !n.__vas : true); })
+    .sort(function(a,b){ return (b.date.localeCompare(a.date)) || String(a.inv).localeCompare(String(b.inv)); });
+  // breakdown device per tipe
+  const dev = {}; let devQ=0, devV=0;
+  list.forEach(function(n){ n.devItems.forEach(function(x){ if (x.b!==bk) return;
+    const k = x.item || '(tanpa nama)'; const o = dev[k] || (dev[k]={q:0,v:0,notas:{}}); o.q+=x.q; o.v+=x.v; o.notas[n.inv||n.date+n.sales]=1; devQ+=x.q; devV+=x.v; }); });
+  const devRows = Object.keys(dev).sort(function(a,b){ return dev[b].q-dev[a].q; }).map(function(k){
+    return '<tr><td style="text-align:left;">'+escapeHtml(k)+'</td><td>'+fmt(dev[k].q)+'</td><td>'+fmt(dev[k].v)+'</td><td>'+fmt(Object.keys(dev[k].notas).length)+'</td></tr>'; }).join('');
+  // ringkasan VAS (dibagi proporsional bila nota campur brand — sama dengan tabel utama)
+  const agg = {op:{n:0,q:0,v:0}, rc:{n:0,q:0,v:0}, acc:{n:0,q:0,v:0}};
+  list.forEach(function(n){ const devSum = Object.keys(n.dev).reduce(function(a,b){ return a+(n.dev[b]>0?n.dev[b]:0); },0); const sh = devSum>0 ? n.dev[bk]/devSum : 0;
+    ['op','rc','acc'].forEach(function(c){ if (n[c].q>0){ agg[c].n++; agg[c].q+=n[c].q*sh; agg[c].v+=n[c].v*sh; } }); });
+  const vasRow = function(nm, a){ return '<tr><td style="text-align:left;">'+nm+'</td><td>'+fmt(a.n)+'</td><td>'+fmtPct(list.length?a.n/list.length*100:null)+'</td><td>'+fmt(a.q)+'</td><td>'+fmt(a.v)+'</td></tr>'; };
+  const mini = 'font-size:11px;';
+  const badge = function(ok){ return '<span style="font-size:10px;font-weight:800;padding:2px 7px;border-radius:999px;border:1px solid '+(ok?'var(--green)':'var(--red)')+';color:'+(ok?'var(--green)':'var(--red)')+';white-space:nowrap;">'+(ok?'ADA VAS':'TANPA VAS')+'</span>'; };
+  const cell = function(n, c){ if (!(n[c].q>0)) return '<span style="color:var(--muted);">&ndash;</span>';
+    const names = n.vasItems.filter(function(x){ return x.c===c; }).map(function(x){ return x.item+' ×'+x.q; }).join('; ');
+    return '<span title="'+escapeHtml(names)+'" style="font-weight:700;">&#10003; '+fmt(n[c].v)+'</span>'; };
+  const rows = shown.map(function(n){
+    const mine = n.devItems.filter(function(x){ return x.b===bk; }).map(function(x){ return escapeHtml(x.item||'-')+' ×'+x.q; }).join('<br>');
+    const others = Object.keys(n.dev).filter(function(b){ return b!==bk && n.dev[b]>0; }).map(function(b){ return escapeHtml(b)+' ×'+n.dev[b]; }).join(', ');
+    const tv = n.op.v*(n.op.q>0?1:0)+n.rc.v*(n.rc.q>0?1:0)+n.acc.v*(n.acc.q>0?1:0);
+    return '<tr><td style="text-align:left;font-weight:700;white-space:nowrap;">'+(n.inv?escapeHtml(n.inv):'<span style="color:var(--muted);">(tanpa no. nota)</span>')+'</td>'
+      +'<td style="white-space:nowrap;">'+fmtDMY(n.date)+'</td>'+(store?'':'<td style="text-align:left;">'+escapeHtml(n.store)+'</td>')
+      +'<td style="text-align:left;">'+escapeHtml(n.sales||'-')+'</td>'
+      +'<td style="text-align:left;">'+mine+(others?'<div style="color:var(--yellow);font-size:10px;">+ brand lain: '+others+'</div>':'')+'</td>'
+      +'<td>'+cell(n,'op')+'</td><td>'+cell(n,'rc')+'</td><td>'+cell(n,'acc')+'</td>'
+      +'<td style="font-weight:800;">'+(n.__vas?fmt(tv):'-')+'</td><td>'+badge(n.__vas)+'</td></tr>'; }).join('');
+  const btn = function(k, t){ return '<button class="pv-btn'+(f===k?' on':'')+'" onclick="setBrandVasFilter(\''+k+'\')">'+t+'</button>'; };
+  const th = function(t, left){ return '<th'+(left?' style="text-align:left;"':'')+'>'+t+'</th>'; };
+  return '<div class="cat-ero-box" style="margin:4px 0 0 10px;padding:8px 10px;border-left:3px solid var(--blue);border-top:0;">'
+    +'<div style="font-weight:800;font-size:12px;color:var(--blue);margin:2px 0 8px;">'+escapeHtml(label)+(store?' &middot; '+escapeHtml(store):'')+' &rsaquo; Rincian penjualan &amp; nomor nota</div>'
+    +'<div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;">'
+    +'<div class="achv-table-wrap" style="flex:1 1 320px;"><table style="'+mini+'"><thead><tr>'+th('TIPE DEVICE TERJUAL',1)+th('QTY')+th('VALUE (Rp)')+th('NOTA')+'</tr></thead><tbody>'+(devRows||'<tr><td colspan="4">-</td></tr>')
+    +'</tbody><tfoot><tr style="font-weight:800;"><td style="text-align:left;">TOTAL DEVICE</td><td>'+fmt(devQ)+'</td><td>'+fmt(devV)+'</td><td>'+fmt(list.length)+'</td></tr></tfoot></table></div>'
+    +'<div class="achv-table-wrap" style="flex:1 1 320px;"><table style="'+mini+'"><thead><tr>'+th('VAS',1)+th('NOTA')+th('% NOTA')+th('QTY')+th('VALUE (Rp)')+'</tr></thead><tbody>'
+    +vasRow('Operator',agg.op)+vasRow('Repair Contract',agg.rc)+vasRow('Accessories',agg.acc)+'</tbody></table>'
+    +'<div class="cat-hint x-note" style="margin-top:4px;">Qty &amp; value VAS dibagi proporsional bila satu nota berisi lebih dari satu brand device.</div></div></div>'
+    +'<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:10px 0 6px;">'
+    +btn('all','Semua nota ('+fmt(list.length)+')')+btn('vas','&#10003; Ada VAS ('+fmt(nVas)+')')+btn('novas','&#10007; Tanpa VAS ('+fmt(nNo)+')')+'</div>'
+    +'<div class="achv-table-wrap" style="max-height:380px;overflow:auto;"><table style="'+mini+'"><thead><tr>'+th('NO. INVOICE',1)+th('TANGGAL')+(store?'':th('TOKO',1))+th('SALES',1)+th('DEVICE',1)+th('OPERATOR')+th('REPAIR CONTRACT')+th('ACCESSORIES')+th('TOTAL VAS (Rp)')+th('STATUS')+'</tr></thead><tbody>'
+    +(rows||'<tr><td colspan="'+(store?9:10)+'" style="color:var(--muted);">Tidak ada nota pada filter ini.</td></tr>')+'</tbody></table></div>'
+    +'<div class="cat-hint x-note" style="margin-top:4px;">Arahkan kursor ke nilai VAS untuk melihat nama item. Nilai VAS di kolom nota adalah nilai penuh nota (belum dibagi brand).</div></div>';
 }
 function renderBrandVasPopup(d){
   if (!state.brandVasOpen) return '';
@@ -6793,7 +6875,7 @@ function renderBrandVasPopup(d){
   const view = state.brandVasView==='store' ? 'store' : 'brand';
   const lblOf = {}; (d.brandCards||[]).forEach(function(b){ lblOf[normalizeBrandKey(b.key)||b.key] = b.label; });
   const brandLbl = function(k){ return lblOf[k] || k; };
-  const brandItems = function(outObj){ return Object.keys(outObj).sort(function(a,b){ return outObj[b].devQty-outObj[a].devQty; }).map(function(k){ return {label:brandLbl(k), o:outObj[k]}; }); };
+  const brandItems = function(outObj){ return Object.keys(outObj).sort(function(a,b){ return outObj[b].devQty-outObj[a].devQty; }).map(function(k){ return {label:brandLbl(k), key:k, o:outObj[k]}; }); };
   const chip = function(txt, color){ return '<span style="font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:999px;border:1px solid var(--border);color:'+(color||'var(--green)')+';">'+txt+'</span>'; };
   const sel = state.selectedStore || '';
   const storeOpts = '<option value=""'+(sel===''?' selected':'')+'>Semua Toko</option>'+(d.allStores||[]).slice().sort(function(a,b){ return a.site_desc.localeCompare(b.site_desc); }).map(function(s_){ return '<option value="'+escapeHtml(s_.site_desc)+'"'+(sel===s_.site_desc?' selected':'')+'>'+escapeHtml(s_.site_desc)+'</option>'; }).join('');
@@ -6815,14 +6897,25 @@ function renderBrandVasPopup(d){
   if (!R.notaCount){
     main = '<div class="empty-note">Belum ada nota device pada rentang tanggal / toko yang dipilih.</div>';
   } else if (view==='brand'){
-    main = brandVasTable(brandItems(R.out), tot, 'BRAND');
+    const bsel = String(state.brandVasBrand||'');
+    const bitems = brandItems(R.out).map(function(it){
+      const id = it.key+'@@'; const isSel = (bsel===id);
+      return {label:it.label, o:it.o, title:'Klik untuk lihat breakdown penjualan &amp; no. invoice (ada / tanpa VAS)', active:isSel,
+        click:"toggleBrandVasBrand('"+String(it.key).replace(/\\/g,'\\\\').replace(/'/g,"\\'")+"','')",
+        extra: isSel ? brandVasDetail(R, it.key, '', it.label) : ''};
+    });
+    main = brandVasTable(bitems, tot, 'BRAND')+'<div class="cat-hint x-note" style="margin-top:6px;">👆 Klik nama brand untuk melihat breakdown penjualan dan nomor invoice yang ada / tidak ada VAS.</div>';
   } else {
     const names = Object.keys(R.byStore).sort(function(a,b){ return R.byStore[b].tot.devQty-R.byStore[a].tot.devQty; });
     const items = names.map(function(nm){
       const isSel = (state.brandVasSel===nm) || (sel && names.length===1);
       const q = String(nm).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
       return {label:nm, o:R.byStore[nm].tot, click:"toggleBrandVasStore('"+q+"')", active:isSel,
-        extra: isSel ? '<div class="cat-ero-box" style="margin:4px 0 0 10px;padding:6px 0 2px 10px;border-left:3px solid var(--green);border-top:0;"><div style="font-weight:800;font-size:11px;color:var(--green);margin:4px 0 6px;">'+escapeHtml(nm)+' &rsaquo; by Brand</div>'+brandVasTable(brandItems(R.byStore[nm].out), R.byStore[nm].tot, 'BRAND')+'</div>' : ''};
+        extra: isSel ? '<div class="cat-ero-box" style="margin:4px 0 0 10px;padding:6px 0 2px 10px;border-left:3px solid var(--green);border-top:0;"><div style="font-weight:800;font-size:11px;color:var(--green);margin:4px 0 6px;">'+escapeHtml(nm)+' &rsaquo; by Brand</div>'+brandVasTable(brandItems(R.byStore[nm].out).map(function(it){
+          const id = it.key+'@@'+nm; const isB = (String(state.brandVasBrand||'')===id);
+          return {label:it.label, o:it.o, active:isB, title:'Klik untuk lihat breakdown penjualan &amp; no. invoice (ada / tanpa VAS)',
+            click:"toggleBrandVasBrand('"+String(it.key).replace(/'/g,"\\'")+"','"+q+"')",
+            extra: isB ? brandVasDetail(R, it.key, nm, it.label) : ''}; }), R.byStore[nm].tot, 'BRAND')+'</div>' : ''};
     });
     main = brandVasTable(items, tot, 'TOKO')+'<div class="cat-hint x-note" style="margin-top:6px;">👆 Klik nama toko untuk melihat kontribusi VAS per brand di toko tersebut.</div>';
   }
