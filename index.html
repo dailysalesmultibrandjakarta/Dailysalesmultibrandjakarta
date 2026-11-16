@@ -741,6 +741,26 @@ body.theme-soft .cat-detail table.pivot-tbl.pv-hp tbody td,body.theme-soft .cat-
   .cmpx-tbl td:first-child{white-space:normal;font-weight:700;color:var(--text-strong);}
   .cmpx-prev{color:var(--muted);} .cmpx-cur{color:var(--text-strong);font-weight:800;}
   .cmpx-total td{border-top:1px solid var(--border);font-weight:900;}
+  .cmpx-tbl tr.cmpx-dayclick{cursor:pointer;} .cmpx-tbl tr.cmpx-dayclick:hover td{background:rgba(45,212,191,.08);}
+  .cmpx-tbl tr.cmpx-dayopen td:first-child{color:var(--green);}
+  .cmpx-tbl tr.cmpx-dayrow>td{display:table-cell;padding:4px 6px 10px 6px !important;text-align:left !important;white-space:normal !important;}
+  .cmpx-dayhd{display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:800;font-size:12px;color:var(--text-strong);margin:2px 0 6px;}
+  .cmpx-dayhd .x{cursor:pointer;border:1px solid var(--border);border-radius:6px;padding:1px 8px;font-size:11px;color:var(--muted);}
+  .cmpx-daywrap{max-height:340px;overflow:auto;border:1px solid var(--border);border-radius:8px;}
+  table.cmpx-daytbl{width:100%;border-collapse:collapse;font-size:11.5px;} table.cmpx-daytbl th,table.cmpx-daytbl td{padding:5px 8px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--border);display:table-cell;}
+  table.cmpx-daytbl th{position:sticky;top:0;background:var(--card,#1a2540);color:var(--green);font-weight:800;} table.cmpx-daytbl td:first-child,table.cmpx-daytbl th:first-child{text-align:left;}
+  table.cmpx-daytbl tr.tot td{font-weight:900;border-top:2px solid var(--border);}
+  .cmpx-ov{position:fixed;inset:0;background:rgba(3,8,20,.74);z-index:10000;display:flex;align-items:center;justify-content:center;padding:14px;}
+  .cmpx-pop{background:var(--card,#16203a);border:1px solid var(--border);border-radius:14px;width:100%;max-width:900px;max-height:88vh;display:flex;flex-direction:column;padding:14px 16px;box-shadow:0 18px 60px rgba(0,0,0,.55);}
+  .cmpx-pophd{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;color:var(--text-strong);margin-bottom:8px;}
+  .cmpx-pophd .x,.cmpx-popchips .x{cursor:pointer;border:1px solid var(--border);border-radius:6px;padding:2px 9px;font-size:11px;color:var(--muted);white-space:nowrap;}
+  .cmpx-popchips{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;} .cmpx-popchips .x.on{background:var(--green);color:#04221c;border-color:var(--green);font-weight:800;}
+  .cmpx-popnote{font-size:10.5px;color:var(--muted);margin-bottom:6px;}
+  .cmpx-popscroll{overflow:auto;border:1px solid var(--border);border-radius:8px;min-height:0;}
+  .cmpx-pop table.cmpx-daytbl tr.cmpx-brclick{cursor:pointer;} .cmpx-pop table.cmpx-daytbl tr.cmpx-brclick:hover td{background:rgba(45,212,191,.08);}
+  table.cmpx-daytbl tr.cmpx-brclick{cursor:pointer;} table.cmpx-daytbl tr.cmpx-brclick:hover td{background:rgba(45,212,191,.08);} table.cmpx-daytbl tr.cmpx-bropen td:first-child{color:var(--green);font-weight:800;}
+  table.cmpx-daytbl tr.cmpx-brdet>td{padding:4px 6px 10px 14px;white-space:normal;text-align:left;border-bottom:1px solid var(--border);}
+  .cmpx-brbox{border-left:3px solid var(--green);padding-left:8px;} .cmpx-brbox .cmpx-dayhd .x.on{font-weight:800;}
   .cmpx-selc{min-width:84px;}
   .cmpx-tbl th,.cmpx-tbl td{padding:5px 4px;font-size:11px;}
   .cmpx-tbl{table-layout:auto;}
@@ -2758,7 +2778,7 @@ function cmpMonthsAvail(){
   return Object.keys(s).sort();
 }
 // Rentang pembanding: hari yang sama (like-for-like) di bulan pembanding; bulan penuh dibandingkan dengan bulan penuh.
-function cmpRange(){
+function cmpRange(fullPrev){
   if(!state.raw||!state.dateFrom||!state.dateTo) return null;
   const months=cmpMonthsAvail(), cur=state.dateFrom.slice(0,7);
   let key=''; // selalu 2 bulan: bulan berjalan vs bulan sebelumnya
@@ -2767,11 +2787,11 @@ function cmpRange(){
   const n=(+key.slice(0,4))*12+(+key.slice(5,7))-((+cur.slice(0,4))*12+(+cur.slice(5,7)));
   const full=state.dateFrom===firstDayOfMonth(state.dateFrom)&&state.dateTo===lastDayOfMonth(state.dateTo);
   const from=shiftMonthISO(state.dateFrom,n);
-  return {key:key, from:from, to: full? lastDayOfMonth(from) : shiftMonthISO(state.dateTo,n)};
+  return {key:key, from:from, to: (full||fullPrev)? lastDayOfMonth(from) : shiftMonthISO(state.dateTo,n)};
 }
 // Render seluruh dashboard untuk bulan pembanding (state dipinjam sementara lalu dipulihkan).
-function cmpBuild(){
-  const r=cmpRange(); if(!r) return null;
+function cmpBuild(fullPrev){
+  const r=cmpRange(fullPrev); if(!r) return null;
   const keep=Object.assign({},state);
   let html='', dB=null;
   try{
@@ -2887,10 +2907,19 @@ function _cmpExtract(card){
   });
   return rows;
 }
-function _cmpModel(ca,cb){
+function _cmpModel(ca,cb,cf){
   const A=_cmpExtract(ca), B=_cmpExtract(cb), bm={}; B.forEach(r=>{ bm[r.id]=r; });
   const metrics=[]; A.forEach(r=>Object.keys(r.vals).forEach(m=>{ if(metrics.indexOf(m)<0) metrics.push(m); }));
-  return {metrics:metrics, rows:A.map(r=>({id:r.id,t:r.t,label:r.label,cur:r.vals,prev:(bm[r.id]||{}).vals||{}}))};
+  // EST bulan ini dibandingkan dengan TOTAL penuh bulan lalu (sama dengan "vs Bln Lalu" di kartu): pembanding EST diambil dari MTD render bulan lalu penuh.
+  const fm={}; let hasFull=false;
+  if(cf) _cmpExtract(cf).forEach(r=>{ fm[r.id]=r; });
+  const rows=A.map(r=>{
+    const prev=Object.assign({}, (bm[r.id]||{}).vals||{});
+    const f=fm[r.id];
+    if(cf && r.vals['EST'] && f && f.vals['MTD']){ prev['EST']=f.vals['MTD']; hasFull=true; }
+    return {id:r.id,t:r.t,label:r.label,cur:r.vals,prev:prev};
+  });
+  return {metrics:metrics, rows:rows, hasFull:hasFull};
 }
 function _cmpFmtD(v,u){
   const a=Math.abs(v), sg=v>0?'+':(v<0?'−':'');
@@ -2904,6 +2933,70 @@ function _cmpItem(r,m){
   const pct=(ok&&c.n.u!=='%'&&p.n.v!==0)?sel/Math.abs(p.n.v)*100:null;
   return {r:r,label:r.label,t:r.t,cur:c,prev:p||null,u:c.n.u,sel:sel,pct:pct,total:/^(grand\s*total|total|jumlah|semua|all)\b/i.test(r.label)};
 }
+// ===== POP UP rincian tanggal: penjualan per BRAND (Qty & Value, bulan ini vs bulan lalu); klik brand -> tipe & toko =====
+function cmpDay(i,dd){
+  const S=_cmpStore[i]; if(!S) return;
+  state.cmpPop={S:{curKey:S.curKey,prevKey:S.prevKey,curS:S.curS,prevS:S.prevS},dd:dd,brand:null,mon:null};
+  cmpPopPaint();
+}
+function cmpPopClose(){ state.cmpPop=null; const el=document.getElementById('cmpPopOv'); if(el) el.remove(); }
+function cmpPopBrand(enc){ if(!state.cmpPop) return; state.cmpPop.brand=enc?decodeURIComponent(enc):null; state.cmpPop.mon=null; cmpPopPaint(); }
+function cmpPopMon(m){ if(!state.cmpPop) return; state.cmpPop.mon=m; cmpPopPaint(); }
+function cmpPopAgg(P){
+  const dCur=P.S.curKey+'-'+P.dd, dPrev=P.S.prevKey?(P.S.prevKey+'-'+P.dd):'';
+  const agg={};
+  (state.raw.records||[]).forEach(r=>{
+    const isC=r[0]===dCur, isP=dPrev && r[0]===dPrev; if(!isC&&!isP) return;
+    if(state.selectedStore && r[1]!==state.selectedStore) return;
+    const k=normalizeBrandKey(r[3])||'-';
+    const o=agg[k]||(agg[k]={key:k,label:(String(r[3]||'').trim()||'Tanpa Brand'),cq:0,cv:0,pq:0,pv:0});
+    if(isC){ o.cq+=r[4]; o.cv+=r[5]; } else { o.pq+=r[4]; o.pv+=r[5]; }
+  });
+  return {agg:agg,dCur:dCur,dPrev:dPrev};
+}
+function cmpPopPaint(){
+  const P=state.cmpPop; if(!P||!state.raw) return;
+  const S=P.S, dd=P.dd, A=cmpPopAgg(P), agg=A.agg, dCur=A.dCur, dPrev=A.dPrev;
+  const dl=function(iso){ return iso.slice(8)+'/'+iso.slice(5,7)+'/'+iso.slice(0,4); };
+  const dif=function(c,p){ const d=c-p; return '<span style="color:var(--'+(d>0?'green':(d<0?'red':'muted'))+');font-weight:700;">'+(d>0?'+':(d<0?'\u2212':''))+fmt(Math.abs(d))+'</span>'; };
+  let title, body;
+  if(P.brand && agg[P.brand]){
+    const o=agg[P.brand]; let mon=P.mon; if(mon!=='cur'&&mon!=='prev') mon=(o.cq||o.cv)?'cur':'prev';
+    const iso=(mon==='cur')?dCur:dPrev;
+    const map={};
+    (state.raw.records||[]).forEach(r=>{
+      if(!iso||r[0]!==iso) return;
+      if(state.selectedStore && r[1]!==state.selectedStore) return;
+      if((normalizeBrandKey(r[3])||'-')!==P.brand) return;
+      const tp=String(r[7]==null?'':r[7]).trim()||'Tanpa Nama Tipe', st=String(r[1]==null?'':r[1]);
+      const m=map[tp+'\u0001'+st]||(map[tp+'\u0001'+st]={tp:tp,st:st,q:0,v:0}); m.q+=r[4]; m.v+=r[5];
+    });
+    const L=Object.keys(map).map(function(x){ return map[x]; }).filter(function(m){ return m.q||m.v; }).sort(function(a,b){ return (b.v-a.v)||(b.q-a.q); });
+    const T=L.reduce(function(a,m){ a.q+=m.q; a.v+=m.v; return a; },{q:0,v:0});
+    const chip=function(m,txt){ return '<span class="x'+(mon===m?' on':'')+'" onclick="cmpPopMon(\''+m+'\')">'+txt+'</span>'; };
+    title='<span class="x" onclick="cmpPopBrand(null)">\u2190 Kembali</span> <b>'+escapeHtml(o.label)+'</b> &middot; Tipe &amp; Toko &middot; '+(iso?dl(iso):'-');
+    body='<div class="cmpx-popchips">'+chip('cur',escapeHtml(S.curS)+' '+dl(dCur))+(dPrev?chip('prev',escapeHtml(S.prevS)+' '+dl(dPrev)):'')+'</div>'
+      +'<div class="cmpx-popscroll"><table class="cmpx-daytbl"><thead><tr><th>Tipe</th><th>Store</th><th>Qty</th><th>Value</th></tr></thead><tbody>'
+      +(L.length ? L.map(function(m){ return '<tr><td>'+escapeHtml(m.tp)+'</td><td>'+escapeHtml(m.st)+'</td><td>'+fmt(m.q)+'</td><td>'+fmt(m.v)+'</td></tr>'; }).join('')
+          +'<tr class="tot"><td>TOTAL</td><td></td><td>'+fmt(T.q)+'</td><td>'+fmt(T.v)+'</td></tr>'
+        : '<tr><td colspan="4" style="text-align:center;color:var(--muted);">Tidak ada transaksi brand ini di tanggal tsb</td></tr>')
+      +'</tbody></table></div>';
+  } else {
+    const list=Object.keys(agg).map(function(k){ return agg[k]; }).filter(function(o){ return o.cq||o.cv||o.pq||o.pv; }).sort(function(a,b){ return (b.cv-a.cv)||(b.pv-a.pv); });
+    title='<b>Penjualan per Brand</b> &middot; Tgl '+dd+' ('+escapeHtml(S.curS)+' '+dl(dCur)+(dPrev?' vs '+escapeHtml(S.prevS)+' '+dl(dPrev):'')+')';
+    if(!list.length) body='<div class="cmpx-empty">Tidak ada transaksi di tanggal ini.</div>';
+    else {
+      const T=list.reduce(function(a,o){ a.cq+=o.cq; a.cv+=o.cv; a.pq+=o.pq; a.pv+=o.pv; return a; },{cq:0,cv:0,pq:0,pv:0});
+      body='<div class="cmpx-popnote">Klik nama brand untuk melihat tipe &amp; toko (Qty, Value).</div><div class="cmpx-popscroll"><table class="cmpx-daytbl"><thead><tr><th>Brand</th><th>Qty '+escapeHtml(S.prevS)+'</th><th>Value '+escapeHtml(S.prevS)+'</th><th>Qty '+escapeHtml(S.curS)+'</th><th>Value '+escapeHtml(S.curS)+'</th><th>Selisih Value</th></tr></thead><tbody>'
+        +list.map(function(o){ return '<tr class="cmpx-brclick" onclick="cmpPopBrand(\''+encodeURIComponent(o.key)+'\')"><td>\u25B8 '+escapeHtml(o.label)+'</td><td>'+fmt(o.pq)+'</td><td>'+fmt(o.pv)+'</td><td style="font-weight:700;">'+fmt(o.cq)+'</td><td style="font-weight:700;">'+fmt(o.cv)+'</td><td>'+dif(o.cv,o.pv)+'</td></tr>'; }).join('')
+        +'<tr class="tot"><td>TOTAL</td><td>'+fmt(T.pq)+'</td><td>'+fmt(T.pv)+'</td><td>'+fmt(T.cq)+'</td><td>'+fmt(T.cv)+'</td><td>'+dif(T.cv,T.pv)+'</td></tr></tbody></table></div>';
+    }
+  }
+  let ov=document.getElementById('cmpPopOv');
+  if(!ov){ ov=document.createElement('div'); ov.id='cmpPopOv'; ov.className='cmpx-ov'; ov.onclick=function(e){ if(e.target===ov) cmpPopClose(); }; document.body.appendChild(ov); }
+  ov.innerHTML='<div class="cmpx-pop"><div class="cmpx-pophd"><span>'+title+'</span><span class="x" onclick="cmpPopClose()">\u2715 Tutup</span></div>'+body+'</div>';
+}
+document.addEventListener('keydown',function(e){ if(e.key==='Escape' && state.cmpPop){ cmpPopClose(); } });
 function cmpSetMetric(i,idx){ state.cmpMetric=state.cmpMetric||{}; const S=_cmpStore[i]; if(!S) return; state.cmpMetric[i]=S.model.metrics[idx]; cmpPaintPanel(i); }
 function cmpSort(i,k){
   state.cmpSortBy=state.cmpSortBy||{}; const c=state.cmpSortBy[i];
@@ -2916,7 +3009,7 @@ function cmpPaintPanel(i){
   const S=_cmpStore[i], el=document.getElementById('cmp-panel-'+i); if(!S||!el) return;
   state.cmpMetric=state.cmpMetric||{}; state.cmpSortBy=state.cmpSortBy||{};
   const mets=S.model.metrics;
-  let m=state.cmpMetric[i]; if(mets.indexOf(m)<0){ m=mets.filter(x=>/^mtd$/i.test(x))[0]||mets.filter(x=>/mtd/i.test(x))[0]||mets[0]; state.cmpMetric[i]=m; }
+  let m=state.cmpMetric[i]; if(mets.indexOf(m)<0){ m=(S.model.hasFull?mets.filter(x=>x==='EST')[0]:null)||mets.filter(x=>/^mtd$/i.test(x))[0]||mets.filter(x=>/mtd/i.test(x))[0]||mets[0]; state.cmpMetric[i]=m; }
   const sb=state.cmpSortBy[i];
   const items=S.model.rows.map(r=>_cmpItem(r,m)).filter(Boolean);
   const cls=v=>v>0?'up':(v<0?'dn':'');
@@ -2939,13 +3032,17 @@ function cmpPaintPanel(i){
       const sel=x.sel===null?'<span class="cmpx-v">–</span>':'<span class="cmpx-v '+cls(x.sel)+'">'+(x.sel===0?'0':_cmpFmtD(x.sel,x.u))+'</span>'
         +'<div class="cmpx-bw"><div class="cmpx-half l">'+(x.sel<0?'<i style="width:'+w+'%"></i>':'')+'</div><div class="cmpx-half r">'+(x.sel>0?'<i style="width:'+w+'%"></i>':'')+'</div></div>';
       const pct=x.pct===null?'–':'<span class="cmpx-pill '+cls(x.pct)+'">'+(x.pct>0?'▲ ':(x.pct<0?'▼ ':''))+Math.abs(x.pct).toFixed(1).replace('.',',')+'%</span>';
-      return '<tr'+(x.total?' class="cmpx-total"':'')+'><td style="text-align:left;">'+escapeHtml(x.label)+'</td>'
+      const _dd = (x.t==='harian' && /^d\|\d\d$/.test(x.r.id)) ? x.r.id.slice(2) : null;
+      const _open = false; // rincian tanggal tampil sebagai pop up (bukan baris yang membuka di tabel)
+      return '<tr'+(x.total?' class="cmpx-total"':(_dd?' class="cmpx-dayclick'+(_open?' cmpx-dayopen':'')+'" onclick="cmpDay('+i+',\''+_dd+'\')" title="Klik untuk lihat penjualan per brand di tanggal ini (pop up)"':''))+'><td style="text-align:left;">'+(_dd?(_open?'\u25BE ':'\u25B8 '):'')+escapeHtml(x.label)+'</td>'
         +'<td class="cmpx-prev" data-l="'+escapeHtml(S.prevS)+'">'+(x.prev?escapeHtml(x.prev.t):'–')+'</td><td class="cmpx-cur" data-l="'+escapeHtml(S.curS)+'">'+escapeHtml(x.cur.t)+'</td>'
-        +'<td class="cmpx-selc" data-l="Selisih">'+sel+'</td><td data-l="%">'+pct+'</td></tr>';
+        +'<td class="cmpx-selc" data-l="Selisih">'+sel+'</td><td data-l="%">'+pct+'</td></tr>'
+        ;
     }).join('');
     tables+='<div><table class="cmpx-tbl"><thead><tr>'+th('name','Nama','left')+th('prev',escapeHtml(S.prevS))+th('cur',escapeHtml(S.curS))+th('sel','Selisih')+th('pct','%')+'</tr></thead><tbody>'+body+'</tbody></table></div>';
   });
-  el.innerHTML='<div class="cmpx-head"><b>⇄ Perbandingan MTD</b> <span>'+escapeHtml(S.curL)+' ('+S.curRng+') vs '+escapeHtml(S.prevL)+' ('+S.prevRng+')</span></div>'
+  const _estMode = (m==='EST' && S.model.hasFull);
+  el.innerHTML='<div class="cmpx-head"><b>⇄ Perbandingan '+(_estMode?'EST':'MTD')+'</b> <span>'+(_estMode ? ('EST '+escapeHtml(S.curL)+' vs total '+escapeHtml(S.prevL)+' ('+S.rngFull+')') : (escapeHtml(S.curL)+' ('+S.curRng+') vs '+escapeHtml(S.prevL)+' ('+S.prevRng+')'))+'</span></div>'
     +(mets.length>1?'<div class="cmpx-chips">'+mets.map((x,ix)=>'<button class="cmpx-chip'+(x===m?' on':'')+'" onclick="cmpSetMetric('+i+','+ix+')">'+escapeHtml(x)+'</button>').join('')+'</div>':'')
     +'<div class="cmpx-sortrow"><span>Urutkan</span><select class="cmpx-sortsel" onchange="cmpSortSet('+i+',this.value)">'
       +[['','Urutan awal'],['sel:desc','Selisih naik terbesar'],['sel:asc','Selisih turun terbesar'],['pct:desc','% naik terbesar'],['pct:asc','% turun terbesar'],['cur:desc','Nilai '+S.curS+' terbesar'],['name:asc','Nama A-Z']]
@@ -2960,8 +3057,10 @@ function applyCompare(){
   const top=el=>Array.from(el.querySelectorAll('.card')).filter(x=>!x.closest('.cat-overlay')&&!(x.parentElement&&x.parentElement.closest('.card')));
   const A=top(app), anyOn=!!r&&A.some((c,i)=>state.cmpCards[i]);
   const ttl=x=>{ const t=x.querySelector('.section-title-left'); return t?t.textContent.trim():''; };
-  let B=[];
+  let B=[], BF=[];
   if(anyOn){ const c=cmpBuild(); if(c){ const tmp=document.createElement('div'); tmp.innerHTML=c.html; B=top(tmp); } }
+  // Mode Bulan Ini (proyeksi): render kedua = bulan lalu PENUH, dipakai untuk membandingkan EST bulan ini vs total bulan lalu.
+  if(anyOn && isProjectionMode() && r && r.to!==lastDayOfMonth(r.from)){ const c2=cmpBuild(true); if(c2){ const tmp2=document.createElement('div'); tmp2.innerHTML=c2.html; BF=top(tmp2); } }
   const lbl=r?cmpMonthLbl(r.key):'', lblS=r?monthNameShort(+r.key.slice(5,7)):'', curS=cur?monthNameShort(+cur.slice(5,7)):'';
   const rng=r?(r.from.slice(8)+'/'+r.from.slice(5,7)+'–'+r.to.slice(8)+'/'+r.to.slice(5,7)):'';
   const curRng=state.dateFrom?(state.dateFrom.slice(8)+'/'+state.dateFrom.slice(5,7)+'–'+state.dateTo.slice(8)+'/'+state.dateTo.slice(5,7)):'';
@@ -2977,11 +3076,13 @@ function applyCompare(){
     else { ctl.classList.add('abs'); ca.style.position='relative'; ca.appendChild(ctl); }
     if(!on||ca.classList.contains('collapsed')) return;
     let cb=B.length===A.length?B[i]:B.find(x=>ttl(x)&&ttl(x)===ttl(ca)); if(!cb) return;
-    const model=_cmpModel(ca,cb);
+    const cf = BF.length ? (BF.length===A.length ? BF[i] : BF.find(x=>ttl(x)&&ttl(x)===ttl(ca))) : null;
+    const model=_cmpModel(ca,cb,cf);
     const panel=document.createElement('div'); panel.className='cmp-panel'; panel.id='cmp-panel-'+i;
     if(st) st.insertAdjacentElement('afterend',panel); else ca.insertBefore(panel,ca.firstChild);
     if(!model.rows.length){ panel.innerHTML='<div class="cmpx-note">Slide ini tidak punya tabel untuk dibandingkan.</div>'; return; }
-    _cmpStore[i]={model:model,prevS:lblS,curS:curS,prevL:lbl,curL:cmpMonthLbl(cur),prevRng:rng,curRng:curRng};
+    const rngFull = (r&&cf) ? ('01/'+r.key.slice(5,7)+'–'+lastDayOfMonth(r.from).slice(8)+'/'+r.key.slice(5,7)) : '';
+    _cmpStore[i]={model:model,prevS:lblS,curS:curS,prevL:lbl,curL:cmpMonthLbl(cur),prevRng:rng,curRng:curRng,rngFull:rngFull,prevKey:(r?r.key:''),curKey:cur};
     cmpPaintPanel(i);
   });
 }
