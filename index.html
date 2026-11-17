@@ -1092,6 +1092,25 @@ function _applyExactStoreTargets(out, base, storeNames, storeObjs){
     const l = key.replace(/_(device|acc|vas)$/,'');
     out.leader[key] = fullSum[l]>0 ? (Number(base.leader[key])||0)*((selSum[l]||0)/fullSum[l]) : 0;
   });
+  // Target kategori Accessories / Operator / Repair Contract / CE / Laptop untuk toko terpilih = JUMLAH target Rofo per toko
+  // (tabel "TARGET ROFO BY KATEGORI PER TOKO" -> catStore), bukan proporsional. Toko tanpa target di tabel itu memakai porsi lama.
+  const csAll = base.catStore || {};
+  const baseOverall = Number(base.overall)||0;
+  let exactDone = false;
+  ['Accessories','Operator','Repair Contract','CE','Laptop'].forEach(function(cat){
+    let hasAny = false, sum = 0;
+    const rat = baseOverall>0 ? (Number((base.category||{})[cat])||0)/baseOverall : 0;
+    storeNames.forEach(function(st){
+      const key = st+'|'+cat;
+      if (Object.prototype.hasOwnProperty.call(csAll, key)){ sum += Number(csAll[key])||0; hasAny = true; }
+      else sum += (Number((base.store||{})[st])||0)*rat;
+    });
+    if (hasAny){ out.category[cat] = sum; exactDone = true; }
+  });
+  if (exactDone){
+    out.category['_group_acc'] = (out.category['Accessories']||0)+(out.category['CE']||0)+(out.category['Laptop']||0);
+    out.category['_group_vas'] = (out.category['Operator']||0)+(out.category['Repair Contract']||0);
+  }
 }
 function getEffectiveTargets(){
   const base = _getEffectiveTargetsBase();
@@ -1748,6 +1767,31 @@ function parseTargetSheetRows(trows){
       if (!row || row[0]==null) break;
       const name = canonStoreName(String(row[0]).trim());
       leaderByStore[name] = row[1]!==null&&row[1]!==undefined? String(row[1]).trim() : 'Tanpa Leader';
+    }
+  }
+
+  // TARGET ROFO BY KATEGORI PER TOKO -> target per toko untuk kategori Accessories / Operator / Repair Contract (BOLTTECH) / CE / Laptop.
+  // Disimpan di targets.catStore dengan kunci "NAMA TOKO|Kategori" (sama dengan kunci target manual per toko), sehingga tabel
+  // Pencapaian by Store memakai angka Rofo per toko, bukan hasil bagi proporsional dari Target Store.
+  const catRofoIdx = findRowIndexByLabel(trows, 'TARGET ROFO BY KATEGORI PER TOKO', 0);
+  if (catRofoIdx!==-1){
+    const hdr = trows[catRofoIdx] || [];
+    const colCat = {};
+    for (let c=1;c<hdr.length;c++){
+      if (hdr[c]==null) continue;
+      const mapped = TARGET_LABEL_TO_CATEGORY[String(hdr[c]).trim().toUpperCase()];
+      if (mapped && mapped!=='_overall' && mapped!=='Device') colCat[c] = mapped;
+    }
+    for (let i=catRofoIdx+1;i<trows.length;i++){
+      const row = trows[i];
+      if (!row || row[0]==null) break;
+      const name = canonStoreName(String(row[0]).trim());
+      if (name.toUpperCase()==='GRAND TOTAL') break;
+      Object.keys(colCat).forEach(function(c){
+        if (row[c]==null || row[c]==='') return;
+        const v = Number(row[c]);
+        if (isFinite(v)){ const k = name+'|'+colCat[c]; targets.catStore[k] = (targets.catStore[k]||0) + v; }
+      });
     }
   }
 
