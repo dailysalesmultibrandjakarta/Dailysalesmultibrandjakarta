@@ -6132,8 +6132,8 @@ function racingKeyFromName(name){
 }
 // Value racing brand (Oppo, Vivo, dst.) = kolom total_nett_amount_with_tax (record index 8 = withTax; fallback ke omzet bila kosong).
 // Value racing non-brand (Operator = price, Repair Contract = with_tax) = record index 9; fallback ke omzet (index 5).
-// Racing Operator: Indosat hanya artikel berawalan "INDOSAT-PLATINUM" atau "IM3 PLATINUM"; eSIM ("ESIM-INDOSAT-PLATINUM") dan paket 25GB TIDAK dihitung (sama dengan laporan Excel); provider lain semua.
-function indosatRacingOk(s){ s=String(s==null?'':s); return /^\s*(INDOSAT-PLATINUM|IM3[\s-]*PLATINUM)/i.test(s) && !/25\s*GB/i.test(s); }
+// Racing Operator: Indosat hanya artikel berawalan "INDOSAT-PLATINUM", "IM3 PLATINUM" atau "ESIM-INDOSAT-PLATINUM" (eSIM Platinum ikut dihitung); paket 25GB TIDAK dihitung; provider lain semua.
+function indosatRacingOk(s){ s=String(s==null?'':s); return /^\s*(INDOSAT-PLATINUM|IM3[\s-]*PLATINUM|ESIM-INDOSAT-PLATINUM)/i.test(s) && !/25\s*GB/i.test(s); }
 function racingOpCounts(r){ return operatorBrandLabel(r[3])!=='Indosat' || indosatRacingOk(r[7]); }
 // Racing Operator Telkomsel = kolom total_nett_amount_exc_tax (record index 5); Indosat/XL tetap kolom price.
 function racingOpVal(r){ return (r[2]==='Operator' && operatorBrandLabel(r[3])==='Telkomsel') ? r[5] : racingVal(r); }
