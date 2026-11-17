@@ -1158,7 +1158,13 @@ function _getEffectiveTargetsBase(){
   if (_effCache.raw===state.raw && _effCache.sig===sig) return _effCache.val;
   const out = emptyTargets();
   const groups = ['category','brand','store','leader','opStore','catStore'];
-  monthSpansInRange(state.dateFrom, state.dateTo).forEach(function(sp){
+  const _spans = monthSpansInRange(state.dateFrom, state.dateTo);
+  // Target Rofo per kategori per toko (catStore) bisa hanya ada di sebagian bulan (mis. sheet Oktober tidak punya tabelnya,
+  // sheet November punya). Agar rentang lintas bulan tetap konsisten, bulan tanpa angka Rofo toko|kategori memakai porsi
+  // proporsional bulan itu (target toko x porsi kategori), sehingga jumlah target toko tetap sama dengan target kategori.
+  const _rofoCats = ['Accessories','Operator','Repair Contract','CE','Laptop'];
+  const _anyRofo = _spans.some(function(sp){ const c = (targetsForMonthKey(sp.key)||{}).catStore; return c && Object.keys(c).length>0; });
+  _spans.forEach(function(sp){
     const w = sp.days/sp.dim;
     const t = targetsForMonthKey(sp.key);
     out.overall += (Number(t.overall)||0)*w;
@@ -1166,6 +1172,17 @@ function _getEffectiveTargetsBase(){
       const src = t[g] || {};
       Object.keys(src).forEach(function(k){ out[g][k] = (out[g][k]||0) + (Number(src[k])||0)*w; });
     });
+    if (_anyRofo){
+      const tOv = Number(t.overall)||0, cs = t.catStore || {};
+      Object.keys(t.store||{}).forEach(function(st){
+        _rofoCats.forEach(function(cat){
+          const key = st+'|'+cat;
+          if (Object.prototype.hasOwnProperty.call(cs, key)) return;
+          const rat = tOv>0 ? (Number((t.category||{})[cat])||0)/tOv : 0;
+          out.catStore[key] = (out.catStore[key]||0) + (Number(t.store[st])||0)*rat*w;
+        });
+      });
+    }
     const sbSrc = t.storeBrand || {};
     Object.keys(sbSrc).forEach(function(st){
       if (!out.storeBrand[st]) out.storeBrand[st] = {};
@@ -1691,6 +1708,9 @@ function extractMonthNumFromSheetName(name){
 // Mem-parse SATU sheet Target (ringkasan bisnis, target per toko per brand, target toko,
 // target toko-leader) menjadi objek targets mentah + info toko-leader + total per grup.
 // Dipanggil sekali per sheet Target yang ada di file (bisa lebih dari satu, satu per bulan).
+// Kode artikel disamakan formatnya: sheet Stock memakai kode ber-nol di depan (000000008100305535) sedangkan Master Data tanpa nol (8100305535).
+// Tanpa ini stok tidak bisa disambungkan ke data penjualan (klasifikasi Device/Aksesoris & DOS jadi salah).
+function normArticle(v){ const t = String(v==null?'':v).trim(); return /^\d+$/.test(t) ? t.replace(/^0+(?=\d)/,'') : t; }
 function parseTargetSheetRows(trows){
   const targets = emptyTargets();
   const leaderByStore = {};
@@ -1872,7 +1892,7 @@ function parseWorkbook(wb, fileName){
     const invoiceNo = col.invoice!==-1 && row[col.invoice]!=null ? String(row[col.invoice]).trim() : ''; // index 11 = nomor nota/invoice (dipakai analisis Kontribusi VAS by Brand)
     records.push([dateISO, siteDesc, category, brand, qty, omzet, salesName, itemName, withTax, racingValue, isPO, invoiceNo]);
     if (col.article!==-1 && row[col.article]!=null && String(row[col.article]).trim()!==''){
-      const _art = String(row[col.article]).trim();
+      const _art = normArticle(row[col.article]);
       devMap[_art] = (category==='Device');
       if (category!=='Operator' && category!=='Repair Contract'){
         const _k = dateISO+'|'+siteDesc+'|'+_art;
@@ -2043,7 +2063,7 @@ function parseWorkbook(wb, fileName){
       const srowsOut = [];
       for (let i=hi+1;i<srows.length;i++){
         const r = srows[i]; if (!r || r[cP]==null || r[cA]==null) continue;
-        srowsOut.push([String(r[cP]).trim(), String(r[cA]).trim(), cD!==-1&&r[cD]!=null ? String(r[cD]).trim() : '', cB!==-1&&r[cB]!=null ? String(r[cB]).trim() : '', Number(r[cQ])||0]);
+        srowsOut.push([String(r[cP]).trim(), normArticle(r[cA]), cD!==-1&&r[cD]!=null ? String(r[cD]).trim() : '', cB!==-1&&r[cB]!=null ? String(r[cB]).trim() : '', Number(r[cQ])||0]);
       }
       let sdate = ''; const dv = (srows[hi+1]||[])[7]; if (dv!=null && dv!=='') sdate = excelDateToISO(dv) || '';
       stockObj = {rows: srowsOut, date: sdate, sold: Object.keys(soldMap).map(function(k){ return soldMap[k]; }), dev: devMap};
@@ -7615,7 +7635,7 @@ function stkData(){
   S.rows.forEach(function(r){ _artName[r[1]] = [r[2], r[3]]; });
   S.rows.forEach(function(r){
     const d = code2desc[r[0]]; if (!d || !(d in scope)) return;
-    const dev = S.dev[r[1]] !== undefined ? S.dev[r[1]] : /\d+\s*\/\s*\d+\s*GB|IPHONE|IPAD|SMARTPHONE/i.test(r[2]);
+    const dev = S.dev[r[1]] !== undefined ? S.dev[r[1]] : /\d+\s*\/\s*\d+\s*GB|\b\d{1,2}\s*\/\s*(?:16|32|64|128|256|512|1024)\b|IPHONE|IPAD|SMARTPHONE/i.test(r[2]);
     if (c.cat && (c.cat==='D') !== dev) return;
     const sd = sold[d+'|'+r[1]]||0;
     const _seen = (_stockKeys[d+'|'+r[1]] = 1);
