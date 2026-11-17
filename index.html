@@ -1869,8 +1869,8 @@ function parseWorkbook(wb, fileName){
       const _v = row[_vc];
       if (_v!==null && _v!==undefined && _v!=='' && isFinite(Number(_v))) racingValue = Number(_v);
       // Operator XL: value = harga x qty (sama dengan laporan Excel). Tanda ikut qty, sehingga baris retur (qty -1) tetap negatif.
-      // Indosat (dan provider lain) tetap = jumlah kolom price per baris tanpa dikali qty (sama dengan laporan Excel Indosat).
-      if (category==='Operator' && /(^|[^A-Z])XL([^A-Z]|$)/i.test(brand) && racingValue!==omzet && isFinite(qty) && qty!==0) racingValue = Math.abs(racingValue) * qty;
+      // Indosat: value = harga x qty, sama dengan XL dan sama dengan sheet Target & Sales Indosat. Retur (qty minus) tetap negatif. Provider lain tetap = jumlah kolom price per baris.
+      if (category==='Operator' && (/(^|[^A-Z])XL([^A-Z]|$)/i.test(brand) || /INDOSAT/i.test(brand)) && racingValue!==omzet && isFinite(qty) && qty!==0) racingValue = Math.abs(racingValue) * qty;
     }
     const dateISO = excelDateToISO(row[col.order_date]);
     if (!dateISO || !siteDesc || !category) continue;
