@@ -1798,12 +1798,15 @@ function parseWorkbook(wb, fileName){
     // Value per kategori: Operator -> kolom "price"; Repair Contract -> kolom "total_nett_amount_with_tax"; kategori lain tetap exc_tax.
     // Bila kolom tsb tidak ada / selnya kosong pada baris itu, otomatis kembali ke exc_tax.
     // PERUBAHAN: seluruh dashboard kini memakai exc_tax untuk semua kategori (sama dengan laporan Excel).
-    // Nilai khusus RACING (Operator -> kolom price; Repair Contract -> total_nett_amount_with_tax) disimpan di record index 9.
+    // Nilai khusus RACING (Operator -> kolom price x quantity; Repair Contract -> total_nett_amount_with_tax) disimpan di record index 9.
     let racingValue = omzet;
     const _vc = category==='Operator' ? col.price : (category==='Repair Contract' ? col.total_nett_amount_with_tax : -1);
     if (_vc!==-1){
       const _v = row[_vc];
       if (_v!==null && _v!==undefined && _v!=='' && isFinite(Number(_v))) racingValue = Number(_v);
+      // Operator XL: value = harga x qty (sama dengan laporan Excel). Tanda ikut qty, sehingga baris retur (qty -1) tetap negatif.
+      // Indosat (dan provider lain) tetap = jumlah kolom price per baris tanpa dikali qty (sama dengan laporan Excel Indosat).
+      if (category==='Operator' && /(^|[^A-Z])XL([^A-Z]|$)/i.test(brand) && racingValue!==omzet && isFinite(qty) && qty!==0) racingValue = Math.abs(racingValue) * qty;
     }
     const dateISO = excelDateToISO(row[col.order_date]);
     if (!dateISO || !siteDesc || !category) continue;
@@ -6129,8 +6132,9 @@ function racingKeyFromName(name){
 }
 // Value racing brand (Oppo, Vivo, dst.) = kolom total_nett_amount_with_tax (record index 8 = withTax; fallback ke omzet bila kosong).
 // Value racing non-brand (Operator = price, Repair Contract = with_tax) = record index 9; fallback ke omzet (index 5).
-// Racing Operator: Indosat hanya artikel berawalan "INDOSAT-PLATINUM" , "IM3 PLATINUM" atau "ESIM-INDOSAT-PLATINUM" (eSIM Platinum ikut dihitung); provider lain semua.
-function racingOpCounts(r){ return operatorBrandLabel(r[3])!=='Indosat' || /^\s*(INDOSAT-PLATINUM|IM3[\s-]*PLATINUM|ESIM-INDOSAT-PLATINUM)/i.test(String(r[7]==null?'':r[7])); }
+// Racing Operator: Indosat hanya artikel berawalan "INDOSAT-PLATINUM" atau "IM3 PLATINUM"; eSIM ("ESIM-INDOSAT-PLATINUM") dan paket 25GB TIDAK dihitung (sama dengan laporan Excel); provider lain semua.
+function indosatRacingOk(s){ s=String(s==null?'':s); return /^\s*(INDOSAT-PLATINUM|IM3[\s-]*PLATINUM)/i.test(s) && !/25\s*GB/i.test(s); }
+function racingOpCounts(r){ return operatorBrandLabel(r[3])!=='Indosat' || indosatRacingOk(r[7]); }
 // Racing Operator Telkomsel = kolom total_nett_amount_exc_tax (record index 5); Indosat/XL tetap kolom price.
 function racingOpVal(r){ return (r[2]==='Operator' && operatorBrandLabel(r[3])==='Telkomsel') ? r[5] : racingVal(r); }
 function racingVal(r){ return (r[9]!==undefined && r[9]!==null && isFinite(Number(r[9]))) ? Number(r[9]) : r[5]; }
@@ -6142,7 +6146,7 @@ function racingMatch(item, r){ // r = [tanggal, toko, kategori, brand, qty, omze
   if (item.auto) return normalizeBrandKey(r[3])===item.brand && item.model.test(String(r[7]==null?'':r[7])); // racing model otomatis (mis. Vivo V80 Lite): semua varian warna/memori, baris PO ikut dihitung
   if (item.key==='vivo') return normalizeBrandKey(r[3])==='VIVO' && !r[10]; // baris PO (Ket PO = PO) tidak dihitung, sama dengan laporan
   if (item.key==='vivo3jt') return normalizeBrandKey(r[3])==='VIVO' && !r[10] && Math.abs(r[5])>item.minVal; // Vivo 3Juta+: batas value TANPA pajak (exc_tax) di atas 2.999.999, sama dengan laporan (tidak diubah)
-  if (item.key==='indosat') return operatorBrandLabel(r[3])==='Indosat' && /^\s*(INDOSAT-PLATINUM|IM3[\s-]*PLATINUM|ESIM-INDOSAT-PLATINUM)/i.test(String(r[7]==null?'':r[7])); // Racing Indosat: hanya artikel berawalan "INDOSAT-PLATINUM" , "IM3 PLATINUM" atau "ESIM-INDOSAT-PLATINUM" (eSIM Platinum ikut dihitung); eSIM, Platinum Plus & Nomor Baru/prepaid tidak dihitung. Value = kolom price per baris.
+  if (item.key==='indosat') return operatorBrandLabel(r[3])==='Indosat' && indosatRacingOk(r[7]); // Racing Indosat: hanya artikel berawalan "INDOSAT-PLATINUM" , "IM3 PLATINUM" atau "ESIM-INDOSAT-PLATINUM" (eSIM Platinum ikut dihitung); eSIM, Platinum Plus & Nomor Baru/prepaid tidak dihitung. Value = kolom price per baris.
   if (item.key==='xl') return operatorBrandLabel(r[3])==='XL Axiata';
   if (item.key==='telkomsel') return operatorBrandLabel(r[3])==='Telkomsel';
   if (item.dynamic && item.brand==='XIAOMI') return normalizeBrandKey(r[3])==='XIAOMI' && /note\s*-?\s*17/i.test(String(r[7]==null?'':r[7])); // Racing Xiaomi: hanya seri Redmi Note 17 series
