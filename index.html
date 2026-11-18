@@ -40,17 +40,17 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
 </style>
 <style>
   
-  html,body,button,input,select,textarea,table,th,td,div,span,p,label,a,text,tspan{font-weight:700;}
+  html,body,button,input,select,textarea,table,th,td,div,span,p,label,a,text,tspan{font-weight:800;}
 :root{
     --bg:#12151C; --card:#1B1F2B; --border:#333B4E; --sub:#232838; --track:#2A2F3F; --track2:#353C50; --divider:#454D63;
     --green:#4ADE9C; --red:#FF7A5C; --red-soft:#FFA98F; --yellow:#FFC24D; --yellow-soft:#FFD98A; --blue:#6FA6FF;
-    --text:#F3F4F7; --text-strong:#FFFFFF; --text-mid:#D3D7E0; --muted:#9CA3B5; --muted-2:#6B7285;
+    --text:#F3F4F7; --text-strong:#FFFFFF; --text-mid:#D3D7E0; --muted:#BCC3D4; --muted-2:#8F97AB;
     --shadow:0 10px 28px rgba(0,0,0,.45);
   }
   body.theme-soft{
     --bg:#F3F5F9; --card:#FFFFFF; --border:#E3E7EF; --sub:#EDF0F6; --track:#E4E8F0; --track2:#D8DEEA; --divider:#D7DCE6;
     --green:#0F9D66; --red:#DC5B3E; --red-soft:#E9917A; --yellow:#C8860D; --yellow-soft:#E3B356; --blue:#3568C9;
-    --text:#2B303B; --text-strong:#12151C; --text-mid:#565C6B; --muted:#848B9C; --muted-2:#B7BDC9;
+    --text:#2B303B; --text-strong:#12151C; --text-mid:#3E4452; --muted:#5C6375; --muted-2:#8A91A1;
     --shadow:0 10px 24px rgba(20,30,60,.10);
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
@@ -63,7 +63,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   select,button{-webkit-appearance:none;appearance:none;}
   h1,h2,h3,p{margin:0;}
   .theme-switch{display:inline-flex;align-items:center;gap:2px;background:var(--sub);border:1px solid var(--border);border-radius:8px;padding:2px;}
-  .theme-switch button{border:none;background:transparent;color:var(--muted);font-size:11px;font-weight:700;padding:5px 10px;border-radius:6px;cursor:pointer;font-family:inherit;}
+  .theme-switch button{border:none;background:transparent;color:var(--muted);font-size:11px;font-weight:800;padding:5px 10px;border-radius:6px;cursor:pointer;font-family:inherit;}
   .theme-switch button.active{background:var(--green);color:var(--card);}
   body.theme-soft .theme-switch button.active{color:#fff;}
   .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:var(--shadow);}
@@ -100,30 +100,30 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   .achv-field-label{font-size:9.5px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
   .achv-panel select.store-select{width:100%;max-width:none;box-sizing:border-box;font-size:11px;padding-top:5px;padding-bottom:5px;}
   .achv-seg{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:var(--sub);border:1px solid var(--border);border-radius:8px;padding:2px;}
-  .achv-seg button{border:none;background:transparent;color:var(--muted);font-size:10.5px;font-weight:700;padding:5px 6px;border-radius:6px;cursor:pointer;font-family:inherit;transition:background .15s ease,color .15s ease;}
+  .achv-seg button{border:none;background:transparent;color:var(--muted);font-size:10.5px;font-weight:800;padding:5px 6px;border-radius:6px;cursor:pointer;font-family:inherit;transition:background .15s ease,color .15s ease;}
   .achv-seg button:hover:not(:disabled):not(.active){color:var(--text-strong);}
   .achv-seg button.active{background:var(--green);color:var(--card);}
   body.theme-soft .achv-seg button.active{color:#fff;}
   .achv-seg button:disabled{opacity:.45;cursor:not-allowed;}
   .achv-opts{display:grid;grid-template-columns:1fr 1fr;gap:4px;}
-  .achv-opt{border:1px solid var(--border);background:var(--sub);color:var(--text-mid);border-radius:7px;padding:5px 4px;font-size:10.5px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;transition:background .15s ease,color .15s ease,border-color .15s ease;}
+  .achv-opt{border:1px solid var(--border);background:var(--sub);color:var(--text-mid);border-radius:7px;padding:5px 4px;font-size:10.5px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;transition:background .15s ease,color .15s ease,border-color .15s ease;}
   .achv-opt:hover{border-color:var(--green);color:var(--green);}
   .achv-opt.active{background:var(--green);border-color:var(--green);color:var(--card);}
   body.theme-soft .achv-opt.active{color:#fff;}
 
   /* ===== FILTER CHANNEL (Erafone / Erablue / JB / OS / dll) ===== */
   .chain-panel{min-width:230px;gap:4px;}
-  .chain-opt{display:flex;align-items:center;gap:10px;width:100%;border:1px solid var(--border);background:var(--sub);color:var(--text-mid);border-radius:8px;padding:7px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;text-align:left;transition:background .15s ease,border-color .15s ease,color .15s ease;}
+  .chain-opt{display:flex;align-items:center;gap:10px;width:100%;border:1px solid var(--border);background:var(--sub);color:var(--text-mid);border-radius:8px;padding:7px 10px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;text-align:left;transition:background .15s ease,border-color .15s ease,color .15s ease;}
   .chain-opt:hover{border-color:var(--green);color:var(--green);}
   .chain-opt.active{border-color:var(--green);color:var(--text-strong);}
   .chain-opt .co-box{flex-shrink:0;width:16px;height:16px;border-radius:4px;border:1.5px solid var(--divider);display:inline-flex;align-items:center;justify-content:center;font-size:11px;line-height:1;color:var(--card);}
   .chain-opt.active .co-box{background:var(--green);border-color:var(--green);}
   body.theme-soft .chain-opt.active .co-box{color:#fff;}
   .chain-opt .co-name{flex:1;}
-  .chain-opt .co-n{font-size:10.5px;color:var(--muted);font-weight:700;}
+  .chain-opt .co-n{font-size:10.5px;color:var(--muted);font-weight:800;}
 
   /* ===== PENCAPAIAN ALL KATEGORI ERO - tampilan Ringkas ===== */
-  .ero-legend{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin:0 0 8px;font-size:11px;font-weight:700;color:var(--muted);}
+  .ero-legend{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin:0 0 8px;font-size:11px;font-weight:800;color:var(--muted);}
   .ero-legend i,.ero-dlabel i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;vertical-align:-1px;}
   .ero-expall{margin-left:auto;border:1px solid var(--divider);background:var(--sub);color:var(--text-mid);border-radius:7px;padding:3px 9px;font-size:10.5px;font-weight:800;cursor:pointer;font-family:inherit;}
   .ero-expall:hover{background:var(--border);}
@@ -134,11 +134,11 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   .ero-simple tbody tr.ero-row{cursor:pointer;}
   .ero-simple tbody tr.ero-row:hover{background:var(--sub);}
   .ero-simple tbody tr.ero-row.open{background:var(--sub);}
-  .ero-simple .ero-rank{color:var(--muted) !important;font-weight:700;width:28px;}
+  .ero-simple .ero-rank{color:var(--muted) !important;font-weight:800;width:28px;}
   .ero-simple td.ero-name{text-align:left !important;color:var(--text-strong);font-weight:800;white-space:nowrap;}
   .ero-caret{display:inline-block;width:14px;color:var(--muted);font-size:10px;}
   .ero-simple .ero-total{color:var(--green);font-weight:800;white-space:nowrap;}
-  .ero-simple .ero-sub{font-size:10.5px;color:var(--muted);font-weight:700;margin-top:1px;}
+  .ero-simple .ero-sub{font-size:10.5px;color:var(--muted);font-weight:800;margin-top:1px;}
   .ero-simple .ero-comp{min-width:150px;width:26%;}
   .ero-bar{display:flex;height:10px;border-radius:999px;overflow:hidden;background:var(--track,var(--border));}
   .ero-bar span{display:block;height:100%;}
@@ -151,7 +151,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   .ero-dchip.zero{opacity:.45;}
   .ero-dlabel{font-size:10.5px;font-weight:800;color:var(--muted);margin-bottom:2px;}
   .ero-dval{font-size:13px;font-weight:800;color:var(--text-strong);}
-  .ero-dqty{font-size:10.5px;color:var(--muted);font-weight:700;}
+  .ero-dqty{font-size:10.5px;color:var(--muted);font-weight:800;}
   .ero-dsub{font-size:10px;color:var(--muted);margin-top:2px;line-height:1.35;white-space:normal;}
   .ero-dratio{grid-column:span 2;}
   @media (max-width:640px){ .ero-simple .ero-comp{min-width:110px;} .ero-dratio{grid-column:span 1;} }
@@ -192,7 +192,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   .ety-col .ety-card:last-child{flex:1 1 auto;}
   .ety-card{display:flex;flex-direction:column;width:100%;box-sizing:border-box;margin:0;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:5px 8px;}
   .ety-h{display:flex;justify-content:space-between;gap:8px;font-size:11px;font-weight:800;color:var(--text-strong);margin-bottom:3px;}
-  .ety-sum{font-size:10px;color:var(--muted);font-weight:700;}
+  .ety-sum{font-size:10px;color:var(--muted);font-weight:800;}
   .ety-cols,.ety-r{display:grid;grid-template-columns:minmax(0,1fr) 34px 84px;gap:6px;align-items:center;}
   .ety-cols{font-size:9px;font-weight:800;color:var(--muted-2);border-bottom:1px solid var(--border);padding-bottom:2px;}
   .ety-cols span:nth-child(n+2),.ety-r span:nth-child(n+2){text-align:right;}
@@ -200,7 +200,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   .achv-table-wrap{container-type:inline-size;}
   .ety-r{font-size:10.5px;line-height:1.25;color:var(--text);padding:2px 0;border-bottom:1px dashed var(--border);font-variant-numeric:tabular-nums;}
   .ety-r:last-child{border-bottom:0;}
-  .ety-n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left;font-weight:700;}
+  .ety-n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left;font-weight:800;}
   .ety-n b{font-weight:800;color:var(--text-strong);}
   .ety-empty{font-size:11px;color:var(--muted);}
   .achv-hint{font-size:9.5px;color:var(--muted);margin-top:4px;line-height:1.35;}
@@ -212,7 +212,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   body.theme-soft .achv-fit:hover,body.theme-soft .achv-fit.active{color:#fff;}
   .achv-note{font-size:9.5px;color:var(--muted);line-height:1.35;border-top:1px solid var(--border);padding-top:7px;}
   .achv-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
-  .achv-chip{display:inline-flex;align-items:center;gap:6px;background:var(--sub);border:1px solid var(--border);border-radius:999px;padding:3px 5px 3px 10px;font-size:11px;font-weight:700;color:var(--text-mid);}
+  .achv-chip{display:inline-flex;align-items:center;gap:6px;background:var(--sub);border:1px solid var(--border);border-radius:999px;padding:3px 5px 3px 10px;font-size:11px;font-weight:800;color:var(--text-mid);}
   .achv-chip .x{cursor:pointer;width:16px;height:16px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:var(--muted);font-size:10px;}
   .achv-chip .x:hover{background:var(--red);color:#fff;}
   .salesAchvTableWrap tbody tr{transition:background .12s ease;}
@@ -223,7 +223,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   .spg-store-block{margin-bottom:18px;}
   .spg-store-block:last-of-type{margin-bottom:8px;}
   .spg-store-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:var(--sub);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:8px;padding:8px 12px;margin-bottom:6px;font-size:12px;font-weight:800;color:var(--text-strong);}
-  .spg-store-head .spg-store-meta{font-size:11px;font-weight:700;color:var(--muted);}
+  .spg-store-head .spg-store-meta{font-size:11px;font-weight:800;color:var(--muted);}
   /* Tampilan Per Toko: baris & jarak antar toko dibuat lebih rapat dan rapi */
   .spg-store-block{margin-bottom:10px !important;}
   .spg-store-head{padding:5px 10px !important;margin-bottom:3px !important;font-size:11.5px !important;}
@@ -254,14 +254,14 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   .spg-store-head.pv{background:var(--sub);color:var(--text-strong);border:1px solid rgba(150,150,150,.6);border-radius:0;font-weight:800;}
   .spg-store-head.pv .spg-store-meta{color:var(--muted);}
   .salesAchvTableWrap th{font-weight:800;}
-  .salesAchvTableWrap td{font-weight:700;}
+  .salesAchvTableWrap td{font-weight:800;}
   .salesAchvTableWrap td div{font-weight:inherit;}
   .zoom-controls{display:inline-flex;align-items:center;gap:4px;flex-wrap:nowrap;}
   .zoom-btn{flex-shrink:0;min-width:22px;height:22px;border-radius:6px;border:1px solid var(--divider);background:var(--sub);color:var(--text-mid);font-weight:800;font-size:12.5px;line-height:1;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0 6px;white-space:nowrap;}
   .zoom-btn:hover{background:var(--green);color:var(--card);border-color:var(--green);}
   .zoom-btn.zoom-fit{font-size:11px;}
   .zoom-level{font-size:10.5px;font-weight:800;color:var(--muted);min-width:30px;text-align:center;}
-  .btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--green);border-radius:8px;padding:6px 12px;font-weight:700;font-size:12px;cursor:pointer;background:var(--sub);color:var(--green);transition:background .15s ease,color .15s ease;}
+  .btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--green);border-radius:8px;padding:6px 12px;font-weight:800;font-size:12px;cursor:pointer;background:var(--sub);color:var(--green);transition:background .15s ease,color .15s ease;}
   .btn.active{background:var(--green);color:var(--card);}
   .btn.upload{border-color:var(--blue);color:var(--blue);}
   .btn.upload:hover{background:var(--blue);color:var(--text-strong);}
@@ -280,7 +280,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   .month-panel .mm-title{font-size:10px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);}
   .month-panel .mm-title:not(:first-child){margin-top:4px;padding-top:10px;border-top:1px solid var(--border);}
   .month-panel .mm-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;}
-  .month-panel .mm-chip{border:1px solid var(--border);background:var(--sub);color:var(--text-mid);border-radius:8px;padding:7px 8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;text-align:center;transition:background .15s ease,border-color .15s ease,color .15s ease;}
+  .month-panel .mm-chip{border:1px solid var(--border);background:var(--sub);color:var(--text-mid);border-radius:8px;padding:7px 8px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;text-align:center;transition:background .15s ease,border-color .15s ease,color .15s ease;}
   .month-panel .mm-chip:hover{border-color:var(--green);color:var(--green);}
   .month-panel .mm-chip.active{background:var(--green);border-color:var(--green);color:var(--card);}
   body.theme-soft .month-panel .mm-chip.active{color:#fff;}
@@ -296,16 +296,16 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
 
   .kpi-top{display:flex;align-items:center;gap:10px;}
   .kpi-mini{text-align:center;font-size:11px;}
-  .kpi-mini .l{color:var(--green);font-weight:700;}
+  .kpi-mini .l{color:var(--green);font-weight:800;}
   .kpi-mini .v{color:var(--text-strong);font-weight:800;font-size:16px;}
   .kpi-target{text-align:center;font-size:11px;color:var(--muted);margin-top:4px;}
   .kpi-rows{margin-top:12px;font-size:12px;line-height:1.9;}
   .kv-row{display:flex;justify-content:space-between;}
   .kv-row .k{color:var(--muted);}
-  .kv-row .v{font-weight:700;color:var(--text-strong);}
+  .kv-row .v{font-weight:800;color:var(--text-strong);}
   .mini-row{display:flex;justify-content:space-between;}
   .mini-row .k{color:var(--muted);}
-  .mini-row .v{font-weight:700;color:var(--text-mid);}
+  .mini-row .v{font-weight:800;color:var(--text-mid);}
   .mini-row .v.hl{color:var(--green);}
 
   .cat-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:12px;}
@@ -343,8 +343,11 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   .cat-overlay{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.55);display:flex;align-items:flex-start;justify-content:center;padding:max(10px,env(safe-area-inset-top)) 10px 10px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
   .cat-overlay .cat-detail{margin-top:0;width:100%;max-width:980px;max-height:calc(100vh - 24px);overflow-y:auto;background:var(--card,#0f1524);box-shadow:0 12px 40px rgba(0,0,0,.5);}
   .cat-detail-title{position:sticky;top:-12px;z-index:2;background:var(--card,#0f1524);padding:6px 0;}
-  tr.area-hdr td{background:rgba(96,165,250,.16)!important;font-weight:900;color:var(--text-strong);border-top:1px solid var(--border);}
-  tr.area-hdr td.cat-nm{color:var(--blue);}
+  table.cat-uni{table-layout:fixed;border-collapse:collapse;}
+  table.cat-uni th, table.cat-uni td{text-align:center;white-space:nowrap;}
+  table.cat-uni td.cat-nm, table.cat-uni th:first-child{text-align:left;}
+  tr.area-hdr td{background:rgba(245,158,11,.30)!important;font-weight:900;color:var(--text-strong);border-top:2px solid rgba(245,158,11,.85);border-bottom:1px solid rgba(245,158,11,.55);}
+  tr.area-hdr td.cat-nm{color:var(--text-strong);text-transform:uppercase;letter-spacing:.3px;border-left:4px solid #f59e0b;}
   tr.store-row-click{cursor:pointer;}
   tr.store-row-click:hover{background:var(--sub);}
   tr.store-row-active{background:var(--sub);}
@@ -376,12 +379,12 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   .cat-detail table.pivot-tbl tbody td,.cat-detail table.pivot-tbl tfoot td{border:1px solid rgba(150,150,150,.4);padding:3px 8px;text-align:center;vertical-align:middle;color:var(--text);background:transparent;white-space:nowrap;font-variant-numeric:tabular-nums;}
   .cat-detail table.pivot-tbl tbody td[style*="background:rgb("]{color:#000;}
   .cat-detail table.pivot-tbl tbody td:first-child,.cat-detail table.pivot-tbl tfoot td:first-child{text-align:left;}
-  .cat-detail table.pivot-tbl tr.op-store td{font-weight:700;}
+  .cat-detail table.pivot-tbl tr.op-store td{font-weight:800;}
   .cat-detail table.pivot-tbl tr.op-store:hover td:not([style*="background"]){background:var(--sub);}
   .cat-detail table.pivot-tbl tr.pv-store td:not([style*="background"]){background:rgba(255,160,110,.20);color:var(--text-strong);}
   .cat-detail table.pivot-tbl tr.pv-store td{font-weight:800;border-top:1.5px solid rgba(150,150,150,.9);}
   .cat-detail table.pivot-tbl tr.pv-ero td:not([style*="background"]){background:rgba(120,190,110,.12);}
-  .cat-detail table.pivot-tbl tr.pv-ero td{font-weight:700;}
+  .cat-detail table.pivot-tbl tr.pv-ero td{font-weight:800;}
   .cat-detail table.pivot-tbl tr.pv-ero td:first-child{padding-left:22px !important;}
   .cat-detail table.pivot-tbl tr.pv-ero td:first-child::before{content:'\25B8  ';color:var(--muted);}
   .cat-detail table.pivot-tbl tr.pv-total td:not([style*="background"]){background:var(--sub);color:var(--text-strong);}
@@ -417,6 +420,12 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   table.store-perf-tbl>tbody>tr>td:not([colspan]){border:1px solid rgba(150,150,150,.5);padding:4px 8px;text-align:center !important;vertical-align:middle;font-variant-numeric:tabular-nums;white-space:nowrap;}
   table.store-perf-tbl>tbody>tr>td.cat-nm:not([colspan]),table.store-perf-tbl>thead>tr>th.cat-nm{text-align:left !important;}
   table.store-perf-tbl>tfoot>tr>td:not([colspan]){border:1px solid rgba(150,150,150,.75);border-top:1.5px solid rgba(150,150,150,.95);padding:5px 8px;background:var(--sub);color:var(--text-strong) !important;font-weight:800;text-align:center !important;font-variant-numeric:tabular-nums;white-space:nowrap;}
+  table.store-perf-tbl>tbody>tr.area-hdr>td:not([colspan]){border:1px solid rgba(150,150,150,.5);padding:5px 8px;text-align:center !important;font-weight:900;}
+  table.store-perf-tbl>tbody>tr.area-hdr>td.cat-nm{text-align:left !important;}
+  table.store-perf-tbl>tfoot>tr>td.sp-fs:not([colspan]){background:#1f2f5f !important;color:#ffffff !important;}
+  table.store-perf-tbl td.sp-r,table.store-perf-tbl>tfoot>tr>td.sp-r:not([colspan]),table.store-perf-tbl>tbody>tr.area-hdr>td.sp-r:not([colspan]){color:var(--red) !important;}
+  table.store-perf-tbl td.sp-y,table.store-perf-tbl>tfoot>tr>td.sp-y:not([colspan]),table.store-perf-tbl>tbody>tr.area-hdr>td.sp-y:not([colspan]){color:#d99a00 !important;}
+  table.store-perf-tbl td.sp-g,table.store-perf-tbl>tfoot>tr>td.sp-g:not([colspan]),table.store-perf-tbl>tbody>tr.area-hdr>td.sp-g:not([colspan]){color:var(--green) !important;}
   table.store-perf-tbl .sp-pill{display:inline-block;min-width:62px;padding:2px 10px;border-radius:999px;font-weight:800;}
   table.store-perf-tbl .sp-pill.g{background:rgba(45,212,191,.16);color:var(--green);}
   table.store-perf-tbl .sp-pill.y{background:rgba(251,191,36,.16);color:var(--yellow);}
@@ -433,12 +442,12 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   tbody tr{border-top:1px solid var(--border);transition:background .12s ease;}
   tbody tr:nth-child(even){background:var(--sub);}
   tbody tr:hover{background:var(--track);}
-  tbody td{padding:5px 4px;text-align:right;color:var(--text);font-weight:700;}
-  tbody td:first-child{color:var(--text-strong);font-weight:700;}
+  tbody td{padding:5px 4px;text-align:right;color:var(--text);font-weight:800;}
+  tbody td:first-child{color:var(--text-strong);font-weight:800;}
   tfoot td{padding:7px 4px;text-align:right;color:var(--text-strong);font-weight:800;}
   tfoot tr.achv-total-row{border-top:2px solid var(--green);background:var(--sub);}
 
-  .target-input{width:78px;background:var(--card);color:var(--green);border:1px solid var(--green);border-radius:4px;padding:2px 4px;font-size:12px;font-weight:700;font-family:inherit;text-align:left;}
+  .target-input{width:78px;background:var(--card);color:var(--green);border:1px solid var(--green);border-radius:4px;padding:2px 4px;font-size:12px;font-weight:800;font-family:inherit;text-align:left;}
   .target-input.small{width:56px;}
 
   .group-row{display:flex;gap:10px;margin-top:12px;justify-content:center;}
@@ -516,7 +525,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   .cat-item .pct{margin-top:1px;}
   .group-row{margin-top:6px;gap:18px;}
   .cat-main-tbl thead th{text-align:center;}.cat-main-tbl thead th:nth-child(1){text-align:left;}
-  .cat-main-tbl tbody td:nth-child(1){color:var(--text-strong);font-weight:700;}
+  .cat-main-tbl tbody td:nth-child(1){color:var(--text-strong);font-weight:800;}
   .cat-main-tbl tbody td:nth-child(2){white-space:nowrap;}
   /* Weekly Revenue (batang HTML, mengisi tinggi kartu) */
   .wk-wrap{flex:1;display:flex;flex-direction:column;min-height:0;}
@@ -544,7 +553,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   .top-name{color:var(--text-mid);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .top-track{height:11px;background:var(--track);border-radius:5px;overflow:hidden;}
   .top-fill{display:block;height:100%;border-radius:5px;}
-  .top-val{text-align:right;font-weight:700;color:var(--text-strong);white-space:nowrap;}
+  .top-val{text-align:right;font-weight:800;color:var(--text-strong);white-space:nowrap;}
   .achv-chips{margin-bottom:8px;}
   /* Brand */
   .brand-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;}
@@ -592,10 +601,10 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   .leader-grid .leader-card thead th,.leader-grid .leader-card tbody td,
   .leader-grid .leader-card thead th:first-child,.leader-grid .leader-card tbody td:first-child,
   .leader-grid .leader-card.lc-long thead th,.leader-grid .leader-card.lc-long tbody td{text-align:center !important;vertical-align:middle;padding-left:2px;padding-right:2px;}
-  .leader-grid .leader-card thead th{font-size:8.5px;letter-spacing:.4px;color:var(--muted);font-weight:700;padding-bottom:4px;border-bottom:1px solid var(--border);}
+  .leader-grid .leader-card thead th{font-size:8.5px;letter-spacing:.4px;color:var(--muted);font-weight:800;padding-bottom:4px;border-bottom:1px solid var(--border);}
   .leader-grid .leader-card tbody td{padding-top:4px;padding-bottom:4px;border-bottom:1px dashed var(--border);}
   .leader-grid .leader-card tbody tr:last-child td{border-bottom:none;}
-  .leader-grid .leader-card tbody td:first-child{font-weight:700;}
+  .leader-grid .leader-card tbody td:first-child{font-weight:800;}
   .leader-grid .leader-card tbody td:nth-child(4){font-weight:800;}
   /* Header: kontrol Toko & Bulan sebaris */
   .header-row .controls{gap:6px;}
@@ -679,7 +688,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
 .cat-detail table.pivot-tbl.pv-hp tbody td[style*="background:rgb("]{color:#000 !important;}
 .cat-detail table.pivot-tbl.pv-hp tr.pv-store td:not([style*="background"]){background:var(--sub) !important;color:var(--text-strong) !important;font-weight:800;border-top:1px solid rgba(150,150,150,.75) !important;}
 .cat-detail table.pivot-tbl.pv-hp tr.pv-store td[style*="background:rgb("]{color:#000 !important;font-weight:800;}
-.cat-detail table.pivot-tbl.pv-hp tr.pv-ero td:not([style*="background"]){background:transparent !important;font-weight:700;}
+.cat-detail table.pivot-tbl.pv-hp tr.pv-ero td:not([style*="background"]){background:transparent !important;font-weight:800;}
 .cat-detail table.pivot-tbl.pv-hp tr.pv-ero td[style*="background:rgb("]{color:#000 !important;}
 .cat-detail table.pivot-tbl.pv-hp tr.pv-ero td:first-child::before{color:var(--muted) !important;}
 .cat-detail table.pivot-tbl.pv-hp tfoot td:not([style*="background"]),.cat-detail table.pivot-tbl.pv-hp tr.pv-total td:not([style*="background"]){background:var(--sub) !important;color:var(--text-strong) !important;font-weight:800;border-top:1.5px solid rgba(150,150,150,.95) !important;}
@@ -693,10 +702,10 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
 </style>
 <style id="bold-all">
 /* Semua tulisan dibuat tebal (bold) supaya lebih jelas terbaca */
-html,body{font-weight:700;}
-button,input,select,textarea,option{font-weight:700;}
-th,td{font-weight:700;}
-::placeholder{font-weight:700;}
+html,body{font-weight:800;}
+button,input,select,textarea,option{font-weight:800;}
+th,td{font-weight:800;}
+::placeholder{font-weight:800;}
 
 /* ===== TEMA TERANG (theme-soft) v3: lebih lembut di mata, teks data lebih terbaca ===== */
 body.theme-soft{
@@ -724,9 +733,9 @@ body.theme-soft .cat-detail table.pivot-tbl.pv-hp tbody td,body.theme-soft .cat-
   .cmp-btn{color:var(--yellow)!important;border-color:var(--yellow)!important;font-weight:900;}
   .cmp-btn.on{background:var(--yellow)!important;color:var(--card)!important;}
   .cmp-btn:disabled{opacity:.4;cursor:not-allowed;}
-  .cmp-sel{height:22px;border-radius:6px;border:1px solid var(--yellow);background:var(--sub);color:var(--text-strong);font-size:11px;font-weight:700;padding:0 4px;max-width:120px;}
+  .cmp-sel{height:22px;border-radius:6px;border:1px solid var(--yellow);background:var(--sub);color:var(--text-strong);font-size:11px;font-weight:800;padding:0 4px;max-width:120px;}
   .cmp-panel{container-type:inline-size;container-name:cmp;margin:8px 0 12px;padding:10px;border:1px solid var(--yellow);border-radius:14px;background:var(--sub);}
-  .cmpx-head{font-size:12.5px;color:var(--text-strong);margin-bottom:8px;} .cmpx-head span{color:var(--muted);font-weight:700;font-size:11.5px;}
+  .cmpx-head{font-size:12.5px;color:var(--text-strong);margin-bottom:8px;} .cmpx-head span{color:var(--muted);font-weight:800;font-size:11.5px;}
   .cmpx-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
   .cmpx-chip{border:1px solid var(--border);background:var(--card);color:var(--muted);border-radius:999px;padding:3px 11px;font-size:11px;font-weight:800;cursor:pointer;}
   .cmpx-chip.on{background:var(--yellow);color:var(--card);border-color:var(--yellow);}
@@ -735,10 +744,10 @@ body.theme-soft .cat-detail table.pivot-tbl.pv-hp tbody td,body.theme-soft .cat-
   .cmpx-box{border:1px solid var(--border);border-radius:12px;padding:8px 10px;background:var(--card);min-width:0;}
   .cmpx-box.up{border-left:4px solid var(--green);} .cmpx-box.dn{border-left:4px solid var(--red);}
   .cmpx-bt{font-size:10.5px;font-weight:900;letter-spacing:.4px;color:var(--muted);margin-bottom:5px;text-transform:uppercase;}
-  .cmpx-top{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;padding:2px 0;} .cmpx-top .n{color:var(--text-strong);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;} .cmpx-top .v{font-weight:800;white-space:nowrap;}
+  .cmpx-top{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;padding:2px 0;} .cmpx-top .n{color:var(--text-strong);font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;} .cmpx-top .v{font-weight:800;white-space:nowrap;}
   .cmpx-empty{font-size:11px;color:var(--muted);}
   .cmpx-tbl{width:100%;margin-bottom:10px;} .cmpx-tbl th,.cmpx-tbl td{padding:6px 8px;text-align:right;white-space:nowrap;vertical-align:middle;}
-  .cmpx-tbl td:first-child{white-space:normal;font-weight:700;color:var(--text-strong);}
+  .cmpx-tbl td:first-child{white-space:normal;font-weight:800;color:var(--text-strong);}
   .cmpx-prev{color:var(--muted);} .cmpx-cur{color:var(--text-strong);font-weight:800;}
   .cmpx-total td{border-top:1px solid var(--border);font-weight:900;}
   .cmpx-tbl tr.cmpx-dayclick{cursor:pointer;} .cmpx-tbl tr.cmpx-dayclick:hover td{background:rgba(45,212,191,.08);}
@@ -765,7 +774,7 @@ body.theme-soft .cat-detail table.pivot-tbl.pv-hp tbody td,body.theme-soft .cat-
   .cmpx-tbl th,.cmpx-tbl td{padding:5px 4px;font-size:11px;}
   .cmpx-tbl{table-layout:auto;}
   .cmpx-sortrow{display:flex;align-items:center;gap:6px;margin-bottom:10px;font-size:11px;color:var(--muted);font-weight:800;}
-  .cmpx-sortsel{height:24px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--text-strong);font-size:11px;font-weight:700;padding:0 4px;max-width:100%;}
+  .cmpx-sortsel{height:24px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--text-strong);font-size:11px;font-weight:800;padding:0 4px;max-width:100%;}
   @container cmp (max-width:520px){
     .cmpx-sum{grid-template-columns:1fr;}
     .cmpx-tbl,.cmpx-tbl tbody{display:block;width:100%;}
@@ -790,21 +799,21 @@ body.theme-soft .cat-detail table.pivot-tbl.pv-hp tbody td,body.theme-soft .cat-
 </style>
 <style id="stk-css">
 .stk-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0;}
-.stk-tab{border:1px solid var(--green);background:var(--sub);color:var(--green);border-radius:8px;padding:5px 11px;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;}
+.stk-tab{border:1px solid var(--green);background:var(--sub);color:var(--green);border-radius:8px;padding:5px 11px;font-weight:800;font-size:12px;cursor:pointer;font-family:inherit;}
 .stk-catdd{position:relative;display:inline-block;}
-.stk-catbtn{background:var(--sub);color:var(--text-strong);border:1px solid var(--green);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;display:inline-flex;gap:6px;align-items:center;}
+.stk-catbtn{background:var(--sub);color:var(--text-strong);border:1px solid var(--green);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:800;font-family:inherit;cursor:pointer;display:inline-flex;gap:6px;align-items:center;}
 .stk-catpanel{position:absolute;z-index:30;top:calc(100% + 4px);left:0;min-width:270px;max-width:92vw;background:var(--card);border:1px solid var(--divider);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.35);padding:8px;}
 .stk-catpanel .stk-in{width:100%;box-sizing:border-box;margin-bottom:6px;}
 .stk-catopt{display:flex;align-items:center;gap:8px;padding:5px 4px;border-radius:6px;font-size:12px;color:var(--text);cursor:pointer;user-select:none;}
 .stk-catopt:hover{background:var(--sub);}
 .stk-catopt .bx{width:14px;height:14px;border:1.5px solid var(--muted);border-radius:3px;flex:none;box-sizing:border-box;}
 .stk-catopt.on .bx{background:var(--green);border-color:var(--green);}
-.stk-catopt i{margin-left:auto;font-style:normal;color:var(--muted);font-size:11px;font-weight:700;}
+.stk-catopt i{margin-left:auto;font-style:normal;color:var(--muted);font-size:11px;font-weight:800;}
 .stk-tab.on{background:var(--green);color:var(--card);}
 .stk-in{background:var(--sub);color:var(--text-strong);border:1px solid var(--divider);border-radius:8px;padding:5px 8px;font-size:12px;font-family:inherit;max-width:100%;}
 .stk-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:6px;}
 .stk-kpi{background:var(--sub);border:1px solid var(--border);border-radius:10px;padding:8px 10px;}
-.stk-kl{font-size:10.5px;color:var(--muted);font-weight:700;}
+.stk-kl{font-size:10.5px;color:var(--muted);font-weight:800;}
 .stk-kv{font-size:17px;font-weight:800;color:var(--text-strong);font-variant-numeric:tabular-nums;}
 .stk-scroll{overflow:auto;max-height:520px;border:1px solid var(--border);border-radius:10px;}
 .stk-tbl{width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;}
@@ -814,9 +823,9 @@ body.theme-soft .cat-detail table.pivot-tbl.pv-hp tbody td,body.theme-soft .cat-
 .stk-found{background:var(--sub);border:1px solid var(--border);border-radius:12px;padding:8px 10px;margin:6px 0;}
 .stk-found-h{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:7px;font-size:11.5px;color:var(--muted);}
 .stk-found-h b{color:var(--text-strong);}
-.stk-clear{border:1px solid var(--red);color:var(--red);border-radius:999px;padding:2px 10px;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;}
+.stk-clear{border:1px solid var(--red);color:var(--red);border-radius:999px;padding:2px 10px;font-size:11px;font-weight:800;text-decoration:none;white-space:nowrap;}
 .stk-chips{display:flex;flex-wrap:wrap;gap:6px;max-height:112px;overflow:auto;padding-right:2px;}
-.stk-chip{display:inline-flex;align-items:center;gap:7px;background:var(--card);border:1px solid var(--border);color:var(--text-mid);border-radius:999px;padding:3px 4px 3px 11px;font-size:11.5px;font-weight:600;text-decoration:none;}
+.stk-chip{display:inline-flex;align-items:center;gap:7px;background:var(--card);border:1px solid var(--border);color:var(--text-mid);border-radius:999px;padding:3px 4px 3px 11px;font-size:11.5px;font-weight:800;text-decoration:none;}
 .stk-chip:hover{border-color:var(--green);color:var(--green);}
 .stk-chip i{font-style:normal;background:var(--sub);color:var(--green);border-radius:999px;padding:1px 8px;font-weight:800;font-size:11px;font-variant-numeric:tabular-nums;}
 .stk-chip.on{background:var(--green);border-color:var(--green);color:var(--card);}
@@ -858,8 +867,8 @@ window.__SRC_HTML__ = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
 function capImgScale(w, h){
   const dpr = window.devicePixelRatio || 1;
   const mobile = /Android|iP(hone|ad|od)|Mobile/i.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
-  const want = Math.max(3, Math.min(4, Math.round(dpr*2))); // min. 3x supaya teks tabel besar tetap tajam
-  const budget = mobile ? 15000000 : 30000000; // iOS Safari membatasi canvas ~16,7 juta piksel
+  const want = Math.max(4, Math.min(5, Math.round(dpr*2))); // min. 4x supaya teks tabel & angka tetap tajam (tidak pecah) di laptop maupun HP
+  const budget = mobile ? 15000000 : 60000000; // iOS Safari membatasi canvas ~16,7 juta piksel
   return Math.max(1, Math.min(want, Math.sqrt(budget / Math.max(1, w*h)), 16000 / Math.max(1, w, h)));
 }
 function savePngCanvas(canvas, fname){
@@ -1472,6 +1481,7 @@ let state = {
   samIncSel: null, // site_code toko yang rincian model-nya terbuka di popup Racing Samsung Incentive
   catMetric: 'val', // PENCAPAIAN BY KATEGORI: 'val' = by Value (target & pencapaian) | 'qty' = by Qty (porsi qty)
   brandRank: '', // PENCAPAIAN BY BRAND: '' = kartu/tabel biasa | 'val' = Top 15 brand by Value | 'qty' = Top 15 brand by Qty
+  storeHpOpen: false, // popup tabel Target per Brand Device saat tombol Handphone di PERFORMANCE STORE diklik
   brandView: 'card', // tampilan PENCAPAIAN BY BRAND saat toko dipilih: 'card' (kartu, default) | 'table' (tabel Target per Brand Device)
   brandDetailKey: null // key brand yang sedang dibuka rincian "Tipe Terjual"-nya di kartu OMZET PER BRAND (null = tidak ada yang terbuka)
 };
@@ -2469,7 +2479,7 @@ function eroTypeBoxGen(d, storeCode, storeDesc, eroName, cat){
     if (all) body += '<tr><td colspan="6" style="background:rgba(120,190,110,.18);font-weight:800;text-align:left;">'+(CATEGORY_ICON[c]||'')+' '+lbl+' &ndash; '+fm(tq)+' qty / Rp '+fm(to)+'</td></tr>';
     if (!list.length){ body += '<tr><td colspan="6" style="text-align:left;color:var(--muted);">Belum ada penjualan '+lbl+' oleh ERO ini di toko dan periode terpilih.</td></tr>'; return; }
     list.forEach(function(x,i){
-      body += '<tr><td style="text-align:center;color:var(--muted);">'+(i+1)+'</td><td class="cat-nm" style="font-weight:700;color:var(--text-strong);">'+escapeHtml(x.name)+'</td><td>'+escapeHtml(x.brand)+'</td><td style="text-align:right;">'+fm(x.qty)+'</td><td style="text-align:right;">'+fm(x.omzet)+'</td><td style="text-align:right;">'+(to>0?fmtPct(x.omzet/to*100):'-')+'</td></tr>';
+      body += '<tr><td style="text-align:center;color:var(--muted);">'+(i+1)+'</td><td class="cat-nm" style="font-weight:800;color:var(--text-strong);">'+escapeHtml(x.name)+'</td><td>'+escapeHtml(x.brand)+'</td><td style="text-align:right;">'+fm(x.qty)+'</td><td style="text-align:right;">'+fm(x.omzet)+'</td><td style="text-align:right;">'+(to>0?fmtPct(x.omzet/to*100):'-')+'</td></tr>';
     });
   });
   const tabs = '';
@@ -2499,7 +2509,7 @@ function setCatSort(col){
 function selectCatDetailStore(code){ state.catDetailStore = (state.catDetailStore===code) ? null : code; state.catEroSel = null; state.catStoreSub = 'ero'; state.catTypeQ = ''; render(); }
 function setCatStoreSub(v){ state.catEroSel = null; state.catStoreSub = (v==='type') ? 'type' : (v==='top') ? 'top' : 'ero'; state.catTypeQ = ''; render(); }
 function setCatStoreTopBy(k){ state.catStoreTopBy = (k==='val') ? 'val' : 'qty'; render(); }
-document.addEventListener('keydown', function(e){ if (e.key==='Escape'){ if (state.brandDetailKey) closeBrandDetail(); else if (state.brandVasOpen) closeBrandVas(); else if (state.samIncOpen) closeSamInc(); else if (state.racingKey) closeRacing(); else if (state.brandPivotKey) closeBrandPivot(); else if (state.brandStoreKey) toggleBrandStore(null); else if (state.catTopOpen) closeCatTop(); else if (state.catOpOpen) closeCatOperator(); else if (state.catPivotOpen) closeCatPivot(); else if (state.catDetailKey) toggleCategoryDetail(''); } });
+document.addEventListener('keydown', function(e){ if (e.key==='Escape'){ if (state.brandDetailKey) closeBrandDetail(); else if (state.storeHpOpen) closeStoreHp(); else if (state.brandVasOpen) closeBrandVas(); else if (state.samIncOpen) closeSamInc(); else if (state.racingKey) closeRacing(); else if (state.brandPivotKey) closeBrandPivot(); else if (state.brandStoreKey) toggleBrandStore(null); else if (state.catTopOpen) closeCatTop(); else if (state.catOpOpen) closeCatOperator(); else if (state.catPivotOpen) closeCatPivot(); else if (state.catDetailKey) toggleCategoryDetail(''); } });
 function setStoreFilter(v){ state.storeFilter = v; scheduleRender(150); }
 // Filter toko GLOBAL: dipanggil saat nama toko diklik di mana pun (kartu Top 10 Toko, tabel
 // Performance Store, dropdown Toko di header, atau dropdown pada kartu Pencapaian per Sales).
@@ -2620,6 +2630,7 @@ function targetCoverageNote(){
 function selectStore(name){
   name = name || '';
   state.selectedStore = (state.selectedStore===name) ? '' : name;
+  state.storeHpOpen = false;
   state.salesStoreFilter = state.selectedStore; // sinkron dgn dropdown di kartu Pencapaian per Sales
   state.salesAchvAutoFit = true; _salesAchvAutoFitAttempts = 0; // tabel per sales otomatis pas layar
   state.menuOpen = false;
@@ -2627,11 +2638,14 @@ function selectStore(name){
 }
 function clearSelectedStore(){
   state.selectedStore = '';
+  state.storeHpOpen = false;
   state.salesStoreFilter = '';
   render();
 }
 // Buka/tutup rincian "Tipe Terjual" pada kartu brand di OMZET PER BRAND (Device) - klik brand yang
 // sama saat sudah terbuka akan menutupnya lagi (toggle).
+function openStoreHp(){ state.storeHpOpen = true; render(); }
+function closeStoreHp(){ state.storeHpOpen = false; render(); }
 function setBrandView(v){ state.brandView = (v==='table') ? 'table' : 'card'; state.brandRank = ''; render(); }
 function setCatMetric(v){ state.catMetric = (v==='qty') ? 'qty' : 'val'; render(); }
 function catMetricToggle(){
@@ -3025,7 +3039,7 @@ function cmpPopPaint(){
   const P=state.cmpPop; if(!P||!state.raw) return;
   const S=P.S, dd=P.dd, A=cmpPopAgg(P), agg=A.agg, dCur=A.dCur, dPrev=A.dPrev;
   const dl=function(iso){ return iso.slice(8)+'/'+iso.slice(5,7)+'/'+iso.slice(0,4); };
-  const dif=function(c,p){ const d=c-p; return '<span style="color:var(--'+(d>0?'green':(d<0?'red':'muted'))+');font-weight:700;">'+(d>0?'+':(d<0?'\u2212':''))+fmt(Math.abs(d))+'</span>'; };
+  const dif=function(c,p){ const d=c-p; return '<span style="color:var(--'+(d>0?'green':(d<0?'red':'muted'))+');font-weight:800;">'+(d>0?'+':(d<0?'\u2212':''))+fmt(Math.abs(d))+'</span>'; };
   let title, body;
   if(P.brand && agg[P.brand]){
     const o=agg[P.brand]; let mon=P.mon; if(mon!=='cur'&&mon!=='prev') mon=(o.cq||o.cv)?'cur':'prev';
@@ -3055,7 +3069,7 @@ function cmpPopPaint(){
     else {
       const T=list.reduce(function(a,o){ a.cq+=o.cq; a.cv+=o.cv; a.pq+=o.pq; a.pv+=o.pv; return a; },{cq:0,cv:0,pq:0,pv:0});
       body='<div class="cmpx-popnote">Klik nama brand untuk melihat tipe &amp; toko (Qty, Value).</div><div class="cmpx-popscroll"><table class="cmpx-daytbl"><thead><tr><th>Brand</th><th>Qty '+escapeHtml(S.prevS)+'</th><th>Value '+escapeHtml(S.prevS)+'</th><th>Qty '+escapeHtml(S.curS)+'</th><th>Value '+escapeHtml(S.curS)+'</th><th>Selisih Value</th></tr></thead><tbody>'
-        +list.map(function(o){ return '<tr class="cmpx-brclick" onclick="cmpPopBrand(\''+encodeURIComponent(o.key)+'\')"><td>\u25B8 '+escapeHtml(o.label)+'</td><td>'+fmt(o.pq)+'</td><td>'+fmt(o.pv)+'</td><td style="font-weight:700;">'+fmt(o.cq)+'</td><td style="font-weight:700;">'+fmt(o.cv)+'</td><td>'+dif(o.cv,o.pv)+'</td></tr>'; }).join('')
+        +list.map(function(o){ return '<tr class="cmpx-brclick" onclick="cmpPopBrand(\''+encodeURIComponent(o.key)+'\')"><td>\u25B8 '+escapeHtml(o.label)+'</td><td>'+fmt(o.pq)+'</td><td>'+fmt(o.pv)+'</td><td style="font-weight:800;">'+fmt(o.cq)+'</td><td style="font-weight:800;">'+fmt(o.cv)+'</td><td>'+dif(o.cv,o.pv)+'</td></tr>'; }).join('')
         +'<tr class="tot"><td>TOTAL</td><td>'+fmt(T.pq)+'</td><td>'+fmt(T.pv)+'</td><td>'+fmt(T.cq)+'</td><td>'+fmt(T.cv)+'</td><td>'+dif(T.cv,T.pv)+'</td></tr></tbody></table></div>';
     }
   }
@@ -3195,16 +3209,22 @@ function ringSVG(percent, opts){
   const pct = Math.max(0, Math.min(percent,100))/100;
   const dash = c*pct;
   const ringColor = opts.color || (percent>=100?'var(--green)':percent>=70?'var(--yellow)':'var(--red)');
-  const fontMain = size>90?20:15;
+  let fontMain = size>90?20:15, fontLbl = 10, lblSp = 1, gapY = 0;
+  if (opts.fit){ // cincin kecil (kartu brand): teks diperkecil otomatis mengikuti panjangnya & dipusatkan persis di dalam lingkaran
+    const inner = size - stroke*2 - 4; // diameter bagian dalam lingkaran
+    const L = Math.max(String(sub).length, 3);
+    fontMain = Math.max(8, Math.min(13, Math.floor(inner*0.84/(L*0.62))));
+    fontLbl = Math.max(7, Math.min(9, fontMain-2)); lblSp = 0.3; gapY = 1;
+  }
   return '<div style="position:relative;width:'+size+'px;height:'+size+'px;">'
     +'<svg width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'">'
     +'<circle cx="'+size/2+'" cy="'+size/2+'" r="'+r+'" fill="var(--sub)" stroke="var(--muted-2)" stroke-width="'+stroke+'"/>'
     +'<circle cx="'+size/2+'" cy="'+size/2+'" r="'+r+'" fill="none" stroke="'+ringColor+'" stroke-width="'+stroke+'" '
     +'stroke-dasharray="'+dash+' '+(c-dash)+'" stroke-linecap="round" transform="rotate(-90 '+size/2+' '+size/2+')"/>'
     +'</svg>'
-    +'<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">'
-    +'<span style="color:var(--text-mid);font-size:10px;font-weight:700;letter-spacing:1px;">'+label+'</span>'
-    +'<span style="color:var(--text-strong);font-size:'+fontMain+'px;font-weight:800;">'+sub+'</span>'
+    +'<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;'+(opts.fit?'line-height:1;gap:'+gapY+'px;':'')+'">'
+    +'<span style="color:var(--text-mid);font-size:'+fontLbl+'px;font-weight:800;letter-spacing:'+lblSp+'px;'+(opts.fit?'line-height:1;white-space:nowrap;margin-right:-'+lblSp+'px;':'')+'">'+label+'</span>'
+    +'<span style="color:var(--text-strong);font-size:'+fontMain+'px;font-weight:800;'+(opts.fit?'line-height:1;white-space:nowrap;':'')+'">'+sub+'</span>'
     +'</div></div>';
 }
 function polar(cx,cy,r,angle){ const rad=(angle*Math.PI)/180; return {x:cx+r*Math.cos(rad), y:cy+r*Math.sin(rad)}; }
@@ -3450,7 +3470,7 @@ function renderEroTop10(d, name){
   if (!lst.length) return '<div style="'+box+'">'+head+'<div class="cat-hint">Belum ada penjualan ERO ini di rentang tanggal terpilih.</div></div>';
   const rows = lst.map(function(x,i){
     const share = sh>0 ? ((tk==='qty'?x.qty:x.val)/sh*100) : null;
-    return '<tr><td style="text-align:center;color:var(--muted);">'+(i+1)+'</td><td style="text-align:left;font-weight:700;color:var(--text-strong);">'+escapeHtml(x.name)+'</td><td style="text-align:left;">'+escapeHtml(CATEGORY_LABEL[x.cat]||x.cat)+'</td><td style="text-align:left;">'+escapeHtml(x.brand)+'</td><td style="text-align:right;'+(tk==='qty'?'font-weight:800;':'')+'">'+nf(x.qty)+'</td><td style="text-align:right;'+(tk==='val'?'font-weight:800;':'')+'">'+nf(x.val)+'</td><td style="text-align:right;">'+(share===null?'-':fmtPct(share))+'</td></tr>';
+    return '<tr><td style="text-align:center;color:var(--muted);">'+(i+1)+'</td><td style="text-align:left;font-weight:800;color:var(--text-strong);">'+escapeHtml(x.name)+'</td><td style="text-align:left;">'+escapeHtml(CATEGORY_LABEL[x.cat]||x.cat)+'</td><td style="text-align:left;">'+escapeHtml(x.brand)+'</td><td style="text-align:right;'+(tk==='qty'?'font-weight:800;':'')+'">'+nf(x.qty)+'</td><td style="text-align:right;'+(tk==='val'?'font-weight:800;':'')+'">'+nf(x.val)+'</td><td style="text-align:right;">'+(share===null?'-':fmtPct(share))+'</td></tr>';
   }).join('');
   return '<div style="'+box+'" onclick="event.stopPropagation()">'+head+sw
     +'<div class="pivot-wrap" style="overflow-x:auto;"><table class="pivot-tbl"><thead><tr><th>#</th><th style="text-align:left;">Tipe Barang</th><th style="text-align:left;">Kategori</th><th style="text-align:left;">Brand</th><th>Qty</th><th>Value</th><th>Kontribusi '+(tk==='qty'?'Qty':'Omzet')+'</th></tr></thead><tbody>'+rows+'</tbody>'
@@ -3557,7 +3577,7 @@ function renderSalesAchievementCard(d){
     // (angka % tebal berwarna + latar tipis; Aksesoris >=6% hijau, Boltech >=50% hijau / >=20% kuning / <20% merah).
     if (pct===null||pct===undefined||!isFinite(pct)) return '<td>-</td>';
     const bgc = sobBg(pct, kind);
-    return '<td style=\"'+(bgc?'background:'+bgc+';':'')+'color:'+sobColor(pct, kind)+' !important;font-weight:700;\">'+pf(pct)+'%</td>';
+    return '<td style=\"'+(bgc?'background:'+bgc+';':'')+'color:'+sobColor(pct, kind)+' !important;font-weight:800;\">'+pf(pct)+'%</td>';
   }
   // Ambil nilai numerik/teks kolom tertentu dari 1 baris sales, dipakai utk mengurutkan tabel
   // saat header kolom diklik (kategori apa pun, kolom Operator per provider, Total, AR, atau SOB).
@@ -3594,8 +3614,8 @@ function renderSalesAchievementCard(d){
     function catCell(v, q, gs){
       const gc = gs ? ' class="gs"' : '';
       if (!v && !q) return '<td'+gc+' style="color:var(--muted-2);">-</td>';
-      return '<td'+gc+' style="color:var(--text);font-weight:700;"><div>'+fmt(v)+'</div>'
-        +'<div style="font-size:'+fz(11)+';color:var(--muted);margin-top:2px;font-weight:700;">'+fmt(q)+' pcs</div></td>';
+      return '<td'+gc+' style="color:var(--text);font-weight:800;"><div>'+fmt(v)+'</div>'
+        +'<div style="font-size:'+fz(11)+';color:var(--muted);margin-top:2px;font-weight:800;">'+fmt(q)+' pcs</div></td>';
     }
     // Header 2 baris: baris atas = grup (kategori / Operator / Attach Rate & SOB), baris bawah = kolom rinci.
     // Satuan Rp / pcs cukup dijelaskan sekali di keterangan atas tabel, tidak diulang di tiap kolom.
@@ -3617,7 +3637,7 @@ function renderSalesAchievementCard(d){
     function footCell(v, q, gs){
       const gc = gs ? ' class="gs"' : '';
       return (v>0||q>0)
-        ? '<td'+gc+' style="color:var(--text-strong);font-weight:800;"><div>'+fmt(v)+'</div><div style="font-size:'+fz(11)+';color:var(--muted);margin-top:2px;font-weight:700;">'+fmt(q)+' pcs</div></td>'
+        ? '<td'+gc+' style="color:var(--text-strong);font-weight:800;"><div>'+fmt(v)+'</div><div style="font-size:'+fz(11)+';color:var(--muted);margin-top:2px;font-weight:800;">'+fmt(q)+' pcs</div></td>'
         : '<td'+gc+' style="color:var(--muted-2);">-</td>';
     }
     function sobTint(pct, kind){ if (kind==='acc') return (pct===null||pct===undefined||!isFinite(pct)) ? '' : (pct>=6?'rgba(74,222,156,.16)':'rgba(255,122,92,.16)'); return (pct===null||pct===undefined||!isFinite(pct)) ? '' : pct>=50?'rgba(74,222,156,.16)':pct>=20?'rgba(90,150,255,.14)':'rgba(255,122,92,.16)'; }
@@ -3695,7 +3715,7 @@ function renderSalesAchievementCard(d){
         +'<button class="ero-expall" onclick="toggleAchvEroAll('+(allOpen?'false':'true')+',\''+allKeys+'\')">'+(allOpen?'▾ Tutup semua rincian':'▸ Buka semua rincian')+'</button></div>';
       const NC = 8;
       let head = '<tr><th style="width:28px;">#</th>'+thSort('ERO','name')
-        +thSort('Total','total','<div style="font-size:'+fz(9.5)+';font-weight:700;color:var(--muted-2);">Rp / Qty</div>')
+        +thSort('Total','total','<div style="font-size:'+fz(9.5)+';font-weight:800;color:var(--muted-2);">Rp / Qty</div>')
         +'<th class="ero-th-comp">Komposisi kategori</th>'
         +thSort('🎧 AR ACC','arAcc')+thSort('🛡️ AR BOLTECH','arRC')+thSort('🎧 SOB ACC','sobAcc')+thSort('🛡️ SOB BOLTECH','sobRC')+'</tr>';
       let rows = '';
@@ -3759,7 +3779,7 @@ function renderSalesAchievementCard(d){
       }
       orderRows(rowsIn).forEach((s,i)=>{
         const _k = (ctx||'all')+'|'+s.name, _open = !!(state.salesAchvOpen && state.salesAchvOpen[_k]);
-        rows += '<tr><td class="c-rank" style="text-align:left;color:var(--muted);">'+(i+1)+'</td><td class="c-name ero-clk'+(_open?' open':'')+'" onclick="toggleAchvEro(\''+encodeURIComponent(_k).replace(/'/g,'%27')+'\')" title="Klik untuk '+(_open?'tutup':'lihat')+' tipe yang dijual" style="text-align:left;color:var(--text-strong);font-weight:700;"><span class="ero-caret">'+(_open?'▾':'▸')+'</span>'+escapeHtml(s.name)+'</td>';
+        rows += '<tr><td class="c-rank" style="text-align:left;color:var(--muted);">'+(i+1)+'</td><td class="c-name ero-clk'+(_open?' open':'')+'" onclick="toggleAchvEro(\''+encodeURIComponent(_k).replace(/'/g,'%27')+'\')" title="Klik untuk '+(_open?'tutup':'lihat')+' tipe yang dijual" style="text-align:left;color:var(--text-strong);font-weight:800;"><span class="ero-caret">'+(_open?'▾':'▸')+'</span>'+escapeHtml(s.name)+'</td>';
         d.categories.forEach(cat=>{
           if (cat==='Operator'){
             OPERATOR_BRANDS.forEach((ob,k)=>{ rows += catCell(s.opBrand[ob]||0, s.opBrandQty[ob]||0, k===0); });
@@ -4306,7 +4326,7 @@ function renderKPI(d){
   const collapsed = !!state.collapsed[key];
   const title = 'Daily Sales';
   const periodNote = isMultiMonthRange() ? rangeBreakdownNote() : state.periodMode!=='month'
-    ? '<div style="font-size:10px;color:var(--muted);margin-top:2px;">Target '+periodModeLabel().toLowerCase()+' (prorata): <span style="color:var(--text-mid);font-weight:700;">'+fmt(d.target)+'</span></div>'
+    ? '<div style="font-size:10px;color:var(--muted);margin-top:2px;">Target '+periodModeLabel().toLowerCase()+' (prorata): <span style="color:var(--text-mid);font-weight:800;">'+fmt(d.target)+'</span></div>'
     : '';
   const body = '<div style="font-size:11px;color:var(--muted);margin-bottom:10px;">Per '+(isMultiMonthRange()? (fmtDMY(state.dateFrom)+' - '+fmtDMY(state.dateTo)) : ((state.dateFrom?state.dateFrom.slice(8,10):'-')+' - '+(state.dateTo?state.dateTo.slice(8,10):'-')+' '+monthLabel))+' &middot; <span style="color:var(--green);">'+periodModeLabel()+'</span></div>'
     +'<div class="kpi-top">'
@@ -4522,11 +4542,13 @@ function renderCategoryDetailStore(d){
   const stores = d.stores || [];
   const byCode = {};
   stores.forEach(s=>{ byCode[s.site_code]=s; byCode[s.site_desc]=s; });
+  const hideErablue = (cat==='Accessories' || cat==='Repair Contract' || cat==='Operator' || cat==='Laptop' || cat==='CE');
   const agg = {}; // site_code -> {omzet, qty}
   stores.forEach(s=>{ agg[s.site_code] = {omzet:0, qty:0}; });
   (d.filtered||[]).forEach(r=>{
     if (r[2]!==cat) return;
     const s = byCode[r[1]]; if (!s) return;
+    if (hideErablue && chainOfStore(s.site_desc)==='ERABLUE') return;
     agg[s.site_code].omzet += r[5]; agg[s.site_code].qty += r[4];
   });
   const totalOmzet = Object.values(agg).reduce((a,x)=>a+x.omzet,0);
@@ -4540,7 +4562,8 @@ function renderCategoryDetailStore(d){
     return {name, achvKey, ovKey, omzet, qty, share: totalOmzet>0 ? omzet/totalOmzet*100 : null, target: t, pct: pp.pct, hasTarget: pp.hasTarget,
       pTarget: pp.target, estVal: pp.compareValue, estQty: isProjectionMode() ? Math.round(qty*(d.distinctDays>0 ? d.dim/d.distinctDays : 0)) : qty};
   }
-  const storeRows = stores.map(s=>mk(s.site_desc, agg[s.site_code].omzet, agg[s.site_code].qty, tg.store[s.site_code]||0, s.site_code))
+  // Toko channel ERABLUE tidak ditampilkan di popup Accessories, Repair Contract & Operator (AR/SOB tidak berlaku untuk ERABLUE).
+  const storeRows = stores.filter(s=>!(hideErablue && chainOfStore(s.site_desc)==='ERABLUE')).map(s=>mk(s.site_desc, agg[s.site_code].omzet, agg[s.site_code].qty, tg.store[s.site_code]||0, s.site_code))
     .sort((a,b)=>b.omzet-a.omzet);
   // BY ERO = per sales (SPG) dari TOKO yang diklik di tabel By Store.
   // Untuk Accessories & Repair Contract semua sales ditampilkan (AR/SOB tetap relevan walau omzet kategori 0).
@@ -4581,7 +4604,7 @@ function renderCategoryDetailStore(d){
     const tq = list.reduce(function(a,x){ return a+x.qty; },0), to = list.reduce(function(a,x){ return a+x.omzet; },0);
     return '<div class="cat-ero-box" style="margin:4px 0 0 10px;padding:6px 10px;border-left:3px solid var(--green);text-align:left;white-space:normal;">'+head
       +'<table><thead><tr><th>#</th><th class="cat-nm">TIPE TERJUAL</th><th>BRAND</th><th>QTY</th><th>VALUE</th><th>KONTRIBUSI</th></tr></thead><tbody>'
-      + list.map(function(x,i){ return '<tr><td style="text-align:center;color:var(--muted);">'+(i+1)+'</td><td class="cat-nm" style="font-weight:700;color:var(--text-strong);">'+escapeHtml(x.name)+'</td><td>'+escapeHtml(x.brand)+'</td><td style="text-align:right;">'+fmt(x.qty)+'</td><td style="text-align:right;">'+fmt(x.omzet)+'</td><td style="text-align:right;">'+(to>0?fmtPct(x.omzet/to*100):'-')+'</td></tr>'; }).join('')
+      + list.map(function(x,i){ return '<tr><td style="text-align:center;color:var(--muted);">'+(i+1)+'</td><td class="cat-nm" style="font-weight:800;color:var(--text-strong);">'+escapeHtml(x.name)+'</td><td>'+escapeHtml(x.brand)+'</td><td style="text-align:right;">'+fmt(x.qty)+'</td><td style="text-align:right;">'+fmt(x.omzet)+'</td><td style="text-align:right;">'+(to>0?fmtPct(x.omzet/to*100):'-')+'</td></tr>'; }).join('')
       +'</tbody><tfoot><tr><td></td><td class="cat-nm" style="font-weight:800;">TOTAL</td><td></td><td style="text-align:right;font-weight:800;">'+fmt(tq)+'</td><td style="text-align:right;font-weight:800;">'+fmt(to)+'</td><td></td></tr></tfoot></table>'
       +(accMin!==null?'<div class="cat-hint x-note" style="margin-top:4px;">Hanya barang dengan value &gt; Rp'+fmt(accMin)+'.</div>':'')+'</div>';
   }
@@ -4628,7 +4651,7 @@ function renderCategoryDetailStore(d){
       const pctTxt = r.hasTarget ? fmtPct(r.pct) : '-';
       const col = !r.hasTarget ? 'var(--muted-2)' : (r.pct>=100?'var(--green)':r.pct>=70?'var(--yellow)':'var(--red)');
       const isActive = clickStore && r.achvKey===state.catDetailStore;
-      body += '<tr'+(clickStore?' class="store-row-click'+(isActive?' store-row-active':'')+'" onclick="selectCatDetailStore(\''+String(r.achvKey).replace(/'/g,"\\'")+'\')" title="Klik untuk lihat pencapaian by ERO toko ini"':(firstHead==='Nama Sales' && !clickStore ? ' class="store-row-click'+(state.catEroSel===r.name?' store-row-active':'')+'" data-ero="'+escapeHtml(r.name)+'" onclick="selectCatEro(this.dataset.ero)" title="Klik untuk lihat tipe barang yang dijual ERO ini"':''))+'>'+(noTarget?'<td style="color:var(--muted);text-align:left;">'+(ri+1)+'</td>':'')+'<td class="cat-nm" style="color:var(--text-strong);font-weight:700;">'+escapeHtml(r.name)+(showN?' <span style="color:var(--muted);font-weight:700;">('+r.n+' toko)</span>':'')+'</td>'
+      body += '<tr'+(clickStore?' class="store-row-click'+(isActive?' store-row-active':'')+'" onclick="selectCatDetailStore(\''+String(r.achvKey).replace(/'/g,"\\'")+'\')" title="Klik untuk lihat pencapaian by ERO toko ini"':(firstHead==='Nama Sales' && !clickStore ? ' class="store-row-click'+(state.catEroSel===r.name?' store-row-active':'')+'" data-ero="'+escapeHtml(r.name)+'" onclick="selectCatEro(this.dataset.ero)" title="Klik untuk lihat tipe barang yang dijual ERO ini"':''))+'>'+(noTarget?'<td style="color:var(--muted);text-align:left;">'+(ri+1)+'</td>':'')+'<td class="cat-nm" style="color:var(--text-strong);font-weight:800;">'+escapeHtml(r.name)+(showN?' <span style="color:var(--muted);font-weight:800;">('+r.n+' toko)</span>':'')+'</td>'
         +(noTarget?'':'<td style="text-align:right;">'+(canEditTargets() ? editableNum(r.target, true, 'catStore', r.ovKey) : (r.hasTarget?fmt(r.target):'-'))+'</td>'
         +'<td style="text-align:right;color:'+col+';font-weight:800;">'+pctTxt+'</td>')
         +'<td style="text-align:right;color:var(--text-strong);">'+fmt(r.omzet)+'</td>'
@@ -4652,38 +4675,104 @@ function renderCategoryDetailStore(d){
   const newFmtCats = ['Laptop','CE','Accessories','Repair Contract'];
   function tblStoreNew(rows){
     const lbl = periodCompareLabel();
-    const lowStyle = 'background:rgba(255,122,92,.22);color:var(--red);';
     const gapTxt = g => g<0 ? '('+fmt(-g)+')' : fmt(g);
-    const extraH = extraCols.map(function(c){ return '<th rowspan="2">'+c[0]+'</th>'; }).join('');
-    const head = '<thead><tr><th rowspan="2">SAP CODE</th><th rowspan="2" class="cat-nm">STORE NAME</th><th rowspan="2">TARGET</th>'
-      +'<th colspan="2">MTD</th><th colspan="2">'+lbl+'</th><th rowspan="2">GAP</th><th rowspan="2">%</th>'+extraH+'</tr>'
-      +'<tr><th>QTY</th><th>VALUE</th><th>QTY</th><th>VALUE</th></tr></thead>';
-    let body = '';
-    rows.forEach(r=>{
+    const HB = 'background:#1f2f5f;color:#ffffff;'; // warna header sama gaya Racing Operator
+    const sortable = (cat==='Device'), srt = sortable ? state.catSort : null;
+    const sth = function(k, label){
+      if (!sortable) return '<th style="'+HB+'">'+label+'</th>';
+      const on = srt && srt.col===k;
+      return '<th class="cat-sort" style="'+HB+'cursor:pointer;user-select:none;white-space:nowrap;" onclick="setCatSort(\''+k+'\')" title="Klik untuk urutkan (dalam tiap area): terbesar &rarr; terkecil &rarr; urutan asli">'+label+(on?(srt.dir==='asc'?' \u25B2':' \u25BC'):' \u2195')+'</th>';
+    };
+    const xCols = cat==='Operator' ? [['AR Operator','opar'],['SOB Operator','opsob']] : extraCols;
+    function xCell(a, kind){
+      if (kind==='opar' || kind==='opsob'){
+        if (!a) return '<td>-</td>';
+        const pp = pivPv(a), v = kind==='opar' ? pp.ar : pp.sob;
+        if (v===null||v===undefined||!isFinite(v)) return '<td>-</td>';
+        if (kind==='opar'){ const bg = arBg('rc', v); return '<td style="'+(bg?'background:'+bg+';':'')+'color:'+arColor('rc', v)+';font-weight:800;">'+pf(v)+'%</td>'; }
+        return sobStdTd(v);
+      }
+      return arSobCell(a, kind);
+    }
+    const extraH = xCols.map(function(c){ return '<th rowspan="2" style="'+HB+'">'+c[0]+'</th>'; }).join('');
+    const head = '<thead><tr><th rowspan="2" style="background:var(--sub);min-width:170px;">STORE</th><th rowspan="2" style="'+HB+'">TARGET</th>'
+      +'<th colspan="2" style="'+HB+'">MTD</th><th colspan="2" style="'+HB+'">'+lbl+'</th><th rowspan="2" style="'+HB+'">GAP</th><th rowspan="2" style="'+HB+'">%</th>'+extraH+'</tr>'
+      +'<tr>'+sth('qty','QTY')+sth('omzet','VALUE')+'<th style="'+HB+'">QTY</th><th style="'+HB+'">VALUE</th></tr></thead>';
+    const scale = makeColorScale(rows.map(function(r){ return r.hasTarget ? r.pct : null; }));
+    const B = ' style="font-weight:800;"';
+    function sortWithin(list){
+      if (!srt) return list;
+      const keyOf = {pct:function(r){ return r.hasTarget ? r.pct : null; }, omzet:function(r){ return r.omzet; }, qty:function(r){ return r.qty; }}[srt.col];
+      if (!keyOf) return list;
+      const sgn = srt.dir==='asc' ? 1 : -1;
+      return list.slice().sort(function(a,b){
+        const x = keyOf(a), y = keyOf(b), nx = (x===null||x===undefined||!isFinite(x)), ny = (y===null||y===undefined||!isFinite(y));
+        if (nx && ny) return 0; if (nx) return 1; if (ny) return -1;
+        return (x-y)*sgn;
+      });
+    }
+    function sums(list){
+      const o = {t:0, q:0, v:0, eq:0, ev:0, gap:0};
+      list.forEach(function(r){ o.t += (r.pTarget||0); o.q += r.qty; o.v += r.omzet; o.eq += r.estQty; o.ev += r.estVal; if (r.hasTarget) o.gap += (r.omzet - r.pTarget); });
+      o.pct = o.t>0 ? o.ev/o.t*100 : null;
+      return o;
+    }
+    // Total AR & SOB per TSH/Area: jumlahkan komponen semua toko dalam area, lalu hitung ulang rasionya.
+    function aggAchv(list){
+      const o = {deviceQty:0, deviceVal:0, ceQty:0, accQty10k:0, accValAll:0, rcQty:0, rcVal:0, arAccDenom:0, opP:0, opQ3:0}; let any = false;
+      list.forEach(function(r){ const a = achvMapNew[r.achvKey]; if (!a) return; any = true; Object.keys(o).forEach(function(k){ o[k] += (a[k]||0); }); });
+      if (!any) return null;
+      o.arAccDev = o.deviceQty>0 ? o.accQty10k/o.deviceQty*100 : null;
+      o.arRC = o.arAccDenom>0 ? o.rcQty/o.arAccDenom*100 : null;
+      o.sobAcc = o.deviceVal>0 ? o.accValAll/o.deviceVal*100 : null;
+      o.sobRC = o.deviceVal>0 ? o.rcVal/o.deviceVal*100 : null;
+      return o;
+    }
+    function areaExtra(list){ const a = aggAchv(list); return xCols.map(function(c){ return a ? xCell(a, c[1]) : '<td>-</td>'; }).join(''); }
+    function areaHdr(g, list){
+      const t = sums(list);
+      return '<tr class="area-hdr"><td class="cat-nm" style="text-align:left;">'+racingAreaLabel(g)+'</td>'
+        +'<td'+B+'>'+(t.t>0?fmt(t.t):'-')+'</td><td'+B+'>'+fmt(t.q)+'</td><td'+B+'>'+fmt(t.v)+'</td><td'+B+'>'+fmt(t.eq)+'</td><td'+B+'>'+fmt(t.ev)+'</td>'
+        +'<td'+B+'>'+(t.t>0?gapTxt(t.gap):'-')+'</td><td'+B+'>'+(t.pct===null?'-':fmtPct(t.pct))+'</td>'+areaExtra(list)+'</tr>';
+    }
+    function storeRow(r){
       const isActive = r.achvKey===state.catDetailStore;
       const gap = r.omzet - r.pTarget; // GAP = MTD Value - Target
-      const low = r.hasTarget && r.pct<100;
-      body += '<tr class="store-row-click'+(isActive?' store-row-active':'')+'" onclick="selectCatDetailStore(\''+String(r.achvKey).replace(/'/g,"\\'")+'\')" title="Klik untuk lihat pencapaian by ERO toko ini">'
-        +'<td>'+escapeHtml(sapCodeOf(r.name))+'</td><td class="cat-nm" style="color:var(--text-strong);font-weight:700;">'+escapeHtml(r.name)+'</td>'
+      const bg = r.hasTarget ? scale(r.pct) : '';
+      let h = '<tr class="store-row-click'+(isActive?' store-row-active':'')+'" onclick="if(!event.target.closest(\'input,button,[contenteditable]\'))selectCatDetailStore(\''+String(r.achvKey).replace(/'/g,"\\'")+'\')" title="Klik untuk lihat pencapaian by ERO toko ini">'
+        +'<td class="cat-nm" style="text-align:left;'+(isActive?'background:rgba(255,200,60,.28);':'')+'font-weight:'+(isActive?'800':'600')+';">'+escapeHtml(r.name)+'</td>'
         +'<td>'+(canEditTargets() ? editableNum(r.target, true, 'catStore', r.ovKey) : (r.hasTarget?fmt(r.pTarget):'-'))+'</td>'
         +'<td>'+fmt(r.qty)+'</td><td>'+fmt(r.omzet)+'</td><td>'+fmt(r.estQty)+'</td><td>'+fmt(r.estVal)+'</td>'
         +'<td>'+(r.hasTarget?gapTxt(gap):'-')+'</td>'
-        +'<td style="font-weight:800;'+(low?lowStyle:'')+'">'+(r.hasTarget?fmtPct(r.pct):'-')+'</td>'
-        +extraCols.map(function(c){ return arSobCell(achvMapNew[r.achvKey], c[1]); }).join('')
+        +'<td style="font-weight:800;'+(bg?'background:'+bg+';':'')+'">'+(r.hasTarget?fmtPct(r.pct):'-')+'</td>'
+        +xCols.map(function(c){ return xCell(achvMapNew[r.achvKey], c[1]); }).join('')
         +'</tr>';
       if (isActive){
-        body += '<tr class="ero-expand-row"><td colspan="'+(9+extraCols.length)+'" style="padding:0 0 8px 0;border-bottom:1px solid var(--border);">'+eroHtml+'</td></tr>';
+        h += '<tr class="ero-expand-row"><td colspan="'+(8+xCols.length)+'" style="padding:0 0 8px 0;border-bottom:1px solid var(--border);">'+eroHtml+'</td></tr>';
       }
-    });
-    const sT = rows.reduce((a,r)=>a+(r.pTarget||0),0), sV = rows.reduce((a,r)=>a+r.estVal,0), sQ = rows.reduce((a,r)=>a+r.estQty,0);
-    const sPct = sT>0 ? sV/sT*100 : null;
-    const foot = '<tfoot><tr><td></td><td class="cat-nm" style="font-weight:800;color:var(--text-strong);">TOTAL</td><td style="font-weight:800;">'+(sT>0?fmt(sT):'-')+'</td>'
-      +'<td style="font-weight:800;">'+fmt(totalQty)+'</td><td style="font-weight:800;">'+fmt(totalOmzet)+'</td>'
-      +'<td style="font-weight:800;">'+fmt(sQ)+'</td><td style="font-weight:800;">'+fmt(sV)+'</td>'
-      +'<td style="font-weight:800;">'+(sT>0?gapTxt(totalOmzet-sT):'-')+'</td>'
-      +'<td style="font-weight:800;'+(sPct!==null&&sPct<100?lowStyle:'')+'">'+fmtPct(sPct)+'</td>'
-      +extraCols.map(function(c){ return arSobCell(d.catAchvTotal, c[1]); }).join('')+'</tr></tfoot>';
-    return '<div class="achv-table-wrap"><table>'+head+'<tbody>'+body+'</tbody>'+foot+'</table></div>';
+      return h;
+    }
+    let body = '';
+    const grp = racingGroupByArea(rows, function(r){ return r.name; });
+    if (grp){
+      grp.forEach(function(g){
+        const list = sortWithin(g.idx.map(function(i){ return rows[i]; }));
+        body += areaHdr(g, list);
+        list.forEach(function(r){ body += storeRow(r); });
+      });
+    } else {
+      sortWithin(rows).forEach(function(r){ body += storeRow(r); });
+    }
+    const T = sums(rows);
+    const FS = 'background:#1f2f5f;color:#ffffff;font-weight:800;';
+    const foot = '<tfoot><tr class="pv-total"><td style="background:var(--sub);font-weight:800;text-align:left;">GRAND TOTAL</td><td style="'+FS+'">'+(T.t>0?fmt(T.t):'-')+'</td>'
+      +'<td style="'+FS+'">'+fmt(totalQty)+'</td><td style="'+FS+'">'+fmt(totalOmzet)+'</td>'
+      +'<td style="'+FS+'">'+fmt(T.eq)+'</td><td style="'+FS+'">'+fmt(T.ev)+'</td>'
+      +'<td style="'+FS+'">'+(T.t>0?gapTxt(totalOmzet-T.t):'-')+'</td>'
+      +'<td style="'+FS+'">'+(T.pct===null?'-':fmtPct(T.pct))+'</td>'
+      +xCols.map(function(c){ return xCell(d.catAchvTotal, c[1]); }).join('')+'</tr></tfoot>';
+    const cg = '<colgroup><col style="width:285px;min-width:285px;">'+new Array(7+xCols.length+1).join('<col style="width:132px;min-width:132px;">')+'</colgroup>'; // kolom angka lebarnya sama semua
+    return '<div class="pivot-wrap"><table class="pivot-tbl op-tbl cat-uni">'+cg+head+'<tbody>'+body+'</tbody>'+foot+'</table></div>'; // kelas sama dengan Racing Operator: tabel otomatis diperkecil agar semua kolom muat
   }
   // Accessories & Operator: tampilan by Store gaya Tabel Pivot (Device vs kategori, Ar, SoB), hanya baris Store.
   // Klik toko membuka 👤 By ERO (Sales / SPG) dengan format kolom yang sama, dan 🏷️ By Tipe (Barang Terjual).
@@ -4726,7 +4815,7 @@ function renderCategoryDetailStore(d){
       if (v===null||v===undefined||!isFinite(v)) return '<td>-</td>';
       const _k = (pivMode==='rc' || pivMode==='op') ? 'rc' : 'acc'; // Operator: ambang & warna AR sama dengan Repair Contract
       const bg = arBg(_k, v);
-      return '<td style="'+(bg?'background:'+bg+';':'')+'color:'+arColor(_k, v)+';font-weight:700;">'+pf(v)+'%</td>';
+      return '<td style="'+(bg?'background:'+bg+';':'')+'color:'+arColor(_k, v)+';font-weight:800;">'+pf(v)+'%</td>';
     }
     function sobTd(v){
       if (v===null||v===undefined||!isFinite(v)) return '<td>-</td>';
@@ -4765,7 +4854,7 @@ function renderCategoryDetailStore(d){
     const stRaw = (d.catAchvByStore||{})[selStore.site_code];
     const tot = stRaw ? mk(stRaw, 'TOTAL '+selStore.site_desc) : null;
     const arSc = pivScale(ents.map(function(e){ return e.ar; })), sobSc = pivScale(ents.map(function(e){ return e.sob; }));
-    function arTd(v){ if (v===null||v===undefined||!isFinite(v)) return '<td>-</td>'; const bg = arBg('rc', v); return '<td style="'+(bg?'background:'+bg+';':'')+'color:'+arColor('rc', v)+';font-weight:700;">'+pf(v)+'%</td>'; }
+    function arTd(v){ if (v===null||v===undefined||!isFinite(v)) return '<td>-</td>'; const bg = arBg('rc', v); return '<td style="'+(bg?'background:'+bg+';':'')+'color:'+arColor('rc', v)+';font-weight:800;">'+pf(v)+'%</td>'; }
     function sobTd(v){ return sobStdTd(v); }
     function totTd(v, dec){ return (v===null||v===undefined||!isFinite(v)) ? '<td>-</td>' : '<td>'+pf(v)+'%</td>'; }
     const body = ents.map(function(e){ return eroRowWrap(e.name, '<tr class="pv-ero"><td style="text-align:left;">'+escapeHtml(e.name)+'</td><td>'+pivNum(e.dq)+'</td><td>'+pivNum(e.dv)+'</td>'+opEroCells(e.pr)+arTd(e.ar)+sobTd(e.sob)+'</tr>'); }).join('');
@@ -4812,7 +4901,7 @@ function renderCategoryDetailStore(d){
     function arTd(v){
       if (v===null||v===undefined||!isFinite(v)) return '<td>-</td>';
       const bg = arBg('rc', v);
-      return '<td style="'+(bg?'background:'+bg+';':'')+'color:'+arColor('rc', v)+';font-weight:700;">'+pf(v)+'%</td>';
+      return '<td style="'+(bg?'background:'+bg+';':'')+'color:'+arColor('rc', v)+';font-weight:800;">'+pf(v)+'%</td>';
     }
     function sobTd(v){ return sobStdTd(v); }
     function lostTd(p, bold){
@@ -4847,7 +4936,7 @@ function renderCategoryDetailStore(d){
       +(!state.locked && cat!=='Accessories' && cat!=='Operator' && cat!=='Repair Contract' && state.editing && isMultiMonthRange() ? '<span style="font-size:10.5px;color:var(--yellow);">Target hanya bisa diedit saat rentang dalam 1 bulan</span>' : '')
       +(!state.locked && cat!=='Accessories' && cat!=='Operator' && cat!=='Repair Contract' && state.editing && !isMultiMonthRange() ? '<span style="font-size:10.5px;color:var(--muted);">Kosongkan kolom untuk kembali ke perkiraan otomatis</span>' : '')
     +'</div>'
-    +((cat==='Accessories'||cat==='Operator'||cat==='Repair Contract') ? tblStorePivotAcc(storeRows) : newFmtCats.includes(cat) ? tblStoreNew(storeRows.slice().sort((a,b)=>String(a.name).localeCompare(String(b.name),'id'))) : tbl(storeRows,'Toko',false,d.catAchvByStore||{},d.catAchvTotal,false,true))
+    +tblStoreNew(storeRows.slice().sort((a,b)=>String(a.name).localeCompare(String(b.name),'id')))
     +(selStore ? '' : eroHtml)
     +''
   +'</div></div>';
@@ -4878,7 +4967,7 @@ function sobBg(pct, kind){
 function sobStdTd(v, kind){
   if (v===null||v===undefined||!isFinite(v)) return '<td>-</td>';
   var bg = sobBg(v, kind);
-  return '<td style="'+(bg?'background:'+bg+';':'')+'color:'+sobColor(v, kind)+';font-weight:700;">'+pf(v)+'%</td>';
+  return '<td style="'+(bg?'background:'+bg+';':'')+'color:'+sobColor(v, kind)+';font-weight:800;">'+pf(v)+'%</td>';
 }
 function arBg(kind, pct){
   var st = arStatus(kind, pct);
@@ -4896,7 +4985,7 @@ function renderCategoryStoreOp(d){
   const tg = getEffectiveTargets();
   const ratio = tg.overall>0 ? (tg.category[cat]||0)/tg.overall : 0;
   const catStoreT = tg.catStore || {};
-  const stores = (d.stores||[]).slice().sort(function(a,b){ return String(a.site_desc).localeCompare(String(b.site_desc),'id'); });
+  const stores = (d.stores||[]).filter(function(st){ return chainOfStore(st.site_desc)!=='ERABLUE'; }).sort(function(a,b){ return String(a.site_desc).localeCompare(String(b.site_desc),'id'); });
   const byCode = {};
   stores.forEach(function(st){ byCode[st.site_code]=st; byCode[st.site_desc]=st; });
   const agg = {};
@@ -4932,7 +5021,7 @@ function renderCategoryStoreOp(d){
   function num(n){ return fmt(n); }
   function arCell(pct){
     if (pct===null||pct===undefined||!isFinite(pct)) return '<td>-</td>';
-    return '<td style="color:'+arColor(kind, pct)+';font-weight:700;">'+pf(pct)+'%</td>';
+    return '<td style="color:'+arColor(kind, pct)+';font-weight:800;">'+pf(pct)+'%</td>';
   }
   function sobCell(pct){
     if (pct===null||pct===undefined||!isFinite(pct)) return '<td>-</td>';
@@ -5058,7 +5147,7 @@ function renderCategoryPivotGen(d){
   function pctTd(v, dec, scale, bold){
     if (v===null||v===undefined||!isFinite(v)) return '<td>-</td>';
     const bg = scale ? scale(v) : '';
-    return '<td style="'+(bg?'background:'+bg+';':'')+(bold?'font-weight:700;':'')+'">'+pf(v)+'%</td>';
+    return '<td style="'+(bg?'background:'+bg+';':'')+(bold?'font-weight:800;':'')+'">'+pf(v)+'%</td>';
   }
   function row(name, p, cls, scaled){
     return '<tr'+(cls?' class="'+cls+'"':'')+'><td>'+escapeHtml(name)+'</td>'
@@ -5121,7 +5210,7 @@ function renderStoreTop10(d, store){
   if (!lst.length) return ctl+'<div class="cat-hint">Belum ada penjualan Accessories di toko ini pada rentang tanggal terpilih.</div>';
   const rows = lst.map(function(x,i){
     const share = sh>0 ? ((tk==='val'?x.val:x.qty)/sh*100) : null;
-    return '<tr><td style="text-align:center;color:var(--muted);">'+(i+1)+'</td><td style="text-align:left;font-weight:700;color:var(--text-strong);">'+escapeHtml(x.name)+'</td><td style="text-align:left;">'+escapeHtml(x.brand)+'</td><td style="text-align:right;'+(tk==='qty'?'font-weight:800;':'')+'">'+nf(x.qty)+'</td><td style="text-align:right;'+(tk==='val'?'font-weight:800;':'')+'">'+nf(x.val)+'</td><td style="text-align:right;">'+(share===null?'-':fmtPct(share))+'</td></tr>';
+    return '<tr><td style="text-align:center;color:var(--muted);">'+(i+1)+'</td><td style="text-align:left;font-weight:800;color:var(--text-strong);">'+escapeHtml(x.name)+'</td><td style="text-align:left;">'+escapeHtml(x.brand)+'</td><td style="text-align:right;'+(tk==='qty'?'font-weight:800;':'')+'">'+nf(x.qty)+'</td><td style="text-align:right;'+(tk==='val'?'font-weight:800;':'')+'">'+nf(x.val)+'</td><td style="text-align:right;">'+(share===null?'-':fmtPct(share))+'</td></tr>';
   }).join('');
   return '<h4 style="margin:4px 0 0;">\uD83C\uDFC5 TOP 10 BY TIPE &ndash; '+escapeHtml(store.site_desc)+' (urut '+(tk==='val'?'Value':'Qty terjual')+')</h4>'+ctl
     +'<div class="pivot-wrap"><table class="pivot-tbl"><thead><tr><th>#</th><th style="text-align:left;">Tipe Barang</th><th style="text-align:left;">Brand</th><th>Qty</th><th>Value</th><th>Kontribusi '+(tk==='val'?'Value':'Qty')+'</th></tr></thead><tbody>'+rows+'</tbody>'
@@ -5167,11 +5256,11 @@ function renderCategoryTop(d){
     const rows = lst.length ? lst.map(function(x,i){
       const share = sh>0 ? ((tk==='val'?x.val:x.qty)/sh*100) : null;
       const isSel = state.catTopSel===x.name;
-      let h = '<tr class="store-row-click'+(isSel?' store-row-active':'')+'" data-item="'+escapeHtml(x.name)+'" onclick="selectCatTopItem(this.dataset.item)" title="Klik untuk lihat toko yang menjual barang ini" style="cursor:pointer;"><td style="text-align:center;color:var(--muted);">'+(i+1)+'</td><td style="text-align:left;font-weight:700;color:var(--text-strong);">'+(isSel?'\u25BE ':'\u25B8 ')+escapeHtml(x.name)+'</td><td style="text-align:left;">'+escapeHtml(x.brand)+'</td><td style="text-align:right;'+(tk==='qty'?'font-weight:800;':'')+'">'+nf(x.qty)+'</td><td style="text-align:right;'+(tk==='val'?'font-weight:800;':'')+'">'+nf(x.val)+'</td><td style="text-align:right;">'+(share===null?'-':fmtPct(share))+'</td></tr>';
+      let h = '<tr class="store-row-click'+(isSel?' store-row-active':'')+'" data-item="'+escapeHtml(x.name)+'" onclick="selectCatTopItem(this.dataset.item)" title="Klik untuk lihat toko yang menjual barang ini" style="cursor:pointer;"><td style="text-align:center;color:var(--muted);">'+(i+1)+'</td><td style="text-align:left;font-weight:800;color:var(--text-strong);">'+(isSel?'\u25BE ':'\u25B8 ')+escapeHtml(x.name)+'</td><td style="text-align:left;">'+escapeHtml(x.brand)+'</td><td style="text-align:right;'+(tk==='qty'?'font-weight:800;':'')+'">'+nf(x.qty)+'</td><td style="text-align:right;'+(tk==='val'?'font-weight:800;':'')+'">'+nf(x.val)+'</td><td style="text-align:right;">'+(share===null?'-':fmtPct(share))+'</td></tr>';
       if (isSel){
         const sl = storesOf(x.name);
         const sq = sl.reduce(function(a,y){ return a+y.qty; },0), sv = sl.reduce(function(a,y){ return a+y.val; },0);
-        const srows = sl.map(function(y,j){ return '<tr><td style="text-align:center;color:var(--muted);">'+(j+1)+'</td><td style="text-align:left;font-weight:700;">'+escapeHtml(String(y.name).toUpperCase())+'</td><td style="text-align:right;font-weight:800;">'+nf(y.qty)+'</td><td style="text-align:right;">'+nf(y.val)+'</td><td style="text-align:right;">'+(sq>0?fmtPct(y.qty/sq*100):'-')+'</td></tr>'; }).join('');
+        const srows = sl.map(function(y,j){ return '<tr><td style="text-align:center;color:var(--muted);">'+(j+1)+'</td><td style="text-align:left;font-weight:800;">'+escapeHtml(String(y.name).toUpperCase())+'</td><td style="text-align:right;font-weight:800;">'+nf(y.qty)+'</td><td style="text-align:right;">'+nf(y.val)+'</td><td style="text-align:right;">'+(sq>0?fmtPct(y.qty/sq*100):'-')+'</td></tr>'; }).join('');
         h += '<tr class="ero-expand-row"><td colspan="6" style="padding:0 0 8px 0;text-align:left;white-space:normal;border-bottom:1px solid var(--border);">'
           +'<div style="margin:4px 0 0 10px;padding:6px 10px;border-left:3px solid var(--green);">'
           +'<h4 style="margin:4px 0 6px;">\uD83C\uDFEA TOKO YANG MENJUAL &ndash; '+escapeHtml(x.name)+' ('+nf(sl.length)+' toko, urut Qty terbanyak)</h4>'
@@ -5213,7 +5302,7 @@ function rcIncInfo(d, store){
 function rcIncAmt(inc, rcVal){ return (inc && inc.rate!==null) ? Math.round((rcVal||0)*inc.f*inc.rate/100) : null; }
 function rcIncRp(n){ return (n===null||n===undefined) ? '-' : 'Rp '+Math.round(n).toLocaleString('id-ID'); }
 function rcIncPct(v){ return (v===null||v===undefined||!isFinite(v)) ? '-' : String(Math.round(v*10)/10).replace('.',',')+'%'; }
-function rcTgtTd(t){ return '<td style="font-weight:700;">'+((t!==null&&t!==undefined&&t>0) ? Math.round(t).toLocaleString('en-US') : '-')+'</td>'; }
+function rcTgtTd(t){ return '<td style="font-weight:800;">'+((t!==null&&t!==undefined&&t>0) ? Math.round(t).toLocaleString('en-US') : '-')+'</td>'; }
 const RC_TGT_TH = '<th rowspan="2" title="Target Value Boltech toko (sheet Target Racing); baris ERO memakai target toko yang sama">Target</th>';
 const RC_EST_TH = '<th rowspan=\"2\" title=\"Estimasi Value Repair Contract = Value RC aktual / hari berjalan x jumlah hari bulan (mode Bulan Ini); sama dengan aktual pada mode lain\">Estimasi<br>Value</th>';
 function setRcIncShow(v){ state.rcIncShow = !!v; render(); }
@@ -5227,7 +5316,7 @@ function rcIncNote(){ return state.rcIncShow ? RC_INC_NOTE : ''; }
 function rcIncTds(inc, ins, isStoreRow){
   if (!state.rcIncShow) return '';
   const rateTxt = inc && inc.rate!==null ? String(inc.rate).replace('.',',')+'%' : '-';
-  return '<td>'+(isStoreRow ? rcIncPct(inc && inc.ach) : '')+'</td><td style="font-weight:700;">'+rateTxt+'</td><td style="font-weight:800;color:#c2410c;">'+rcIncRp(ins)+'</td>';
+  return '<td>'+(isStoreRow ? rcIncPct(inc && inc.ach) : '')+'</td><td style="font-weight:800;">'+rateTxt+'</td><td style="font-weight:800;color:#c2410c;">'+rcIncRp(ins)+'</td>';
 }
 const RC_INC_TH = '<th rowspan="2" style="background:#c2410c;color:#fff;" title="Value Repair Contract (proyeksi) ÷ Target Value Boltech toko">% Ach<br>Revenue</th><th rowspan="2" style="background:#c2410c;color:#fff;">% Insentif</th><th rowspan="2" style="background:#c2410c;color:#fff;" title="Value RC ERO (proyeksi) × % Insentif">Est. Insentif<br>ERO</th>';
 const RC_INC_NOTE = ' <b>Est. Insentif ERO</b> = Value Repair Contract ERO (diproyeksikan akhir bulan pada mode Bulan Ini) &times; % Insentif. % Insentif ditentukan dari % Ach Revenue toko = Value Repair Contract toko &divide; Target Value Boltech toko (sheet <b>Target Racing</b>): 0&ndash;80% = 1,5% &middot; &gt;80&ndash;100% = 3% &middot; &gt;100&ndash;120% = 5% &middot; &gt;120% = 8%. Bila target toko belum diisi, insentif tampil &quot;-&quot;.';
@@ -5281,7 +5370,7 @@ function renderCategoryPivot(d){
   function arTd(v){
     if (v===null||v===undefined||!isFinite(v)) return '<td>-</td>';
     var kind = mode==='acc' ? 'acc' : 'rc', bg = arBg(kind, v);
-    return '<td style="'+(bg?'background:'+bg+';':'')+'color:'+arColor(kind, v)+';font-weight:700;">'+pf(v)+'%</td>';
+    return '<td style="'+(bg?'background:'+bg+';':'')+'color:'+arColor(kind, v)+';font-weight:800;">'+pf(v)+'%</td>';
   }
   // Estimasi Value = Value Repair Contract diproyeksikan akhir bulan (mode Bulan Ini) / sama dengan aktual pada mode lain
   const estF = (isProjectionMode() && d.distinctDays>0) ? d.dim/d.distinctDays : 1;
@@ -5290,14 +5379,14 @@ function renderCategoryPivot(d){
     if (!(t>0)) return '<td>-</td>';
     const v = est/t*100, st = v>=100 ? 'green' : (v>=80 ? 'yellow' : 'red');
     const bg = st==='green' ? 'rgba(74,222,156,.16)' : st==='yellow' ? 'rgba(255,194,77,.18)' : 'rgba(255,122,92,.16)';
-    return '<td style="background:'+bg+';color:var(--'+st+');font-weight:700;">'+pf(v)+'%</td>';
+    return '<td style="background:'+bg+';color:var(--'+st+');font-weight:800;">'+pf(v)+'%</td>';
   }
   function row(name, p, cls, scaled, inc, ins, tgt){
     const tgtV = tgt!==undefined ? tgt : (inc ? inc.target : null);
     return '<tr'+(cls?' class="'+cls+'"':'')+'><td>'+escapeHtml(name)+'</td>'
       +(mode==='rc' ? rcTgtTd(tgtV) : '')
       +'<td>'+num(p.dq)+'</td><td>'+num(p.dv)+'</td><td>'+num(p.cq)+'</td><td>'+val(p.cv)+'</td>'
-      +(mode==='rc' ? '<td style="font-weight:700;">'+val(Math.round((p.cv||0)*estF))+'</td>' : '')
+      +(mode==='rc' ? '<td style="font-weight:800;">'+val(Math.round((p.cv||0)*estF))+'</td>' : '')
       +(mode==='acc' ? '<td>'+val(p.mq)+'</td><td>'+val(p.mv)+'</td>' : '')
       +arTd(p.ar)+(mode==='rc' ? estPctTd(Math.round((p.cv||0)*estF), tgtV) : sobStdTd(p.sob, 'acc'))
       +(mode==='rc' ? rcIncTds(inc, ins, cls!=='pv-ero') : '')+'</tr>';
@@ -5391,7 +5480,7 @@ function opStoreBox(d, store, recs, sub, subFn, opts){
     } else {
       inner = '<div class="achv-table-wrap"><table><thead><tr><th>#</th><th class="cat-nm">Nama Sales</th>'+pc.map(function(g){ return '<th>'+escapeHtml(g.label)+'</th>'; }).join('')+'<th>Omzet</th><th>Qty</th><th>Kontribusi</th></tr></thead><tbody>'
         + list.map(function(x,i){
-            return '<tr><td style="color:var(--muted);text-align:left;">'+(i+1)+'</td><td class="cat-nm" style="color:var(--text-strong);font-weight:700;">'+escapeHtml(x.name)+'</td>'
+            return '<tr><td style="color:var(--muted);text-align:left;">'+(i+1)+'</td><td class="cat-nm" style="color:var(--text-strong);font-weight:800;">'+escapeHtml(x.name)+'</td>'
               + pc.map(function(g){ return '<td style="text-align:right;">'+fmt(x.p[g.key]||0)+'</td>'; }).join('')
               + '<td style="text-align:right;color:var(--text-strong);">'+fmt(x.v)+'</td><td style="text-align:right;">'+fmt(x.q)+'</td><td style="text-align:right;">'+(tV>0?fmtPct(x.v/tV*100):'-')+'</td></tr>';
           }).join('')
@@ -5740,7 +5829,7 @@ function renderBrandStorePopup(d){
         inner = '<table><thead><tr><th class="cat-nm">TIPE TERJUAL</th><th>QTY</th><th>VALUE</th><th class="cat-nm">TANGGAL TERJUAL</th></tr></thead><tbody>'
           + tr.map(x=>{
               const dtxt = Object.keys(x.dates).filter(k=>x.dates[k]!==0).sort().map(k=>Number(k.slice(8,10))+' '+MONTH_ABBR[Number(k.slice(5,7))]+(Math.abs(x.dates[k])!==1?' (\u00D7'+fmt(Math.abs(x.dates[k]))+')':'')).join(', ') || '-';
-              return '<tr'+(x.neg?' style="color:var(--red);"':'')+'><td class="cat-nm" style="font-weight:700;color:'+(x.neg?'var(--red)':'var(--text-strong)')+';">'+escapeHtml(x.n)+(x.neg?' (RETUR)':'')+'</td><td>'+fmt(x.qty)+'</td><td>'+fmt(x.omzet)+'</td><td class="cat-nm" style="white-space:normal;">'+dtxt+'</td></tr>'; }).join('')
+              return '<tr'+(x.neg?' style="color:var(--red);"':'')+'><td class="cat-nm" style="font-weight:800;color:'+(x.neg?'var(--red)':'var(--text-strong)')+';">'+escapeHtml(x.n)+(x.neg?' (RETUR)':'')+'</td><td>'+fmt(x.qty)+'</td><td>'+fmt(x.omzet)+'</td><td class="cat-nm" style="white-space:normal;">'+dtxt+'</td></tr>'; }).join('')
           + '</tbody><tfoot><tr><td class="cat-nm" style="font-weight:800;color:var(--text-strong);">TOTAL</td><td style="font-weight:800;">'+fmt(tq)+'</td><td style="font-weight:800;">'+fmt(to)+'</td><td></td></tr></tfoot></table>';
       }
     }
@@ -5752,7 +5841,7 @@ function renderBrandStorePopup(d){
     if (!er.length) return '<div class="cat-hint">Belum ada penjualan '+escapeHtml(brand.label)+' di toko ini pada rentang tanggal terpilih.</div>';
     const tq = er.reduce((a,x)=>a+x.qty,0), to = er.reduce((a,x)=>a+x.omzet,0);
     return '<div class="achv-table-wrap"><table><thead><tr><th class="cat-nm">Nama Sales</th><th>Omzet</th><th>Qty</th><th>Kontribusi</th></tr></thead><tbody>'
-      + er.map(x=>'<tr><td class="cat-nm" style="color:var(--text-strong);font-weight:700;">'+escapeHtml(x.n)+'</td><td style="text-align:right;color:var(--text-strong);">'+fmt(x.omzet)+'</td><td style="text-align:right;">'+fmt(x.qty)+'</td><td style="text-align:right;">'+(to>0?fmtPct(x.omzet/to*100):'-')+'</td></tr>').join('')
+      + er.map(x=>'<tr><td class="cat-nm" style="color:var(--text-strong);font-weight:800;">'+escapeHtml(x.n)+'</td><td style="text-align:right;color:var(--text-strong);">'+fmt(x.omzet)+'</td><td style="text-align:right;">'+fmt(x.qty)+'</td><td style="text-align:right;">'+(to>0?fmtPct(x.omzet/to*100):'-')+'</td></tr>').join('')
       + '</tbody><tfoot><tr><td class="cat-nm" style="font-weight:800;color:var(--text-strong);">Total</td><td style="text-align:right;font-weight:800;color:var(--text-strong);">'+fmt(to)+'</td><td style="text-align:right;font-weight:800;">'+fmt(tq)+'</td><td style="text-align:right;font-weight:800;">'+(to>0?'100%':'-')+'</td></tr></tfoot></table></div>';
   }
   function storeSubHtml(code, storeName){
@@ -5788,7 +5877,7 @@ function renderBrandStorePopup(d){
     const gap = r.omzet - r.target; // GAP = MTD Value - Target
     const low = r.hasTarget && r.pct<100;
     const isSel = state.brandStoreSel===r.code;
-    body += '<tr class="store-row-click'+(isSel?' store-row-active':'')+'" onclick="if(!event.target.closest(\'input,button,[contenteditable]\'))selectBrandStoreRow(\''+String(r.code).replace(/'/g,"\\'")+'\')" title="Klik untuk lihat penjualan by ERO &amp; tipe yang terjual di toko ini"><td>'+escapeHtml(sapCodeOf(r.name))+'</td><td class="cat-nm" style="font-weight:700;color:var(--text-strong);">'+escapeHtml(r.name)+'</td>'
+    body += '<tr class="store-row-click'+(isSel?' store-row-active':'')+'" onclick="if(!event.target.closest(\'input,button,[contenteditable]\'))selectBrandStoreRow(\''+String(r.code).replace(/'/g,"\\'")+'\')" title="Klik untuk lihat penjualan by ERO &amp; tipe yang terjual di toko ini"><td>'+escapeHtml(sapCodeOf(r.name))+'</td><td class="cat-nm" style="font-weight:800;color:var(--text-strong);">'+escapeHtml(r.name)+'</td>'
       +'<td>'+(canEditTargets() ? editableNum(r.monthlyT, true, 'catStore', r.ovKey) : (r.hasTarget?fmt(r.target):'-'))+'</td>'
       +'<td>'+fmt(r.qty)+'</td><td>'+fmt(r.omzet)+'</td><td>'+fmt(r.estQty)+'</td><td>'+fmt(r.estVal)+'</td>'
       +'<td>'+(r.hasTarget?gapTxt(gap):'-')+'</td>'
@@ -5968,7 +6057,7 @@ function samIncCompute(d){
   const prevEnd = new Date(Date.UTC(sd.getUTCFullYear(), sd.getUTCMonth(), 0)).toISOString().slice(0,10);
   const prevLbl = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][pS.getUTCMonth()];
   const tOf = function(s){ return st[s.site_desc] || st[s.site_code] || st[canonStoreName(s.site_desc)] || null; };
-  const stores = (d.stores||[]).filter(function(s){ return !racingStoreExcluded(s.site_desc); }); // Erablue/Operator/JB di-take out dari racing Samsung
+  const stores = (d.stores||[]).filter(function(s){ if (!racingStoreExcluded(s.site_desc)) return true; const t = tOf(s); return !!(t && t[0]>0); }); // Erablue/Operator/JB di-take out dari racing Samsung, KECUALI toko yang punya target Tier 1 (Participant Racing, mis. AGRES Mangga Dua Square & XLC Mal Puri Indah)
   const byName = {}; const act = {}, prev = {}, det = {};
   stores.forEach(function(s){ byName[s.site_desc]=s; byName[s.site_code]=s; act[s.site_code]=0; prev[s.site_code]=0; det[s.site_code]={}; });
   (raw.records||[]).forEach(function(r){
@@ -6070,9 +6159,9 @@ function renderSamIncPopup(d){
     }
     g.rows.forEach(function(r){
       const isSel = state.samIncSel===r.key;
-      const lob = r.part ? '<span style="color:var(--green);font-weight:700;">Participant Racing</span>' : '<span style="color:var(--muted);">Not Participant</span>';
+      const lob = r.part ? '<span style="color:var(--green);font-weight:800;">Participant Racing</span>' : '<span style="color:var(--muted);">Not Participant</span>';
       body += '<tr class="store-row-click'+(isSel?' store-row-active':'')+'" onclick="selectSamIncRow(\''+String(r.key).replace(/'/g,"\\'")+'\')" title="Klik untuk lihat penjualan per seri, model, dan ERO">'
-        +'<td style="text-align:left;white-space:nowrap;">'+lob+'</td><td>'+escapeHtml(r.code)+'</td><td class="cat-nm" style="font-weight:700;color:var(--text-strong);">'+escapeHtml(r.name)+'</td>'
+        +'<td style="text-align:left;white-space:nowrap;">'+lob+'</td><td>'+escapeHtml(r.code)+'</td><td class="cat-nm" style="font-weight:800;color:var(--text-strong);">'+escapeHtml(r.name)+'</td>'
         +numCells(r)+'</tr>';
       if (isSel){
         const sers = ['S Series','S FE Series','S Edge Series','Z Series'];
@@ -6080,7 +6169,7 @@ function renderSamIncPopup(d){
           const o = r.det[k];
           const eroTxt = Object.keys(o.ero).filter(function(e){ return o.ero[e]!==0; }).sort(function(a,b){ return o.ero[b]-o.ero[a]; }).map(function(e){ return escapeHtml(e)+' ('+fmt(o.ero[e])+')'; }).join(', ') || '-';
           const mdlTxt = Object.keys(o.mdl).filter(function(e){ return o.mdl[e]!==0; }).sort(function(a,b){ return o.mdl[b]-o.mdl[a]; }).map(function(e){ return escapeHtml(e)+' ('+fmt(o.mdl[e])+')'; }).join(', ') || '-';
-          return '<tr><td class="cat-nm" style="font-weight:700;color:var(--text-strong);">'+k+'</td><td style="font-weight:800;">'+fmt(o.q)+'</td><td class="cat-nm" style="white-space:normal;">'+mdlTxt+'</td><td class="cat-nm" style="white-space:normal;">'+eroTxt+'</td></tr>';
+          return '<tr><td class="cat-nm" style="font-weight:800;color:var(--text-strong);">'+k+'</td><td style="font-weight:800;">'+fmt(o.q)+'</td><td class="cat-nm" style="white-space:normal;">'+mdlTxt+'</td><td class="cat-nm" style="white-space:normal;">'+eroTxt+'</td></tr>';
         }).join('') || '<tr><td colspan="4" style="color:var(--muted);">Belum ada penjualan Samsung Flagship pada periode racing.</td></tr>';
         const need = r.part ? [1,2,3,4,5].map(function(i){ const gp = r.t[i-1]-r.sales; return r.t[i-1]>0 ? ('Tier '+i+': '+(gp>0?'kurang '+fmt(gp)+' unit':'tercapai')) : null; }).filter(Boolean).join(' &middot; ') : '';
         body += '<tr class="ero-expand-row"><td colspan="'+ncol+'" style="padding:0 0 8px 0;border-bottom:1px solid var(--border);">'
@@ -6390,7 +6479,7 @@ function racingBrandTable(d, c){
       else {
         const tq = tr.reduce((a,x)=>a+(x.info?0:x.qty),0), to = tr.reduce((a,x)=>a+(x.info?0:x.omzet),0);
         inner = '<table><thead><tr><th class="cat-nm">TIPE TERJUAL</th><th>QTY</th><th>VALUE</th></tr></thead><tbody>'
-          + tr.map(x=>{ const neg = !!x.neg; return '<tr'+(neg?' style="color:var(--red);"':'')+'><td class="cat-nm" style="font-weight:700;color:'+(neg?'var(--red)':'var(--text-strong)')+';">'+escapeHtml(x.n)+(neg?(x.info?' (RETUR - tidak mengurangi capaian)':' (RETUR)'):'')+'</td><td>'+fmtT(x.qty)+'</td><td>'+fmtT(x.omzet)+'</td></tr>'; }).join('')
+          + tr.map(x=>{ const neg = !!x.neg; return '<tr'+(neg?' style="color:var(--red);"':'')+'><td class="cat-nm" style="font-weight:800;color:'+(neg?'var(--red)':'var(--text-strong)')+';">'+escapeHtml(x.n)+(neg?(x.info?' (RETUR - tidak mengurangi capaian)':' (RETUR)'):'')+'</td><td>'+fmtT(x.qty)+'</td><td>'+fmtT(x.omzet)+'</td></tr>'; }).join('')
           + '</tbody><tfoot><tr><td class="cat-nm" style="font-weight:800;color:var(--text-strong);">TOTAL</td><td style="font-weight:800;">'+fmtT(tq)+'</td><td style="font-weight:800;">'+fmtT(to)+'</td></tr></tfoot></table>';
       }
     }
@@ -6478,7 +6567,7 @@ function racingBrandTable(d, c){
     if (r.__hdr){ body += areaHdr(r.__hdr); return; }
     const isSel = state.racingSel===r.code;
     const low = r.pct!==null && r.pct<100;
-    body += '<tr class="store-row-click'+(isSel?' store-row-active':'')+'" onclick="selectRacingRow(\''+String(r.code).replace(/'/g,"\\'")+'\')" title="Klik untuk lihat tipe yang terjual di toko ini"><td>'+escapeHtml(sapCodeOf(r.name))+'</td><td class="cat-nm" style="font-weight:700;color:var(--text-strong);">'+escapeHtml(r.name)+'</td>'
+    body += '<tr class="store-row-click'+(isSel?' store-row-active':'')+'" onclick="selectRacingRow(\''+String(r.code).replace(/'/g,"\\'")+'\')" title="Klik untuk lihat tipe yang terjual di toko ini"><td>'+escapeHtml(sapCodeOf(r.name))+'</td><td class="cat-nm" style="font-weight:800;color:var(--text-strong);">'+escapeHtml(r.name)+'</td>'
       +'<td>'+(r.tv>0?fmtT(r.tv):'-')+'</td>'
       +'<td>'+fmtT(r.aq)+'</td><td>'+fmtT(r.av)+'</td><td>'+fmtT(r.eq)+'</td><td>'+fmtT(r.ev)+'</td>'
       +'<td>'+(r.tv>0?gapTxt(r.gap):'-')+'</td>'
@@ -6586,10 +6675,11 @@ function racingBoltechTable(d, c){
     +'<td style="text-align:right;"><div style="font-weight:800;color:'+(x.add>0?'var(--green)':'var(--muted-2)')+';">'+(x.add>0?('Rp '+fmt(x.add)):'-')+'</div><div style="font-size:9px;color:var(--muted);">'+(x.ad?('AR '+x.ad.lbl):'AR &lt;25%')+'</div></td>'
     +'<td style="text-align:right;font-weight:800;color:var(--text-strong);">'+(x.total>0?('Rp '+fmt(x.total)):'-')+'</td>';
   const lbl = c.hasPeriod ? 'EST' : 'AKTUAL';
-  const head = '<thead><tr><th rowspan="2">SAP CODE</th><th rowspan="2" class="cat-nm">STORE NAME</th><th rowspan="2">TARGET</th>'
-    +'<th colspan="2">MTD</th><th colspan="2">'+lbl+'</th><th rowspan="2">GAP</th><th rowspan="2">%</th>'
-    +(showQ?'<th rowspan="2">TARGET QTY</th><th rowspan="2">GAP QTY</th><th rowspan="2">% QTY</th>':'')
-    +'<th rowspan="2">AR Boltech</th></tr><tr><th>QTY</th><th>VALUE</th><th>QTY</th><th>VALUE</th></tr></thead>';
+  const HBn = ' style="background:#1f2f5f;color:#ffffff;"'; // header biru tua, sama dengan popup Pencapaian by Store
+  const head = '<thead><tr><th rowspan="2">SAP CODE</th><th rowspan="2" class="cat-nm">STORE NAME</th><th rowspan="2"'+HBn+'>TARGET</th>'
+    +'<th colspan="2"'+HBn+'>MTD</th><th colspan="2"'+HBn+'>'+lbl+'</th><th rowspan="2"'+HBn+'>GAP</th><th rowspan="2"'+HBn+'>%</th>'
+    +(showQ?'<th rowspan="2"'+HBn+'>TARGET QTY</th><th rowspan="2"'+HBn+'>GAP QTY</th><th rowspan="2"'+HBn+'>% QTY</th>':'')
+    +'<th rowspan="2"'+HBn+'>AR Boltech</th></tr><tr><th'+HBn+'>QTY</th><th'+HBn+'>VALUE</th><th'+HBn+'>QTY</th><th'+HBn+'>VALUE</th></tr></thead>';
   const isInc = state.racingBoltView==='insentif';
   const headInc = '<thead><tr><th>SAP CODE</th><th class="cat-nm">STORE NAME</th><th>TARGET</th><th>'+lbl+' %</th><th>AR Boltech</th>'
     +'<th title="Monthly Racing TecProtec Q4 2026: insentif per unit x unit proyeksi, tier dari EST % revenue">EST INSENTIF RACING</th><th title="New Additional Incentive berdasarkan Attachment Rate (AR Boltech)">INSENTIF TAMBAHAN (AR)</th><th>TOTAL EST PENDAPATAN</th></tr></thead>';
@@ -6607,7 +6697,7 @@ function racingBoltechTable(d, c){
       const tO = list.reduce((a,x)=>a+x.rcVal,0), tQ = list.reduce((a,x)=>a+x.rcQty,0), tD = list.reduce((a,x)=>a+x.devQty,0);
       if (!list.length) inner = '<div class="cat-hint">Belum ada data sales untuk toko ini pada periode racing.</div>';
       else inner = '<div class="achv-table-wrap"><table><thead><tr><th>#</th><th class="cat-nm">Nama Sales</th><th>Omzet</th><th>Qty</th><th>Kontribusi</th><th>AR Boltech</th></tr></thead><tbody>'
-        + list.map((x,i)=>'<tr><td style="color:var(--muted);text-align:left;">'+(i+1)+'</td><td class="cat-nm" style="color:var(--text-strong);font-weight:700;">'+escapeHtml(x.name)+'</td><td style="text-align:right;color:var(--text-strong);">'+fmt(x.rcVal)+'</td><td style="text-align:right;">'+fmt(x.rcQty)+'</td><td style="text-align:right;">'+(tO>0?fmtPct(x.rcVal/tO*100):'-')+'</td>'+arCell(x.rcQty,x.devQty)+'</tr>').join('')
+        + list.map((x,i)=>'<tr><td style="color:var(--muted);text-align:left;">'+(i+1)+'</td><td class="cat-nm" style="color:var(--text-strong);font-weight:800;">'+escapeHtml(x.name)+'</td><td style="text-align:right;color:var(--text-strong);">'+fmt(x.rcVal)+'</td><td style="text-align:right;">'+fmt(x.rcQty)+'</td><td style="text-align:right;">'+(tO>0?fmtPct(x.rcVal/tO*100):'-')+'</td>'+arCell(x.rcQty,x.devQty)+'</tr>').join('')
         + '</tbody><tfoot><tr><td></td><td class="cat-nm" style="font-weight:800;color:var(--text-strong);">Total</td><td style="text-align:right;font-weight:800;">'+fmt(tO)+'</td><td style="text-align:right;font-weight:800;">'+fmt(tQ)+'</td><td></td>'+arCell(tQ,tD)+'</tr></tfoot></table></div>';
     } else {
       const tr = Object.entries(typeAgg[r.code]||{}).map(([n,v])=>({n:n,qty:v.qty,omzet:v.omzet,brand:v.brand})).filter(x=>x.qty!==0||x.omzet!==0).sort((a,b)=>b.omzet-a.omzet);
@@ -6638,7 +6728,7 @@ function racingBoltechTable(d, c){
     const low = r.pct!==null && r.pct<100;
     const sx = byStore[r.code]||{rcQty:0,devQty:0};
     const _rowCells = isInc ? ('<td>'+(r.tv>0?fmt(r.tv):'-')+'</td><td style="font-weight:800;'+(low?lowStyle:'')+'">'+(r.pct===null?'-':fmtPct(r.pct))+'</td>'+arCell(sx.rcQty,sx.devQty)+tecCells(tecRows[r.code])) : null;
-    body += '<tr class="store-row-click'+(isSel?' store-row-active':'')+'" onclick="selectRacingRow(\''+String(r.code).replace(/'/g,"\\'")+'\')" title="Klik untuk lihat pencapaian by ERO toko ini"><td>'+escapeHtml(sapCodeOf(r.name))+'</td><td class="cat-nm" style="color:var(--text-strong);font-weight:700;">'+escapeHtml(r.name)+'</td>'
+    body += '<tr class="store-row-click'+(isSel?' store-row-active':'')+'" onclick="selectRacingRow(\''+String(r.code).replace(/'/g,"\\'")+'\')" title="Klik untuk lihat pencapaian by ERO toko ini"><td>'+escapeHtml(sapCodeOf(r.name))+'</td><td class="cat-nm" style="color:var(--text-strong);font-weight:800;">'+escapeHtml(r.name)+'</td>'
       +(isInc ? _rowCells : ('<td>'+(r.tv>0?fmt(r.tv):'-')+'</td><td>'+fmt(r.aq)+'</td><td>'+fmt(r.av)+'</td><td>'+fmt(r.eq)+'</td><td>'+fmt(r.ev)+'</td>'
       +'<td>'+(r.tv>0?gapTxt(r.gap):'-')+'</td><td style="font-weight:800;'+(low?lowStyle:'')+'">'+(r.pct===null?'-':fmtPct(r.pct))+'</td>'+qCells(r,false)+arCell(sx.rcQty,sx.devQty)))+'</tr>';
     if (isSel) body += '<tr class="ero-expand-row"><td colspan="'+ncol+'" style="padding:0 0 8px 0;border-bottom:1px solid var(--border);">'+eroBox(r)+'</td></tr>';
@@ -6693,7 +6783,7 @@ function racingOpStoreBox(store, recs, label, sub, subFn, provs){
     const tO = list.reduce(function(a,x){ return a+x.v; },0), tQ = list.reduce(function(a,x){ return a+x.q; },0);
     if (!list.length) inner = '<div class="cat-hint">Belum ada data sales untuk toko ini pada periode racing.</div>';
     else inner = '<div class="achv-table-wrap"><table><thead><tr><th>#</th><th class="cat-nm">Nama Sales</th><th>Omzet</th><th>Qty</th><th>Kontribusi</th></tr></thead><tbody>'
-      + list.map(function(x,i){ return '<tr><td style="color:var(--muted);text-align:left;">'+(i+1)+'</td><td class="cat-nm" style="color:var(--text-strong);font-weight:700;">'+escapeHtml(x.name)+'</td><td style="text-align:right;color:var(--text-strong);">'+fmt(x.v)+'</td><td style="text-align:right;">'+fmt(x.q)+'</td><td style="text-align:right;">'+(tO>0?fmtPct(x.v/tO*100):'-')+'</td></tr>'; }).join('')
+      + list.map(function(x,i){ return '<tr><td style="color:var(--muted);text-align:left;">'+(i+1)+'</td><td class="cat-nm" style="color:var(--text-strong);font-weight:800;">'+escapeHtml(x.name)+'</td><td style="text-align:right;color:var(--text-strong);">'+fmt(x.v)+'</td><td style="text-align:right;">'+fmt(x.q)+'</td><td style="text-align:right;">'+(tO>0?fmtPct(x.v/tO*100):'-')+'</td></tr>'; }).join('')
       + '</tbody><tfoot><tr><td></td><td class="cat-nm" style="font-weight:800;color:var(--text-strong);">Total</td><td style="text-align:right;font-weight:800;">'+fmt(tO)+'</td><td style="text-align:right;font-weight:800;">'+fmt(tQ)+'</td><td></td></tr></tfoot></table></div>';
   } else {
     const m = {};
@@ -6809,8 +6899,7 @@ function renderRacingPopup(d, optKey, opts){
 // Tabel "Target, Pencapaian & Estimasi per Brand Device" untuk TOKO YANG DIPILIH (state.selectedStore).
 // Rumus: % = Pencapaian Value / Target; GAP = Pencapaian Value - Target; Daily Sales = GAP / Sisa Hari.
 // Berlaku otomatis untuk toko mana pun karena d.byBrand & getEffectiveTargets() sudah mengikuti filter toko.
-function renderBrandStoreTable(d){
-  if (!state.selectedStore) return '';
+function renderBrandStoreTable(d, inPopup){
   const tg = getEffectiveTargets();
   const sisa = Math.max((isProjectionMode()?d.dim:d.periodCalDays)-d.distinctDays,0);
   const f = d.distinctDays>0 ? d.dim/d.distinctDays : 0;
@@ -6852,8 +6941,8 @@ function renderBrandStoreTable(d){
       +'<td>'+dsCell(r.daily, r.hasT)+'</td></tr>'+extra;
   }).join('');
   const lbl = isProjectionMode() ? 'Estimasi' : 'Aktual';
-  return '<div class="bst-wrap">'
-    +'<div class="bst-head"><div style="display:flex;gap:12px;align-items:center;min-width:0;"><div class="bst-logo">EF</div><div style="min-width:0;"><div class="bst-store">'+escapeHtml(state.selectedStore)+'</div><div class="bst-sub">Dashboard Pencapaian Sales &middot; Target per Brand Device</div></div></div><div class="bst-date">'+escapeHtml(dt)+'</div></div>'
+  return '<div class="bst-wrap"'+(inPopup?' style="margin-top:0;"':'')+'>'
+    +'<div class="bst-head"><div style="display:flex;gap:12px;align-items:center;min-width:0;"><div class="bst-logo">EF</div><div style="min-width:0;"><div class="bst-store">'+escapeHtml(state.selectedStore || 'SEMUA TOKO')+'</div><div class="bst-sub">Dashboard Pencapaian Sales &middot; Target per Brand Device</div></div></div><div class="bst-date">'+escapeHtml(dt)+'</div></div>'
     +'<div class="bst-eyebrow">KINERJA BRAND DEVICE</div>'
     +'<div class="bst-title">Target, Pencapaian &amp; Estimasi per Brand Device</div>'
     +'<div class="bst-scroll"><table class="bst-table"><thead><tr><th class="nm">Nama</th><th>Target</th><th>Pencapaian<br>Qty</th><th>Pencapaian<br>Value</th><th>'+lbl+'</th><th>%</th><th>Gap</th><th>Daily Sales</th></tr></thead>'
@@ -6898,7 +6987,7 @@ function renderBrandRankTable(d){
     const act = state.brandDetailKey===x.key;
     return '<tr style="cursor:pointer;'+(act?'outline:1px solid var(--green);':'')+'" onclick="toggleBrandDetail(\''+x.key+'\')" title="Klik untuk lihat rincian tipe terjual">'
       +'<td style="color:var(--muted);text-align:center;">'+(i+1)+'</td>'
-      +'<td class="cat-nm" style="text-align:left;font-weight:700;color:var(--text-strong);">'+escapeHtml(x.label)+'</td>'
+      +'<td class="cat-nm" style="text-align:left;font-weight:800;color:var(--text-strong);">'+escapeHtml(x.label)+'</td>'
       +'<td style="text-align:right;'+(isVal?'font-weight:800;':'')+'">'+fmt(x.val)+'</td>'
       +'<td style="text-align:right;'+(!isVal?'font-weight:800;':'')+'">'+fmt(x.qty)+'</td>'
       +'<td style="text-align:right;">'+share+'</td>'
@@ -6914,11 +7003,10 @@ function renderBrandRankTable(d){
 }
 
 function brandViewToggle(){
-  if (!state.selectedStore) return '';
+  // Satu tombol: klik -> tampilan Tabel Target per Brand; klik lagi -> kembali ke tampilan Kartu semula.
   const t = state.brandView==='table';
   const on = 'background:var(--green);color:#fff;border-color:var(--green);';
-  return '<button class="slide-download-btn cap-hide" style="'+(t?'':on)+'" onclick="setBrandView(\'card\')" title="Tampilan Kartu Brand">&#9638;</button>'
-    +'<button class="slide-download-btn cap-hide" style="'+(t?on:'')+'" onclick="setBrandView(\'table\')" title="Tampilan Tabel Target per Brand">&#9776;</button>';
+  return '<button class="slide-download-btn cap-hide" style="'+(t?on:'')+'" onclick="setBrandView(\''+(t?'card':'table')+'\')" title="'+(t?'Kembali ke tampilan Kartu Brand':'Tampilkan Tabel Target per Brand')+'">'+(t?'&#9638;':'&#9776;')+'</button>';
 }
 
 /* ===== KONTRIBUSI BRAND TERHADAP PRODUKTIVITAS VAS (Operator + Repair Contract + Accessories) =====
@@ -7029,12 +7117,12 @@ function brandVasDetail(R, bk, store, label){
   const badge = function(ok){ return '<span style="font-size:10px;font-weight:800;padding:2px 7px;border-radius:999px;border:1px solid '+(ok?'var(--green)':'var(--red)')+';color:'+(ok?'var(--green)':'var(--red)')+';white-space:nowrap;">'+(ok?'ADA VAS':'TANPA VAS')+'</span>'; };
   const cell = function(n, c){ if (!(n[c].q>0)) return '<span style="color:var(--muted);">&ndash;</span>';
     const names = n.vasItems.filter(function(x){ return x.c===c; }).map(function(x){ return x.item+' ×'+x.q; }).join('; ');
-    return '<span title="'+escapeHtml(names)+'" style="font-weight:700;">&#10003; '+fmt(n[c].v)+'</span>'; };
+    return '<span title="'+escapeHtml(names)+'" style="font-weight:800;">&#10003; '+fmt(n[c].v)+'</span>'; };
   const rows = shown.map(function(n){
     const mine = n.devItems.filter(function(x){ return x.b===bk; }).map(function(x){ return escapeHtml(x.item||'-')+' ×'+x.q; }).join('<br>');
     const others = Object.keys(n.dev).filter(function(b){ return b!==bk && n.dev[b]>0; }).map(function(b){ return escapeHtml(b)+' ×'+n.dev[b]; }).join(', ');
     const tv = n.op.v*(n.op.q>0?1:0)+n.rc.v*(n.rc.q>0?1:0)+n.acc.v*(n.acc.q>0?1:0);
-    return '<tr><td style="text-align:left;font-weight:700;white-space:nowrap;">'+(n.inv?escapeHtml(n.inv):'<span style="color:var(--muted);">(tanpa no. nota)</span>')+'</td>'
+    return '<tr><td style="text-align:left;font-weight:800;white-space:nowrap;">'+(n.inv?escapeHtml(n.inv):'<span style="color:var(--muted);">(tanpa no. nota)</span>')+'</td>'
       +'<td style="white-space:nowrap;">'+fmtDMY(n.date)+'</td>'+(store?'':'<td style="text-align:left;">'+escapeHtml(n.store)+'</td>')
       +'<td style="text-align:left;">'+escapeHtml(n.sales||'-')+'</td>'
       +'<td style="text-align:left;">'+mine+(others?'<div style="color:var(--yellow);font-size:10px;">+ brand lain: '+others+'</div>':'')+'</td>'
@@ -7122,7 +7210,7 @@ function renderBrandRow(d){
     const isOpen = state.brandDetailKey===b.key;
     cards += '<div class="brand-card'+(isOpen?' brand-card-active':'')+'" onclick="toggleBrandDetail(\''+b.key+'\')" title="Klik untuk lihat rincian tipe terjual" style="cursor:pointer;">'
       +'<div class="name">'+escapeHtml(b.label)+'</div>'
-      +ringSVG(pct, {size:60, stroke:6, label:periodCompareLabel(), sub:fmtPct(hasTarget?pct:null)})
+      +ringSVG(pct, {size:64, stroke:6, fit:true, label:periodCompareLabel(), sub:fmtPct(hasTarget?pct:null)})
       +'<div class="details">'
         +'<div class="mini-row"><span class="k">MTD</span><span class="v">'+fmt(row.omzet)+'</span></div>'
         +'<div class="mini-row"><span class="k">'+periodCompareLabel()+'</span><span class="v">'+fmt(compareValue)+'</span></div>'
@@ -7134,7 +7222,7 @@ function renderBrandRow(d){
     +'</div>';
   });
   const showRank = state.brandRank==='val' || state.brandRank==='qty';
-  const showTable = !showRank && !!state.selectedStore && state.brandView==='table';
+  const showTable = !showRank && state.brandView==='table';
   const detailHtml = renderBrandTypePopup(d); // rincian tipe terjual: popup (bukan lagi di bawah kartu/tabel)
   const key = 'brand';
   const collapsed = !!state.collapsed[key];
@@ -7228,9 +7316,11 @@ function renderStoreCategoryDetail(d, storeName){
         +' &nbsp;|&nbsp; SOB: <b style="color:'+arSobColor(t.sobRC)+';">'+fmtPct(t.sobRC)+'</b>';
     }
     rows += '<tr>'
-      +'<td style="text-align:left;color:var(--muted);">'+(CATEGORY_ICON[cat]||'📦')+' '+escapeHtml(CATEGORY_LABEL[cat]||cat)+'</td>'
+      +(cat==='Device'
+        ? '<td style="text-align:left;"><button class="btn cap-hide" style="padding:3px 10px;font-size:11px;font-weight:800;" onclick="event.stopPropagation();openStoreHp()" title="Lihat Target, Pencapaian &amp; Estimasi per Brand Device toko ini">'+(CATEGORY_ICON[cat]||'📦')+' '+escapeHtml(CATEGORY_LABEL[cat]||cat)+' &#9654;</button></td>'
+        : '<td style="text-align:left;color:var(--muted);">'+(CATEGORY_ICON[cat]||'📦')+' '+escapeHtml(CATEGORY_LABEL[cat]||cat)+'</td>')
       +'<td style="text-align:right;">'+fmt(cd.qty)+'</td>'
-      +'<td style="text-align:right;color:var(--text-strong);font-weight:700;">'+fmt(cd.omzet)+'</td>'
+      +'<td style="text-align:right;color:var(--text-strong);font-weight:800;">'+fmt(cd.omzet)+'</td>'
       +'<td style="text-align:right;font-size:10.5px;white-space:nowrap;">'+extra+'</td>'
     +'</tr>';
   });
@@ -7313,33 +7403,54 @@ function renderStoreSection(d){
       }
     }
     // Pill % berwarna: hijau >=100, kuning 75-<100, merah <75.
-    const pill = v => v===null ? '-' : '<span class="sp-pill '+(v>=100?'g':(v>=75?'y':'r'))+'">'+fmtPct(v)+'</span>';
-    const pctCell = v => '<td>'+pill(v)+'</td>';
+    // Gaya sama dengan popup "Pencapaian Handphone - by Store": % berlatar skala warna merah-kuning-hijau, header & Grand Total biru tua, Gap dalam kurung, dikelompokkan per Area.
+    const HB = 'background:#1f2f5f;color:#ffffff;';
+    const FS = 'background:#1f2f5f;color:#ffffff;font-weight:800;';
+    const scMtd = makeColorScale(rofoRows.map(r=>r.hasTarget ? r.pctMtd : null));
+    const scEst = makeColorScale(rofoRows.map(r=>r.hasTarget ? r.pctEst : null));
+    const pcl = v => v<90 ? 'sp-r' : (v<100 ? 'sp-y' : 'sp-g'); // angka %: merah <90%, kuning 90-<100%, hijau >=100%
+    const pctTd = (v, sc, has) => (!has || v===null) ? '<td>-</td>' : '<td class="'+pcl(v)+'" style="font-weight:800;">'+fmtPct(v)+'</td>';
+    const pctCell = v => v===null ? '<td>-</td>' : '<td class="'+pcl(v)+'">'+fmtPct(v)+'</td>';
     // Gap Target = Target - MTD: positif = belum sampai target -> tampil dengan tanda "-"; sudah lewat target -> angka tanpa tanda.
-    const gapFmt = v => v>0 ? '-'+fmt(v) : fmt(Math.abs(v));
+    const gapFmt = v => v>0 ? '('+fmt(v)+')' : fmt(Math.abs(v));
     // Header kolom yang bisa diklik (terbesar -> terkecil / sebaliknya) + panah penanda urutan aktif.
     const spTh = (label, colKey) => {
       const act = state.storePerfSort && state.storePerfSort.col===colKey;
-      return '<th rowspan="2" style="cursor:pointer;user-select:none;'+(act?'color:var(--blue);':'')+'" onclick="setStorePerfSort(\''+colKey+'\')" title="Klik untuk urutkan '+label+' (terbesar/terkecil)">'
+      const hb = (colKey==='pctMtd' || colKey==='pctEst') ? '' : HB; // kolom % MTD / % EST ROFO: tanpa warna, angka saja
+      return '<th rowspan="2" style="'+hb+'cursor:pointer;user-select:none;'+(act?'text-decoration:underline;':'')+'" onclick="setStorePerfSort(\''+colKey+'\')" title="Klik untuk urutkan '+label+' (terbesar/terkecil)">'
         +label+(act?' <span style="font-size:9px;">'+(state.storePerfSort.dir==='asc'?'▲':'▼')+'</span>':'')+'</th>';
     };
     let rows = '';
-    rofoRows.forEach(r=>{
+    const spRow = r=>{
+      let rows = '';
       const isSel = state.selectedStore===r.name;
       rows += '<tr class="store-row-click'+(isSel?' store-row-active':'')+'" data-store="'+escapeHtml(r.name)+'" onclick="if(!event.target.closest(\'input,button,[contenteditable]\'))selectStore(this.dataset.store)" title="Klik untuk fokus dashboard ke toko ini (klik lagi utk batal)">'
         +'<td>'+escapeHtml(sapCodeOf(r.name))+'</td>'
-        +'<td class="cat-nm" style="font-weight:700;color:var(--text-strong);">'+(isSel?'🏬 ':'')+escapeHtml(r.name)+'</td>'
+        +'<td class="cat-nm" style="font-weight:800;color:var(--text-strong);">'+(isSel?'🏬 ':'')+escapeHtml(r.name)+'</td>'
         +'<td>'+editableNum(r.target, canEditTargets(), 'store', r.code)+'</td>'
         +'<td>'+fmt(r.mtdQty)+'</td><td>'+fmt(r.mtdVal)+'</td>'
         +'<td>'+fmt(r.estQty)+'</td><td>'+fmt(r.estVal)+'</td>'
-        +pctCell(r.pctMtd)
-        +pctCell(r.pctEst)
+        +pctTd(r.pctMtd, scMtd, r.hasTarget)
+        +pctTd(r.pctEst, scEst, r.hasTarget)
         +'<td>'+(r.hasTarget?gapFmt(r.gapT):'')+'</td>'
         +'<td>'+(r.hasTarget && r.daily!==null?gapFmt(r.daily):'')+'</td>'
       +'</tr>';
       // Toko yang sedang dipilih: tampilkan rincian pencapaian SEMUA KATEGORI tepat di bawah barisnya.
       if (isSel) rows += '<tr class="store-cat-detail-row"><td colspan="11">'+renderStoreCategoryDetail(d, r.name)+'</td></tr>';
-    });
+      return rows;
+    };
+    const spGrp = (state.storePerfSort && state.storePerfSort.col) ? null : racingGroupByArea(rofoRows, r=>r.name);
+    if (spGrp){
+      spGrp.forEach(g=>{
+        const list = g.idx.map(i=>rofoRows[i]);
+        const sm = f => list.reduce((a,r)=>a+(f(r)||0),0);
+        const gT = sm(r=>r.target), gM = sm(r=>r.mtdVal), gE = sm(r=>r.estVal), gG = gT-gM;
+        rows += '<tr class="area-hdr"><td></td><td class="cat-nm" style="text-align:left;">'+racingAreaLabel(g)+'</td>'
+          +'<td>'+(gT>0?fmt(gT):'-')+'</td><td>'+fmt(sm(r=>r.mtdQty))+'</td><td>'+fmt(gM)+'</td><td>'+fmt(sm(r=>r.estQty))+'</td><td>'+fmt(gE)+'</td>'
+          +(gT>0?'<td class="'+pcl(gM/gT*100)+'">'+fmtPct(gM/gT*100)+'</td><td class="'+pcl(gE/gT*100)+'">'+fmtPct(gE/gT*100)+'</td>':'<td>-</td><td>-</td>')+'<td>'+(gT>0?gapFmt(gG):'-')+'</td><td>'+(gT>0 && remDays>0?gapFmt(gG/remDays):'-')+'</td></tr>';
+        list.forEach(r=>{ rows += spRow(r); });
+      });
+    } else rofoRows.forEach(r=>{ rows += spRow(r); });
     const sum = f => rofoRows.reduce((a,r)=>a+(f(r)||0),0);
     const tTarget = sum(r=>r.target), tLy = sum(r=>r.ly), tPm = sum(r=>r.pm), tMtd = sum(r=>r.mtdVal), tEst = sum(r=>r.estVal);
     const tD1 = sum(r=>r.d1), tD2 = sum(r=>r.d2);
@@ -7348,18 +7459,19 @@ function renderStoreSection(d){
     const tPctMtd = tTarget>0 ? tMtd/tTarget*100 : null, tPctEst = tTarget>0 ? tEst/tTarget*100 : null;
     const tMom = tPm>0 ? (tEst/tPm-1)*100 : null, tYoy = tLy>0 ? (tEst/tLy-1)*100 : null;
     const tMtdQty = sum(r=>r.mtdQty), tEstQty = sum(r=>r.estQty);
-    const foot = '<tfoot><tr><td></td><td class="cat-nm">TOTAL</td>'
-      +'<td>'+(tTarget>0?fmt(tTarget):'')+'</td>'
-      +'<td>'+fmt(tMtdQty)+'</td><td>'+fmt(tMtd)+'</td>'
-      +'<td>'+fmt(tEstQty)+'</td><td>'+fmt(tEst)+'</td>'
+    const FT = ' class="sp-fs" style="'+FS+'"';
+    const foot = '<tfoot><tr><td style="background:var(--sub);"></td><td class="cat-nm" style="background:var(--sub);">GRAND TOTAL</td>'
+      +'<td'+FT+'>'+(tTarget>0?fmt(tTarget):'')+'</td>'
+      +'<td'+FT+'>'+fmt(tMtdQty)+'</td><td'+FT+'>'+fmt(tMtd)+'</td>'
+      +'<td'+FT+'>'+fmt(tEstQty)+'</td><td'+FT+'>'+fmt(tEst)+'</td>'
       +pctCell(tPctMtd)+pctCell(tPctEst)
-      +'<td>'+(tTarget>0?gapFmt(tGap):'')+'</td>'
-      +'<td>'+(tTarget>0 && remDays>0?gapFmt(tGap/remDays):'')+'</td></tr></tfoot>';
+      +'<td'+FT+'>'+(tTarget>0?gapFmt(tGap):'')+'</td>'
+      +'<td'+FT+'>'+(tTarget>0 && remDays>0?gapFmt(tGap/remDays):'')+'</td></tr></tfoot>';
     const head = '<thead><tr>'
-      +'<th rowspan="2">SAP CODE</th><th rowspan="2" class="cat-nm">STORE NAME</th><th rowspan="2">TARGET</th>'
-      +'<th colspan="2">MTD</th><th colspan="2">EST</th>'
+      +'<th rowspan="2">SAP CODE</th><th rowspan="2" class="cat-nm">STORE NAME</th><th rowspan="2" style="'+HB+'">TARGET</th>'
+      +'<th colspan="2" style="'+HB+'">MTD</th><th colspan="2" style="'+HB+'">EST</th>'
       +spTh('% MTD ROFO','pctMtd')+spTh('% EST ROFO','pctEst')+spTh('GAP TARGET','gapT')+spTh('DAILY SALES','daily')+'</tr>'
-      +'<tr><th>QTY</th><th>VALUE</th><th>QTY</th><th>VALUE</th></tr></thead>';
+      +'<tr><th style="'+HB+'">QTY</th><th style="'+HB+'">VALUE</th><th style="'+HB+'">QTY</th><th style="'+HB+'">VALUE</th></tr></thead>';
     table = '<div class="achv-table-wrap store-perf"><table class="store-perf-tbl" style="font-size:11px;">'
       +head+'<tbody>'+rows+'</tbody>'+foot
     +'</table></div>'
@@ -7367,8 +7479,20 @@ function renderStoreSection(d){
   }
   return '<div class="card'+(collapsed?' collapsed':'')+'">'
     +sectionTitleWithToggle(key, '🏬 PERFORMANCE STORE', (state.locked ? '' : '<button class="btn'+(state.editing?' active':'')+'" onclick="toggleEditing()">'+(state.editing?'✓ Selesai Isi Target':'✎ Isi / Edit Target')+'</button>'))
-    +collapsibleBody(key, table)
+    +collapsibleBody(key, table+renderStoreHpPopup(d))
   +'</div>';
+}
+
+// Popup tabel "Target, Pencapaian & Estimasi per Brand Device" - tampil saat tombol Handphone di rincian toko (PERFORMANCE STORE) diklik.
+function renderStoreHpPopup(d){
+  if (!state.storeHpOpen || !state.selectedStore) return '';
+  return '<div class="cat-overlay" onclick="if(event.target===this)closeStoreHp()">'
+    +'<div class="cat-detail" style="max-width:min(980px,98vw);">'
+      +'<div class="cat-detail-title"><span>&#128241; Handphone &ndash; Target per Brand Device</span>'
+      +'<span style="display:flex;gap:6px;align-items:center;"><span class="x cap-hide" onclick="closeStoreHp()" title="Tutup (Esc)">&#10005; Tutup</span></span></div>'
+      +renderBrandStoreTable(d, true)
+    +'</div></div>'
+    +(state.collapsed.brand ? renderBrandTypePopup(d) : '');
 }
 
 /* ============ COLLAPSE HELPERS ============ */
@@ -7482,7 +7606,8 @@ function capCardCanvas(card){
     H = Math.ceil(H * Math.max(1, k));
   }
   if (!wraps.length){ // slide lain: tidak diubah, sama persis seperti sebelumnya
-    return html2canvas(card, {backgroundColor: currentBgColor(), scale: capImgScale(card.offsetWidth, card.offsetHeight), useCORS: true, onclone: function(doc, el){ capHideCtl(doc); sanitizeCaptureColors(el); }, ignoreElements: function(el){ return !!(el.classList && el.classList.contains('achv-panel')); }});
+    const rdy = (document.fonts && document.fonts.ready) ? document.fonts.ready.catch(function(){}) : Promise.resolve();
+    return rdy.then(function(){ return html2canvas(card, {backgroundColor: currentBgColor(), scale: capImgScale(card.offsetWidth, card.offsetHeight), useCORS: true, letterRendering: true, onclone: function(doc, el){ capHideCtl(doc); sanitizeCaptureColors(el); try{ doc.body.style.textRendering = 'geometricPrecision'; doc.body.style.webkitFontSmoothing = 'antialiased'; }catch(e){} }, ignoreElements: function(el){ return !!(el.classList && el.classList.contains('achv-panel')); }}); });
   }
   const scale = capImgScale(W, H);
   const ready = (document.fonts && document.fonts.ready) ? document.fonts.ready.catch(function(){}) : Promise.resolve();
@@ -7664,8 +7789,8 @@ function stkTh(cols){
   const s = stk().sort;
   return '<tr>'+cols.map(function(c){ return '<th style="cursor:pointer;text-align:'+(c.l?'left':'right')+';" onclick="stkSort(\''+c.k+'\')">'+c.t+(s&&s.k===c.k?(s.dir<0?' ▼':' ▲'):'')+'</th>'; }).join('')+'</tr>';
 }
-function stkDosCell(i){ return '<td style="text-align:right;font-weight:700;color:'+i.c+';">'+(i.dos==null?'–':(i.dos>=100?'>99':pf(i.dos)))+'</td><td style="text-align:center;"><span class="pill" style="color:'+i.c+';border:1px solid '+i.c+';min-width:64px;">'+i.s+'</span></td>'; }
-function stkMore(n, shown){ return n>shown ? '<div class="empty-note x-note">Menampilkan '+shown+' dari '+n+' baris. <a href="#" onclick="stkSet(\'all\',true);return false;" style="color:var(--green);font-weight:700;">Tampilkan semua</a></div>' : ''; }
+function stkDosCell(i){ return '<td style="text-align:right;font-weight:800;color:'+i.c+';">'+(i.dos==null?'–':(i.dos>=100?'>99':pf(i.dos)))+'</td><td style="text-align:center;"><span class="pill" style="color:'+i.c+';border:1px solid '+i.c+';min-width:64px;">'+i.s+'</span></td>'; }
+function stkMore(n, shown){ return n>shown ? '<div class="empty-note x-note">Menampilkan '+shown+' dari '+n+' baris. <a href="#" onclick="stkSet(\'all\',true);return false;" style="color:var(--green);font-weight:800;">Tampilkan semua</a></div>' : ''; }
 function stkViewStore(D){
   const g = {cc:function(r){ let n=0; Object.keys(r.cc||{}).forEach(function(k){ n+=r.cc[k]; }); return n; }, d:function(r){return r.d;}, area:function(r){return r.area;}, sku:function(r){return r.sku;}, qD:function(r){return r.qD;}, qA:function(r){return r.qA;}, dosD:function(r){const i=stkInfo(r.qD,r.sD,D.days);return i.dos==null?1e9:i.dos;}, dosA:function(r){const i=stkInfo(r.qA,r.sA,D.days);return i.dos==null?1e9:i.dos;}, tot:function(r){return r.qD+r.qA;}};
   const q = stk().q.toLowerCase(), iq = stk().iq.toLowerCase().split(/\s+/).filter(Boolean);
@@ -7690,7 +7815,7 @@ function stkViewStore(D){
   const cols = [{k:'area',t:'Area',l:1},{k:'d',t:'Toko',l:1},{k:'sku',t:'SKU'},{k:'qD',t:'Stok Device'},{k:'dosD',t:'DOS Device'},{k:'st',t:'Status'},{k:'qA',t:'Stok Aksesoris'},{k:'dosA',t:'DOS Aks.'},{k:'tot',t:'Total Stok'}].concat(cats.length?[{k:'cc',t:'Kategori (jml SKU)',l:1}]:[]);
   const tb = rows.map(function(r){
     const iD = stkInfo(r.qD, r.sD, D.days), iA = stkInfo(r.qA, r.sA, D.days);
-    return '<tr style="cursor:pointer;" onclick="stkPick(\''+encodeURIComponent(r.d)+'\')"><td>'+stkEsc(r.area)+'</td><td style="text-align:left;">'+stkEsc(r.d)+'</td><td>'+fmt(r.sku)+'</td><td>'+fmt(r.qD)+'</td><td style="text-align:right;font-weight:700;color:'+iD.c+';">'+(iD.dos==null?'–':(iD.dos>=100?'>99':pf(iD.dos)))+'</td><td style="text-align:center;"><span class="pill" style="color:'+iD.c+';border:1px solid '+iD.c+';min-width:64px;">'+iD.s+'</span></td><td>'+fmt(r.qA)+'</td><td style="text-align:right;color:'+iA.c+';font-weight:700;">'+(iA.dos==null?'–':(iA.dos>=100?'>99':pf(iA.dos)))+'</td><td style="font-weight:800;">'+fmt(r.qD+r.qA)+'</td>'+(cats.length?'<td style="text-align:left;">'+cats.map(function(n){ return (r.cc&&r.cc[n]) ? '<span class="pill" style="border:1px solid var(--green);color:var(--green);margin:1px 3px 1px 0;">'+stkEsc(n)+' <b>'+r.cc[n]+'</b></span>' : ''; }).join('')+'</td>':'')+'</tr>';
+    return '<tr style="cursor:pointer;" onclick="stkPick(\''+encodeURIComponent(r.d)+'\')"><td>'+stkEsc(r.area)+'</td><td style="text-align:left;">'+stkEsc(r.d)+'</td><td>'+fmt(r.sku)+'</td><td>'+fmt(r.qD)+'</td><td style="text-align:right;font-weight:800;color:'+iD.c+';">'+(iD.dos==null?'–':(iD.dos>=100?'>99':pf(iD.dos)))+'</td><td style="text-align:center;"><span class="pill" style="color:'+iD.c+';border:1px solid '+iD.c+';min-width:64px;">'+iD.s+'</span></td><td>'+fmt(r.qA)+'</td><td style="text-align:right;color:'+iA.c+';font-weight:800;">'+(iA.dos==null?'–':(iA.dos>=100?'>99':pf(iA.dos)))+'</td><td style="font-weight:800;">'+fmt(r.qD+r.qA)+'</td>'+(cats.length?'<td style="text-align:left;">'+cats.map(function(n){ return (r.cc&&r.cc[n]) ? '<span class="pill" style="border:1px solid var(--green);color:var(--green);margin:1px 3px 1px 0;">'+stkEsc(n)+' <b>'+r.cc[n]+'</b></span>' : ''; }).join('')+'</td>':'')+'</tr>';
   }).join('');
   return chips+'<div class="stk-scroll"><table class="stk-tbl">'+stkTh(cols)+tb+'</table></div><div class="empty-note x-note">💡 Klik baris toko untuk melihat DOS per barang di toko itu.'+(cats.length?' Filter Category_Name aktif: angka stok/SKU/DOS hanya dari SKU pada kategori terpilih.':'')+'</div>';
 }
@@ -7711,7 +7836,7 @@ function stkViewDos(D){
   const tb = rows.slice(0, shown).map(function(r){
     const i = stkInfo(r.qty, r.sold, D.days);
     const open = c.art===r.art;
-    return '<tr><td style="text-align:left;"><a href="#" onclick="stkArt(\''+r.art+'\');return false;" style="color:var(--green);font-weight:700;text-decoration:underline dotted;">'+(open?'▾ ':'▸ ')+stkEsc(r.name)+'</a></td><td style="text-align:left;">'+stkEsc(r.brand)+'</td><td>'+fmt(r.qty)+'</td><td>'+fmt(r.sold)+'</td><td>'+pf(r.sold/D.days)+'</td>'+stkDosCell(i)+(c.store?'':'<td>'+r.n+'</td>')+'</tr>'+(open?stkArtDetail(D, r.art, cols.length):'');
+    return '<tr><td style="text-align:left;"><a href="#" onclick="stkArt(\''+r.art+'\');return false;" style="color:var(--green);font-weight:800;text-decoration:underline dotted;">'+(open?'▾ ':'▸ ')+stkEsc(r.name)+'</a></td><td style="text-align:left;">'+stkEsc(r.brand)+'</td><td>'+fmt(r.qty)+'</td><td>'+fmt(r.sold)+'</td><td>'+pf(r.sold/D.days)+'</td>'+stkDosCell(i)+(c.store?'':'<td>'+r.n+'</td>')+'</tr>'+(open?stkArtDetail(D, r.art, cols.length):'');
   }).join('');
   const chip = c.store ? '<div style="margin-bottom:6px;"><span class="pill" style="border:1px solid var(--green);color:var(--green);">Toko: '+stkEsc(c.store)+' <a href="#" onclick="stkSet(\'store\',\'\');return false;" style="color:var(--red);margin-left:6px;">✕</a></span></div>' : '';
   return chip+'<div class="stk-scroll"><table class="stk-tbl">'+stkTh(cols)+tb+'</table></div>'+stkMore(rows.length, shown);
@@ -7734,7 +7859,7 @@ function stkCatDropdown(D){
           const on = c.cats.indexOf(x[0])>=0;
           return '<div class="stk-catopt'+(on?' on':'')+'" onclick="stkCatToggle(\''+encodeURIComponent(x[0])+'\')" title="'+stkEsc(x[1])+'"><span class="bx"></span><span>'+stkEsc(x[0])+'</span><i>'+(cnt[x[0]]||0)+' toko</i></div>';
         }).join('')
-      + (c.cats.length ? '<div style="text-align:right;margin-top:4px;"><a href="#" onclick="stkCatClear(event);return false;" style="color:var(--red);font-size:11px;font-weight:700;">✕ Hapus pilihan</a></div>' : '')
+      + (c.cats.length ? '<div style="text-align:right;margin-top:4px;"><a href="#" onclick="stkCatClear(event);return false;" style="color:var(--red);font-size:11px;font-weight:800;">✕ Hapus pilihan</a></div>' : '')
       + '</div>';
   }
   return h+'</span>';
@@ -7752,7 +7877,7 @@ function stkViewCmp(D){
     items.forEach(function(r){ if (r.d!==c.a && r.d!==c.b) return; const o = m[r.art] || (m[r.art] = {name:r.name, a:0, b:0, sa:0, sb:0}); if (r.d===c.a){ o.a += r.qty; o.sa += r.sold; } else { o.b += r.qty; o.sb += r.sold; } });
     const rows = Object.keys(m).map(function(k){ return m[k]; }).sort(function(x,y){ return Math.abs(y.a-y.b)-Math.abs(x.a-x.b); }), shown = c.all ? rows.length : 150;
     const tb = rows.slice(0,shown).map(function(r){ const ia=stkInfo(r.a,r.sa,D.days), ib=stkInfo(r.b,r.sb,D.days), df=r.a-r.b;
-      return '<tr><td style="text-align:left;">'+stkEsc(r.name)+'</td><td>'+fmt(r.a)+'</td><td style="color:'+ia.c+';font-weight:700;">'+(ia.dos==null?'–':pf(ia.dos))+'</td><td>'+fmt(r.b)+'</td><td style="color:'+ib.c+';font-weight:700;">'+(ib.dos==null?'–':pf(ib.dos))+'</td><td style="font-weight:800;color:'+(df>0?'var(--green)':df<0?'var(--red)':'var(--muted)')+';">'+(df>0?'+':'')+df+'</td></tr>'; }).join('');
+      return '<tr><td style="text-align:left;">'+stkEsc(r.name)+'</td><td>'+fmt(r.a)+'</td><td style="color:'+ia.c+';font-weight:800;">'+(ia.dos==null?'–':pf(ia.dos))+'</td><td>'+fmt(r.b)+'</td><td style="color:'+ib.c+';font-weight:800;">'+(ib.dos==null?'–':pf(ib.dos))+'</td><td style="font-weight:800;color:'+(df>0?'var(--green)':df<0?'var(--red)':'var(--muted)')+';">'+(df>0?'+':'')+df+'</td></tr>'; }).join('');
     return bar+'<div class="stk-scroll"><table class="stk-tbl"><tr><th style="text-align:left;">Barang</th><th>Stok A</th><th>DOS A</th><th>Stok B</th><th>DOS B</th><th>Selisih (A−B)</th></tr>'+tb+'</table></div>'+stkMore(rows.length, shown)+'<div class="empty-note x-note">A: '+stkEsc(c.a)+' · B: '+stkEsc(c.b)+'. Selisih positif = A lebih banyak.</div>';
   }
   const m = {};
