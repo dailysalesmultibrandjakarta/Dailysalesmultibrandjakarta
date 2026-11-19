@@ -5873,7 +5873,8 @@ function renderBrandStorePopup(d){
     +'<tr><th>QTY</th><th>VALUE</th><th>QTY</th><th>VALUE</th></tr></thead>';
   const gapTxt = g => g<0 ? '('+fmt(-g)+')' : fmt(g);
   let body = '';
-  rows.forEach(r=>{
+  function storeRowHtml(r){
+    let body = '';
     const gap = r.omzet - r.target; // GAP = MTD Value - Target
     const low = r.hasTarget && r.pct<100;
     const isSel = state.brandStoreSel===r.code;
@@ -5885,7 +5886,30 @@ function renderBrandStorePopup(d){
     if (isSel){
       body += '<tr class="ero-expand-row"><td colspan="9" style="padding:0 0 8px 0;border-bottom:1px solid var(--border);">'+storeSubHtml(r.code, r.name)+'</td></tr>';
     }
-  });
+    return body;
+  }
+  // Tampilan awal per TSH/Area (sama seperti popup PENCAPAIAN BY KATEGORI): baris judul TSH/Area berisi subtotal,
+  // lalu toko-toko di bawahnya. Bila Master Data tidak punya data area, tampil datar seperti sebelumnya.
+  function areaHdrHtml(g, list){
+    const t = {t:0, q:0, v:0, eq:0, ev:0};
+    list.forEach(function(r){ t.t += (r.target||0); t.q += r.qty; t.v += r.omzet; t.eq += r.estQty; t.ev += r.estVal; });
+    const pct = t.t>0 ? t.ev/t.t*100 : null;
+    const B = ' style="font-weight:800;"';
+    return '<tr class="area-hdr"><td></td><td class="cat-nm" style="text-align:left;">'+racingAreaLabel(g)+'</td>'
+      +'<td'+B+'>'+(t.t>0?fmt(t.t):'-')+'</td><td'+B+'>'+fmt(t.q)+'</td><td'+B+'>'+fmt(t.v)+'</td><td'+B+'>'+fmt(t.eq)+'</td><td'+B+'>'+fmt(t.ev)+'</td>'
+      +'<td'+B+'>'+(t.t>0?gapTxt(t.v-t.t):'-')+'</td>'
+      +'<td style="font-weight:800;'+(pct!==null&&pct<100?lowStyle:'')+'">'+(pct===null?'-':fmtPct(pct))+'</td></tr>';
+  }
+  const areaGrp = racingGroupByArea(rows, function(r){ return r.name; });
+  if (areaGrp){
+    areaGrp.forEach(function(g){
+      const list = g.idx.map(function(i){ return rows[i]; });
+      body += areaHdrHtml(g, list);
+      list.forEach(function(r){ body += storeRowHtml(r); });
+    });
+  } else {
+    rows.forEach(function(r){ body += storeRowHtml(r); });
+  }
   const foot = '<tfoot><tr><td></td><td class="cat-nm" style="font-weight:800;color:var(--text-strong);">TOTAL</td><td style="font-weight:800;">'+(tT>0?fmt(tT):'-')+'</td>'
     +'<td style="font-weight:800;">'+fmt(sum('qty'))+'</td><td style="font-weight:800;">'+fmt(sum('omzet'))+'</td>'
     +'<td style="font-weight:800;">'+fmt(sum('estQty'))+'</td><td style="font-weight:800;">'+fmt(tV)+'</td>'
@@ -5904,7 +5928,7 @@ function renderBrandStorePopup(d){
     +'</div>'
     +'<div class="achv-table-wrap"><table>'+head+'<tbody>'+body+'</tbody>'+foot+'</table></div>'
     +'<div class="cat-hint x-note" style="margin-top:6px;">\uD83D\uDC46 Klik nama toko untuk melihat penjualan by ERO &amp; barang terjual by Tipe di toko tersebut.</div>'
-    +'<div class="cat-note">*Target per toko = angka yang Anda isi lewat Isi / Edit Target per Toko; bila belum diisi, dipakai perkiraan proporsional = target toko &times; porsi target brand ini terhadap target keseluruhan. GAP = MTD Value &minus; Target. Sel % merah = belum mencapai 100%.</div>'
+    +'<div class="cat-note">*Dikelompokkan per TSH/Area (baris oranye = subtotal TSH/Area). Target per toko = angka yang Anda isi lewat Isi / Edit Target per Toko; bila belum diisi, dipakai perkiraan proporsional = target toko &times; porsi target brand ini terhadap target keseluruhan. GAP = MTD Value &minus; Target. Sel % merah = belum mencapai 100%.</div>'
   +'</div></div>';
 }
 // Popup "📊 By ERO" per brand di kartu OMZET PER BRAND (Device) - format sama dengan popup By ERO di OMZET PER KATEGORI
