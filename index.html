@@ -989,6 +989,8 @@ function fmtJuta(n){
 /* RC_EXCL: Repair Contract PR4-IPHONE18-ADLD24 dengan value 0 rupiah tidak dihitung dalam AR (Qty RC) */
 /* CONSENT CARD VIDIO LITE (Operator, Rp 1) bukan VAS: tidak dihitung di Kontribusi Brand terhadap Produktivitas VAS */
 function isConsentCardVidioLite(r){ return r[2]==='Operator' && String(r[7]==null?'':r[7]).toUpperCase().indexOf('CONSENT CARD VIDIO LITE')>=0; }
+/* Mix Repair Contract per durasi proteksi: 1 / 2 / 3 tahun dibaca dari kode produk di nama artikel (ADLD12/24/36, termasuk ADLD24+EW12 = 2 thn, ADLD36+EW24 = 3 thn; kode CS-12/24/36). Tidak terbaca = tidak masuk mix. */
+function rcYearsOf(desc){ const m = /ADLD\s*(12|24|36)|-CS-(12|24|36)(?![0-9])/i.exec(String(desc==null?'':desc)); if (!m) return 0; const n = m[1]||m[2]; return n==='12' ? 1 : n==='24' ? 2 : 3; }
 function isRcZeroExcluded(r){ return r[2]==='Repair Contract' && !(Number(r[5])>0) && String(r[7]==null?'':r[7]).toUpperCase().indexOf('PR4-IPHONE18-ADLD24')>=0; }
 function pf(v){ return (Number(v)||0).toFixed(1).replace('.',','); }
 function fmtPct(n){ if (n===null||n===undefined||!isFinite(n)) return '-'; return pf(n)+'%'; }
@@ -3947,7 +3949,7 @@ function computeDerived(){
         if (r[5]>10000){ m.accVal10k += r[5]; m.accQty10k += r[4]; }
       }
       if (isMedpoinRec(r)){ m.medQty += r[4]; m.medVal += (r[8]!=null ? r[8] : r[5]); } // Medpoin: value with tax
-      if (r[2]==='Repair Contract' && !isRcZeroExcluded(r)){ m.rcVal += r[5]; m.rcQty += r[4]; }
+      if (r[2]==='Repair Contract' && !isRcZeroExcluded(r)){ m.rcVal += r[5]; m.rcQty += r[4]; const _y = rcYearsOf(r[7]); if (_y) m['rc'+_y+'Q'] = (m['rc'+_y+'Q']||0) + r[4]; }
       { // rincian tipe/model yang dijual ERO ini (dipakai saat nama ERO diklik)
         const tName = String(r[7]==null?'':r[7]).trim() || 'Tanpa Nama Tipe', tBrand = String(r[3]==null?'':r[3]).trim();
         const tk = r[2]+'\u0001'+tBrand+'\u0001'+tName;
@@ -3993,6 +3995,7 @@ function computeDerived(){
       totals.ceQty += x.ceQty;
       totals.accQty10k += x.accQty10k;
       totals.rcQty += x.rcQty;
+      totals.rc1Q = (totals.rc1Q||0) + (x.rc1Q||0); totals.rc2Q = (totals.rc2Q||0) + (x.rc2Q||0); totals.rc3Q = (totals.rc3Q||0) + (x.rc3Q||0);
     });
     totals.arAccDenom = totals.deviceQty + totals.ceQty;
     totals.arAcc = totals.deviceQty>0 ? (totals.accQty10k/totals.deviceQty)*100 : null;
@@ -4789,7 +4792,7 @@ function renderCategoryDetailStore(d){
       return {dq:dq, dv:dv, cq:cq, cv:cv, ar: dq>0 ? cq/dq*100 : null, sob: dv>0 ? cv/dv*100 : null}; // Ar = Qty Operator / Qty Device; SoB = Value Operator / Value Device
     }
     if (pivMode==='rc'){
-      return {dq:(x.deviceQty||0)+(x.ceQty||0), dv:x.deviceVal||0, cq:x.rcQty||0, cv:x.rcVal||0, ar:x.arRC, sob:x.sobRC};
+      return {dq:(x.deviceQty||0)+(x.ceQty||0), dv:x.deviceVal||0, cq:x.rcQty||0, cv:x.rcVal||0, y1:x.rc1Q||0, y2:x.rc2Q||0, y3:x.rc3Q||0, ar:x.arRC, sob:x.sobRC};
     }
     return {dq:(x.deviceQty||0), dv:x.deviceVal||0, cq:x.accQty10k||0, cv:x.accValAll||0, mq:x.medQty||0, mv:x.medVal||0, ar:x.arAccDev, sob:x.sobAcc};
   }
@@ -4809,8 +4812,8 @@ function renderCategoryDetailStore(d){
   function pivHead(firstLabel){
     const catLbl = pivMode==='op' ? 'Operator' : (pivMode==='rc' ? 'Repair Contract' : 'Accessories');
     return '<thead><tr><th rowspan="2" style="min-width:190px;">'+firstLabel+'</th><th colspan="2">'+((pivMode==='op'||pivMode==='acc')?'Device':'Device + CE')+'</th><th colspan="2">'+catLbl+'</th>'
-      +(pivMode==='acc'?'<th colspan="2" style="'+pivMh+'">Medpoin</th>':'')+(pivMode==='rc'?'<th rowspan="2" title="Unit (Device + CE) terjual tanpa Repair Contract">Lost RC<br>(unit)</th>':'')+'<th rowspan="2">Ar</th><th rowspan="2">SoB</th></tr>'
-      +'<tr><th>Qty</th><th>Value</th><th>Qty</th><th>Value</th>'+(pivMode==='acc'?'<th style="'+pivMh+'">Qty</th><th style="'+pivMh+'">Value</th>':'')+'</tr></thead>';
+      +(pivMode==='acc'?'<th colspan="2" style="'+pivMh+'">Medpoin</th>':'')+(pivMode==='rc'?'<th colspan="3" style="'+pivMh+'" title="Mix Repair Contract per durasi proteksi (qty dan % dari Qty Repair Contract)">Mix RC</th>':'')+(pivMode==='rc'?'<th rowspan="2" title="Unit (Device + CE) terjual tanpa Repair Contract">Lost RC<br>(unit)</th>':'')+'<th rowspan="2">Ar</th><th rowspan="2">SoB</th></tr>'
+      +'<tr><th>Qty</th><th>Value</th><th>Qty</th><th>Value</th>'+(pivMode==='acc'?'<th style="'+pivMh+'">Qty</th><th style="'+pivMh+'">Value</th>':'')+(pivMode==='rc'?'<th style="'+pivMh+'">1 Thn</th><th style="'+pivMh+'">2 Thn</th><th style="'+pivMh+'">3 Thn</th>':'')+'</tr></thead>';
   }
   function pivCells(p, arScale, sobScale){
     function arTd(v){
@@ -4825,6 +4828,7 @@ function renderCategoryDetailStore(d){
     }
     return '<td>'+pivNum(p.dq)+'</td><td>'+pivNum(p.dv)+'</td><td>'+pivNum(p.cq)+'</td><td>'+pivVal(p.cv)+'</td>'
       +(pivMode==='acc' ? '<td>'+pivVal(p.mq)+'</td><td>'+pivVal(p.mv)+'</td>' : '')
+      +(pivMode==='rc' ? [p.y1,p.y2,p.y3].map(function(q){ q = q||0; return q>0 ? '<td>'+pivNum(q)+' <span style="color:var(--muted);font-size:.82em;">('+Math.round(q/(p.cq||1)*100)+'%)</span></td>' : '<td>-</td>'; }).join('') : '')
       +(pivMode==='rc' ? (function(){ const lost = Math.max(0, p.dq-p.cq); return '<td style="font-weight:'+(lost>0?'800':'700')+';'+(lost>0?'color:var(--red);':'')+'">'+(p.dq>0 ? pivNum(lost) : '-')+'</td>'; })() : '')
       +arTd(p.ar)+sobTd(p.sob);
   }
@@ -4832,7 +4836,7 @@ function renderCategoryDetailStore(d){
     const ents = rows.map(function(r){ const a = (d.catAchvByStore||{})[r.achvKey]; return a ? {key:r.achvKey, name:r.name, p:pivPv(a), raw:a} : null; })
       .filter(Boolean).sort((a,b)=>String(a.name).localeCompare(String(b.name),'id'));
     if (!ents.length) return '<div class="cat-hint">Belum ada data di rentang tanggal terpilih.</div>';
-    const ncol = pivMode==='acc' ? 9 : (pivMode==='rc' ? 8 : 7);
+    const ncol = pivMode==='acc' ? 9 : (pivMode==='rc' ? 11 : 7);
     // Baris toko: klik nama toko -> rincian By ERO / By Tipe / Top 10 by Tipe tepat di bawah toko tsb.
     function storeRowHtml(e, indent){
       const isActive = e.key===state.catDetailStore;
@@ -4846,7 +4850,7 @@ function renderCategoryDetailStore(d){
     // Total per TSH (Accessories): jumlahkan komponen semua toko, lalu hitung ulang Ar & SoB.
     function aggAcc(list){
       if (pivMode==='rc'){
-        const r = {deviceQty:0, ceQty:0, deviceVal:0, rcQty:0, rcVal:0, arAccDenom:0};
+        const r = {deviceQty:0, ceQty:0, deviceVal:0, rcQty:0, rcVal:0, arAccDenom:0, rc1Q:0, rc2Q:0, rc3Q:0};
         list.forEach(function(e){ Object.keys(r).forEach(function(k){ r[k] += (e.raw[k]||0); }); });
         r.arRC = r.arAccDenom>0 ? r.rcQty/r.arAccDenom*100 : null;
         r.sobRC = r.deviceVal>0 ? r.rcVal/r.deviceVal*100 : null;
@@ -4876,7 +4880,7 @@ function renderCategoryDetailStore(d){
     }
     const foot = d.catAchvTotal ? '<tfoot><tr class="pv-total"><td>Grand Total</td>'+pivCells(pivPv(d.catAchvTotal), null, null)+'</tr></tfoot>' : '';
     return '<div class="pivot-wrap"><table class="pivot-tbl pv-hp">'+pivHead(grp ? 'TSH / Store' : 'Row Labels')+'<tbody>'+body+'</tbody>'+foot+'</table></div>'
-      +'<div class="cat-hint x-note" style="margin-top:4px;">Baris berwarna = total per TSH (area). Klik nama toko untuk melihat rincian By ERO, By Tipe &amp; Top 10 by Tipe.'+(pivMode==='acc' ? arNote : '')+'</div>';
+      +'<div class="cat-hint x-note" style="margin-top:4px;">Baris berwarna = total per TSH (area). Klik nama toko untuk melihat rincian By ERO, By Tipe &amp; Top 10 by Tipe.'+(pivMode==='acc' ? arNote : '')+(pivMode==='rc' ? ' Mix RC = Qty Repair Contract per durasi proteksi 1 / 2 / 3 tahun (angka dalam kurung = % dari Qty Repair Contract). Durasi dibaca dari kode produk ADLD12 / ADLD24 / ADLD36 (ADLD24+EW12 dihitung 2 tahun, ADLD36+EW24 dihitung 3 tahun); produk yang kodenya tidak terbaca tidak masuk mix.' : '')+'</div>';
   }
   // By ERO (Sales / SPG) toko yang diklik: kolom SAMA dengan tampilan by Store di atas.
   // Operator: kolom "Operator" diganti kolom per provider (Indosat | XL | Telkomsel | Vidio | Vidio Lite); Ar & SoB tetap dihitung dari total Operator.
@@ -6056,6 +6060,11 @@ const SAM_INC = {
   }
 };
 
+const SAM_IMG = {
+  // Target Tier 1 & Tier 5 sesuai gambar laporan per TSH (toko tanpa target = 0). Menimpa nilai sheet Target Racing untuk toko-toko ini.
+  'M219':[18,25], 'E616':[1,2], 'E029':[23,33], 'E028':[18,25], 'E679':[1,2], 'E942':[0,0], 'E875':[1,2], 'E514':[2,3], 'E465':[4,6], 'E322':[6,8], 'E582':[7,10], 'Q108':[0,0], 'F284':[10,14], 'Q022':[12,17], 'E991':[1,2], 'E508':[1,1], 'E158':[7,9], 'E164':[26,37], 'F134':[4,6], 'E923':[1,2], 'E986':[1,1], 'E943':[7,9], 'E172':[6,8], 'E413':[7,9], 'E593':[7,10], 'M091':[25,36], 'Q008':[0,0], 'M068':[5,7], 'E992':[10,14], 'E027':[8,12], 'E215':[12,17], 'E312':[7,10], 'E960':[1,1], 'E453':[1,2], 'E381':[0,0], 'E233':[10,14], 'M212':[4,5], 'E047':[4,6], 'E663':[6,8], 'E137':[12,18], 'F080':[4,6], 'E038':[7,9], 'E898':[4,6], 'E414':[4,6], 'E408':[5,7], 'E732':[9,13], 'G258':[1,2], 'G493':[1,1], 'E396':[6,8], 'E096':[1,2], 'F073':[4,5], 'E037':[11,16], 'E113':[22,31], 'E678':[7,9], 'E281':[14,20], 'E216':[0,0], 'Q104':[0,0], 'Q248':[0,0]
+};
+
 /* ===== Pengelompokan racing per AREA (JAKBAR 1, JAKPUS 2, ...) =====
    Dipakai semua tabel racing: baris judul area (subtotal) lalu toko-toko area itu; TOTAL keseluruhan di bawah. */
 function racingAreaOf(name){ const m = state.raw && state.raw.areaByStore; return m ? (m[name] || 'TANPA AREA') : null; }
@@ -6114,8 +6123,13 @@ function samIncCompute(d){
   const prevStart = pS.toISOString().slice(0,10);
   const prevEnd = new Date(Date.UTC(sd.getUTCFullYear(), sd.getUTCMonth(), 0)).toISOString().slice(0,10);
   const prevLbl = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][pS.getUTCMonth()];
-  const tOf = function(s){ return st[s.site_desc] || st[s.site_code] || st[canonStoreName(s.site_desc)] || null; };
-  const stores = (d.stores||[]).filter(function(s){ if (!racingStoreExcluded(s.site_desc)) return true; const t = tOf(s); return !!(t && t[0]>0); }); // Erablue/Operator/JB di-take out dari racing Samsung, KECUALI toko yang punya target Tier 1 (Participant Racing, mis. AGRES Mangga Dua Square & XLC Mal Puri Indah)
+  const tOf = function(s){
+    const base = st[s.site_desc] || st[s.site_code] || st[canonStoreName(s.site_desc)] || null;
+    const im = SAM_IMG[s.site_code];
+    if (im){ if (!(im[0]>0) && !(im[1]>0)) return [0,0,0,0,0]; const b = base || [0,0,0,0,0]; return [im[0], b[1]||0, b[2]||0, b[3]||0, im[1]]; } // toko di gambar: target gambar (T1 & T5), tanpa target = 0
+    return base;
+  };
+  const stores = (d.stores||[]).filter(function(s){ if (SAM_IMG[s.site_code]) return true; if (!racingStoreExcluded(s.site_desc)) return true; const t = tOf(s); return !!(t && t[0]>0); }); // Erablue/Operator/JB di-take out dari racing Samsung, KECUALI toko yang punya target Tier 1 (Participant Racing, mis. AGRES Mangga Dua Square & XLC Mal Puri Indah)
   const byName = {}; const act = {}, prev = {}, det = {};
   stores.forEach(function(s){ byName[s.site_desc]=s; byName[s.site_code]=s; act[s.site_code]=0; prev[s.site_code]=0; det[s.site_code]={}; });
   (raw.records||[]).forEach(function(r){
@@ -6146,7 +6160,7 @@ function samIncCompute(d){
     o.code = code0; o.key = s.site_code; o.name = s.site_desc; o.det = det[s.site_code];
     o.part = tt[0]>0; o.area = racingAreaOf(s.site_desc);
     return o;
-  }).sort(function(a,b){ return String(a.code).localeCompare(String(b.code),'id',{numeric:true}) || String(a.name).localeCompare(String(b.name),'id'); });
+  }).filter(function(o){ return !!SAM_IMG[o.key] || o.sales!==0 || o.t[0]>0; }).sort(function(a,b){ return String(a.code).localeCompare(String(b.code),'id',{numeric:true}) || String(a.name).localeCompare(String(b.name),'id'); });
   const sum = function(list){
     return mk([0,1,2,3,4].map(function(i){ return list.reduce(function(a,r){ return a+r.t[i]; },0); }),
       list.reduce(function(a,r){ return a+r.sales; },0), list.reduce(function(a,r){ return a+r.oct; },0));
