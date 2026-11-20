@@ -6749,13 +6749,13 @@ function racingBoltechTable(d, c){
   const lbl = c.hasPeriod ? 'EST' : 'AKTUAL';
   const HBn = ' style="background:#1f2f5f;color:#ffffff;"'; // header biru tua, sama dengan popup Pencapaian by Store
   const head = '<thead><tr><th rowspan="2">SAP CODE</th><th rowspan="2" class="cat-nm">STORE NAME</th><th rowspan="2"'+HBn+'>TARGET</th>'
-    +'<th colspan="2"'+HBn+'>MTD</th><th colspan="2"'+HBn+'>'+lbl+'</th><th rowspan="2"'+HBn+'>GAP</th><th rowspan="2"'+HBn+'>%</th>'
+    +'<th colspan="2"'+HBn+'>MTD</th><th colspan="2"'+HBn+'>'+lbl+'</th><th colspan="3"'+HBn+' title="Mix Repair Contract per durasi proteksi (qty dan % dari Qty Repair Contract), periode racing">MIX RC</th><th rowspan="2"'+HBn+'>GAP</th><th rowspan="2"'+HBn+'>%</th>'
     +(showQ?'<th rowspan="2"'+HBn+'>TARGET QTY</th><th rowspan="2"'+HBn+'>GAP QTY</th><th rowspan="2"'+HBn+'>% QTY</th>':'')
-    +'<th rowspan="2"'+HBn+'>AR Boltech</th></tr><tr><th'+HBn+'>QTY</th><th'+HBn+'>VALUE</th><th'+HBn+'>QTY</th><th'+HBn+'>VALUE</th></tr></thead>';
+    +'<th rowspan="2"'+HBn+'>AR Boltech</th></tr><tr><th'+HBn+'>QTY</th><th'+HBn+'>VALUE</th><th'+HBn+'>QTY</th><th'+HBn+'>VALUE</th><th'+HBn+'>1 Thn</th><th'+HBn+'>2 Thn</th><th'+HBn+'>3 Thn</th></tr></thead>';
   const isInc = state.racingBoltView==='insentif';
   const headInc = '<thead><tr><th>SAP CODE</th><th class="cat-nm">STORE NAME</th><th>TARGET</th><th>'+lbl+' %</th><th>AR Boltech</th>'
     +'<th title="Monthly Racing TecProtec Q4 2026: insentif per unit x unit proyeksi, tier dari EST % revenue">EST INSENTIF RACING</th><th title="New Additional Incentive berdasarkan Attachment Rate (AR Boltech)">INSENTIF TAMBAHAN (AR)</th><th>TOTAL EST PENDAPATAN</th></tr></thead>';
-  const ncol = isInc ? 8 : (10 + (showQ?3:0));
+  const ncol = isInc ? 8 : (13 + (showQ?3:0));
   const qCells = (x, bold) => showQ ? ('<td'+(bold?' style="font-weight:800;"':'')+'>'+(x.tq>0?fmt(x.tq):'-')+'</td><td'+(bold?' style="font-weight:800;"':'')+'>'+(x.tq>0?gapTxt(x.gapQ):'-')+'</td>'
     +'<td style="font-weight:800;'+(x.pctQ!==null&&x.pctQ<100?lowStyle:'')+'">'+(x.pctQ===null?'-':fmtPct(x.pctQ))+'</td>') : '';
   function eroBox(r){
@@ -6782,15 +6782,18 @@ function racingBoltechTable(d, c){
     }
     return '<div class="cat-ero-box" style="margin:4px 0 0 10px;padding:6px 0 2px 10px;border-left:3px solid var(--green);border-top:0;">'+tabs+inner+'</div>';
   }
+  // Mix Repair Contract per durasi proteksi (12/24/36 bulan = 1/2/3 tahun), qty + % dari Qty Repair Contract; tenor dibaca dari nama kontrak (tecTenor)
+  const mixCells = o => [12,24,36].map(k=>{ const q = (o&&o['t'+k])||0; return q>0 ? '<td>'+fmt(q)+' <span style="color:var(--muted);font-size:.82em;">('+Math.round(q/((o.rcQty)||1)*100)+'%)</span></td>' : '<td>-</td>'; }).join('');
+  const totMix = rows.reduce((a,r)=>{ const b = byStore[r.code]||{}; a.rcQty+=b.rcQty||0; a.t12+=b.t12||0; a.t24+=b.t24||0; a.t36+=b.t36||0; return a; }, {rcQty:0,t12:0,t24:0,t36:0});
   let body = '';
   const areaHdr = function(g){
-    const sm = {tv:0,tq:0,aq:0,av:0}, ar = {rc:0,dev:0}, tc = {racing:0, add:0, total:0};
-    g.idx.forEach(function(i){ const q = c.rows[i]; sm.tv+=q.tv; sm.tq+=q.tq; sm.aq+=q.aq; sm.av+=q.av; const b0 = byStore[q.code]||{rcQty:0,devQty:0}; ar.rc+=b0.rcQty; ar.dev+=b0.devQty; const t0 = tecRows[q.code]; if (t0){ tc.racing+=t0.racing; tc.add+=t0.add; tc.total+=t0.total; } });
+    const sm = {tv:0,tq:0,aq:0,av:0}, ar = {rc:0,dev:0}, tc = {racing:0, add:0, total:0}, mx = {rcQty:0,t12:0,t24:0,t36:0};
+    g.idx.forEach(function(i){ const q = c.rows[i]; sm.tv+=q.tv; sm.tq+=q.tq; sm.aq+=q.aq; sm.av+=q.av; const b0 = byStore[q.code]||{rcQty:0,devQty:0}; ar.rc+=b0.rcQty; ar.dev+=b0.devQty; mx.rcQty+=b0.rcQty||0; mx.t12+=b0.t12||0; mx.t24+=b0.t24||0; mx.t36+=b0.t36||0; const t0 = tecRows[q.code]; if (t0){ tc.racing+=t0.racing; tc.add+=t0.add; tc.total+=t0.total; } });
     const x = mk(sm); const B = ' style="font-weight:800;"';
     const pc = '<td style="font-weight:800;'+(x.pct!==null&&x.pct<100?lowStyle:'')+'">'+(x.pct===null?'-':fmtPct(x.pct))+'</td>';
     if (isInc) return '<tr class="area-hdr"><td></td><td class="cat-nm">'+racingAreaLabel(g)+'</td><td'+B+'>'+(x.tv>0?fmt(x.tv):'-')+'</td>'+pc+arCell(ar.rc,ar.dev)
       +'<td style="text-align:right;font-weight:800;color:var(--green);">Rp '+fmt(tc.racing)+'</td><td style="text-align:right;font-weight:800;color:var(--green);">Rp '+fmt(tc.add)+'</td><td style="text-align:right;font-weight:800;">Rp '+fmt(tc.total)+'</td></tr>';
-    return '<tr class="area-hdr"><td></td><td class="cat-nm">'+racingAreaLabel(g)+'</td><td'+B+'>'+(x.tv>0?fmt(x.tv):'-')+'</td><td'+B+'>'+fmt(x.aq)+'</td><td'+B+'>'+fmt(x.av)+'</td><td'+B+'>'+fmt(x.eq)+'</td><td'+B+'>'+fmt(x.ev)+'</td>'
+    return '<tr class="area-hdr"><td></td><td class="cat-nm">'+racingAreaLabel(g)+'</td><td'+B+'>'+(x.tv>0?fmt(x.tv):'-')+'</td><td'+B+'>'+fmt(x.aq)+'</td><td'+B+'>'+fmt(x.av)+'</td><td'+B+'>'+fmt(x.eq)+'</td><td'+B+'>'+fmt(x.ev)+'</td>'+mixCells(mx)
       +'<td'+B+'>'+(x.tv>0?gapTxt(x.gap):'-')+'</td>'+pc+qCells(x,true)+arCell(ar.rc,ar.dev)+'</tr>';
   };
   const rowsOut = racingRowsWithAreas(rows, function(r){ return r.name; });
@@ -6801,14 +6804,14 @@ function racingBoltechTable(d, c){
     const sx = byStore[r.code]||{rcQty:0,devQty:0};
     const _rowCells = isInc ? ('<td>'+(r.tv>0?fmt(r.tv):'-')+'</td><td style="font-weight:800;'+(low?lowStyle:'')+'">'+(r.pct===null?'-':fmtPct(r.pct))+'</td>'+arCell(sx.rcQty,sx.devQty)+tecCells(tecRows[r.code])) : null;
     body += '<tr class="store-row-click'+(isSel?' store-row-active':'')+'" onclick="selectRacingRow(\''+String(r.code).replace(/'/g,"\\'")+'\')" title="Klik untuk lihat pencapaian by ERO toko ini"><td>'+escapeHtml(sapCodeOf(r.name))+'</td><td class="cat-nm" style="color:var(--text-strong);font-weight:800;">'+escapeHtml(r.name)+'</td>'
-      +(isInc ? _rowCells : ('<td>'+(r.tv>0?fmt(r.tv):'-')+'</td><td>'+fmt(r.aq)+'</td><td>'+fmt(r.av)+'</td><td>'+fmt(r.eq)+'</td><td>'+fmt(r.ev)+'</td>'
+      +(isInc ? _rowCells : ('<td>'+(r.tv>0?fmt(r.tv):'-')+'</td><td>'+fmt(r.aq)+'</td><td>'+fmt(r.av)+'</td><td>'+fmt(r.eq)+'</td><td>'+fmt(r.ev)+'</td>'+mixCells(sx)
       +'<td>'+(r.tv>0?gapTxt(r.gap):'-')+'</td><td style="font-weight:800;'+(low?lowStyle:'')+'">'+(r.pct===null?'-':fmtPct(r.pct))+'</td>'+qCells(r,false)+arCell(sx.rcQty,sx.devQty)))+'</tr>';
     if (isSel) body += '<tr class="ero-expand-row"><td colspan="'+ncol+'" style="padding:0 0 8px 0;border-bottom:1px solid var(--border);">'+eroBox(r)+'</td></tr>';
   });
   const incTotCells = '<td style="text-align:right;font-weight:800;color:var(--green);">Rp '+fmt(tecTot.racing)+'</td><td style="text-align:right;font-weight:800;color:var(--green);">Rp '+fmt(tecTot.add)+'</td><td style="text-align:right;font-weight:800;color:var(--text-strong);">Rp '+fmt(tecTot.total)+'</td>';
   const footInc = '<tfoot><tr><td></td><td class="cat-nm" style="font-weight:800;color:var(--text-strong);">TOTAL</td><td style="font-weight:800;">'+(tot.tv>0?fmt(tot.tv):'-')+'</td><td style="font-weight:800;'+(tot.pct!==null&&tot.pct<100?lowStyle:'')+'">'+(tot.pct===null?'-':fmtPct(tot.pct))+'</td>'+arCell(totRc,totDev)+incTotCells+'</tr></tfoot>';
   const footAkt = '<tfoot><tr><td></td><td class="cat-nm" style="font-weight:800;color:var(--text-strong);">TOTAL</td><td style="font-weight:800;">'+(tot.tv>0?fmt(tot.tv):'-')+'</td>'
-    +'<td style="font-weight:800;">'+fmt(tot.aq)+'</td><td style="font-weight:800;">'+fmt(tot.av)+'</td><td style="font-weight:800;">'+fmt(tot.eq)+'</td><td style="font-weight:800;">'+fmt(tot.ev)+'</td>'
+    +'<td style="font-weight:800;">'+fmt(tot.aq)+'</td><td style="font-weight:800;">'+fmt(tot.av)+'</td><td style="font-weight:800;">'+fmt(tot.eq)+'</td><td style="font-weight:800;">'+fmt(tot.ev)+'</td>'+mixCells(totMix)
     +'<td style="font-weight:800;">'+(tot.tv>0?gapTxt(tot.gap):'-')+'</td><td style="font-weight:800;'+(tot.pct!==null&&tot.pct<100?lowStyle:'')+'">'+(tot.pct===null?'-':fmtPct(tot.pct))+'</td>'+qCells(tot,true)+arCell(totRc,totDev)+'</tr></tfoot>';
   const viewBtns = '<div class="cap-hide" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:4px 0 8px;"><span style="font-size:10.5px;color:var(--muted);font-weight:800;">Tampilan:</span>'
     +'<button class="pv-btn'+(isInc?'':' on')+'" onclick="setRacingBoltView(\'aktual\')">📊 Capaian Racing</button>'
