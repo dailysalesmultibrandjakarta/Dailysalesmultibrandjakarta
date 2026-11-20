@@ -1516,6 +1516,8 @@ function findHeaderRowIndex(rows, markerFirstCell, maxScan){
 // detail per brand di kartu "OMZET PER BRAND (Device)" - namanya di file export bisa macam-macam
 // tergantung sumber data POS, jadi dicoba beberapa alias umum; kalau tidak ada satupun yang cocok,
 // rincian per tipe cukup ditampilkan sebagai "kolom tipe barang belum ada di Master Data".
+// STOCK MONITORING hanya tampil di dashboard asli (dibuka dari file lokal / localhost). Saat di-upload ke GitHub Pages (https), slide & data Stock disembunyikan/tidak dibaca.
+const STOCK_ALLOWED = (location.protocol==='file:' || /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname));
 const ITEM_NAME_ALIASES = ['item_name','item_desc','item_description','article_description','article_desc','article_name','nama_barang','nama_item','tipe','type_name','type','nama_tipe','nama_model','model','model_name','product_name','item_type','deskripsi','description','material_desc','material_description'];
 const INVOICE_ALIASES = ['pos_number','pos number','invoice_no','invoice no','invoice','invoice_number','no_invoice','no invoice','no_nota','no nota','nota','nomor_nota','bill_no','bill no','billing_no','bill_number','receipt_no','receipt no','receipt','trx_no','trx no','transaction_no','transaction_id','transaction no','order_no','order no','order_number','order_id','so_no','so no','sales_order','sales_order_no','doc_no','doc no','document_no','document_number','no_transaksi','no transaksi','nomor_transaksi','pos_no'];
 // Alias nama toko: beberapa nama di data/Target dianggap SATU toko yang sama.
@@ -1634,6 +1636,7 @@ function findMasterDataHeader(rows, maxScan){
         const idx = norm.indexOf(alias);
         if (idx!==-1){ colMap.sap_code = idx; break; }
       }
+      colMap.item_group_desc = norm.indexOf('item_group_desc');
       colMap.ket_po = norm.indexOf('ket po'); if (colMap.ket_po===-1) colMap.ket_po = norm.indexOf('ket_po');
       colMap.article = -1; ['article_code','article code','article'].forEach(function(a){ if (colMap.article===-1){ const ix = norm.indexOf(a); if (ix!==-1) colMap.article = ix; } });
       colMap.by_area = -1;
@@ -1868,8 +1871,14 @@ function parseWorkbook(wb, fileName){
     const row = dataRows[i];
     if (!row || row.every(c=>c===null||c==='')) continue;
     const siteDesc = canonStoreName(row[col.site_desc]!==null&&row[col.site_desc]!==undefined? String(row[col.site_desc]).trim() : '');
-    const category = row[col.category]!==null&&row[col.category]!==undefined? String(row[col.category]).trim() : '';
+    let category = row[col.category]!==null&&row[col.category]!==undefined? String(row[col.category]).trim() : '';
     const brand = col.brand_name!==-1 && row[col.brand_name]!=null? String(row[col.brand_name]).trim() : '';
+    // Koreksi kategori: barang dengan item_group_desc Smartphone/Tablet (semua brand; mis. MTR G06 POWER 4/64GB, LENOVO IDEATAB 8/128 BLUE (KB+P)) selalu Device,
+    // walau kolom Category di export tertulis Accessories. Case/cover/aksesoris tablet (mis. 'Tablet-Cas&Cov-Smsng', 'Tablet Accessories') tetap Accessories.
+    if (category==='Accessories' && col.item_group_desc!==-1){
+      const _igd = String(row[col.item_group_desc]==null?'':row[col.item_group_desc]);
+      if (/^\s*(smartphone|tablet)/i.test(_igd) && !/cas\s*&?\s*cov|case|cover|accessor|keyboard|pen\b/i.test(_igd)) category = 'Device';
+    }
     const salesName = col.sales_name!==-1 && row[col.sales_name]!=null? String(row[col.sales_name]).trim() : '';
     const qty = col.quantity!==-1 ? (Number(row[col.quantity])||0) : 0;
     let omzet = col.total_nett_amount_exc_tax!==-1 ? (Number(row[col.total_nett_amount_exc_tax])||0) : 0;
@@ -1891,6 +1900,8 @@ function parseWorkbook(wb, fileName){
     categoriesSeen.add(category);
     if (col.by_area!==-1 && row[col.by_area]!=null && !areaByStore[siteDesc]){ const _ar = String(row[col.by_area]).trim().toUpperCase().replace(/\s+/g,' '); if (_ar && isValidAreaName(_ar)) areaByStore[siteDesc] = _ar; }
     const itemName = col.item_name!==-1 && row[col.item_name]!=null? String(row[col.item_name]).trim() : '';
+    // Item PO (N) (nama barang memuat "PO(N)" / "PO (N)", mis. VIVO V80 8/512GB GREEN PO(N)) TIDAK dihitung di dashboard (qty, value, AR, SOB, racing, stock/DOS).
+    if (/PO\s*\(\s*N\s*\)/i.test(itemName)) continue;
     // site_desc dipakai langsung sebagai kunci "toko" di seluruh dashboard (tidak ada site_code terpisah di master data ini)
     if (col.sap_code!==-1 && row[col.sap_code]!=null && String(row[col.sap_code]).trim()!=='' && !sapCodes[siteDesc]) sapCodes[siteDesc] = String(row[col.sap_code]).trim();
     let withTax = omzet; // value incl. pajak (total_nett_amount_with_tax); fallback ke omzet bila kolom/sel kosong
@@ -2065,7 +2076,7 @@ function parseWorkbook(wb, fileName){
 
   /* ---- Stock: sheet "Stock" (Plant | Nama Toko | Article | Article Description | Brand Name | Quantity). Tanggal stock opsional di sel H2. ---- */
   let stockObj = null;
-  if (stockSheetName){
+  if (stockSheetName && STOCK_ALLOWED){
     const srows = XLSX.utils.sheet_to_json(wb.Sheets[stockSheetName], {header:1, defval:null, raw:true});
     let hi = -1, nm = [];
     for (let i=0;i<Math.min(srows.length,20);i++){
@@ -2466,7 +2477,7 @@ function eroTypeBoxGen(d, storeCode, storeDesc, eroName, cat){
   (d.filtered||[]).forEach(function(r){
     const m = maps[r[2]]; if (!m || r[6]!==eroName) return;
     if (r[1]!==storeCode && r[1]!==storeDesc) return;
-    if (r[2]==='Accessories' && !(r[5]>10000)) return;
+    if (r[2]==='Accessories' && !(Math.abs(r[5])>10000)) return;
     const n = String(r[7]==null?'':r[7]).trim() || 'Tanpa Nama Tipe';
     const o = m[n] || (m[n] = {name:n, qty:0, omzet:0, brand:{}});
     o.qty += r[4]; o.omzet += r[5];
@@ -3946,7 +3957,7 @@ function computeDerived(){
       // AR Aksesoris: hanya baris Accessories dengan value > Rp10.000 yang dihitung (qty).
       if (r[2]==='Accessories'){
         m.accValAll += r[5]; // SOB Aksesoris pakai total value, tanpa filter
-        if (r[5]>10000){ m.accVal10k += r[5]; m.accQty10k += r[4]; }
+        if (Math.abs(r[5])>10000){ m.accVal10k += r[5]; m.accQty10k += r[4]; }
       }
       if (isMedpoinRec(r)){ m.medQty += r[4]; m.medVal += (r[8]!=null ? r[8] : r[5]); } // Medpoin: value with tax
       if (r[2]==='Repair Contract' && !isRcZeroExcluded(r)){ m.rcVal += r[5]; m.rcQty += r[4]; const _y = rcYearsOf(r[7]); if (_y) m['rc'+_y+'Q'] = (m['rc'+_y+'Q']||0) + r[4]; }
@@ -4017,8 +4028,8 @@ function computeDerived(){
       const st = storeByCode[r[1]] || _byDesc[r[1]]; if (!st) return;
       (rs[st.site_code] = rs[st.site_code] || []).push(r);
     });
-    // Toko channel ERABLUE & AGRES di-take out dari daftar Pencapaian by Kategori (baris toko/ERO dan Grand Total, termasuk AR & SOB).
-    const _exSet = {}; stores.forEach(st=>{ if (chainOfStore(st.site_desc)==='ERABLUE' || /(^|[^A-Z0-9])AGRES([^A-Z0-9]|$)/i.test(String(st.site_desc||''))) _exSet[st.site_code] = true; });
+    // Toko channel ERABLUE di-take out dari daftar Pencapaian by Kategori (baris toko/ERO dan Grand Total, termasuk AR & SOB). AGRES ikut dihitung.
+    const _exSet = {}; stores.forEach(st=>{ if (chainOfStore(st.site_desc)==='ERABLUE') _exSet[st.site_code] = true; });
     Object.keys(rs).forEach(k=>{ if (_exSet[k]) return; const _g = buildSalesAchv(rs[k]); catAchvByStore[k] = _g.totals; catAchvEroByStore[k] = _g.rows; });
     const _all = buildSalesAchv(filtered.filter(r=>{ const st = storeByCode[r[1]] || _byDesc[r[1]]; return !(st && _exSet[st.site_code]); }));
     catAchvTotal = _all.totals;
@@ -4470,7 +4481,7 @@ function renderCategoryTypeView(d, cat, store){
   (d.filtered||[]).forEach(function(r){
     if (r[2]!==cat) return;
     if (store && r[1]!==store.site_code && r[1]!==store.site_desc) return;
-    if (accMin!==null && !(r[5]>accMin)) return;
+    if (accMin!==null && !(Math.abs(r[5])>accMin)) return;
     const name = String(r[7]==null?'':r[7]).trim() || 'Tanpa Nama Tipe';
     const o = map[name] || (map[name] = {name:name, qty:0, omzet:0, brand:{}});
     o.qty += r[4]; o.omzet += r[5];
@@ -4596,7 +4607,7 @@ function renderCategoryDetailStore(d){
     (d.filtered||[]).forEach(function(r){
       if (r[2]!==cat || r[6]!==eroName) return;
       if (r[1]!==selStore.site_code && r[1]!==selStore.site_desc) return;
-      if (accMin!==null && !(r[5]>accMin)) return;
+      if (accMin!==null && !(Math.abs(r[5])>accMin)) return;
       const n = String(r[7]==null?'':r[7]).trim() || 'Tanpa Nama Tipe';
       const o = map[n] || (map[n] = {name:n, qty:0, omzet:0, brand:{}});
       o.qty += r[4]; o.omzet += r[5];
@@ -5231,7 +5242,7 @@ function renderStoreTop10(d, store){
   if (!(state.raw && state.raw.hasItemNameColumn)) return '<div class="cat-hint">Master Data belum punya kolom nama tipe/barang (mis. <b>item_name</b>), jadi Top 10 by Tipe belum bisa ditampilkan.</div>';
   const map = {}; let totQ = 0, totV = 0;
   (d.filtered||[]).forEach(function(r){
-    if (r[2]!=='Accessories' || (r[1]!==store.site_code && r[1]!==store.site_desc) || !(r[5]>10000)) return;
+    if (r[2]!=='Accessories' || (r[1]!==store.site_code && r[1]!==store.site_desc) || !(Math.abs(r[5])>10000)) return;
     const nm = String(r[7]==null?'':r[7]).trim() || 'Tanpa Nama Tipe';
     if (TOP_EXCLUDE_RE.test(nm)) return;
     const o = map[nm] || (map[nm] = {name:nm, qty:0, val:0, brand:{}});
@@ -5266,7 +5277,7 @@ function renderCategoryTop(d){
   } else {
     const map = {}; let totQ = 0, totV = 0;
     (d.filtered||[]).forEach(function(r){
-      if (r[2]!=='Accessories' || !(r[5]>10000)) return;
+      if (r[2]!=='Accessories' || !(Math.abs(r[5])>10000)) return;
       const nm = String(r[7]==null?'':r[7]).trim() || 'Tanpa Nama Tipe';
       if (TOP_EXCLUDE_RE.test(nm)) return;
       const o = map[nm] || (map[nm] = {name:nm, qty:0, val:0, brand:{}});
@@ -5282,7 +5293,7 @@ function renderCategoryTop(d){
     function storesOf(itemName){
       const m = {};
       (d.filtered||[]).forEach(function(r){
-        if (r[2]!=='Accessories' || !(r[5]>10000)) return;
+        if (r[2]!=='Accessories' || !(Math.abs(r[5])>10000)) return;
         if ((String(r[7]==null?'':r[7]).trim() || 'Tanpa Nama Tipe')!==itemName) return;
         const st = stByKey[r[1]]; const key = st ? st.site_code : String(r[1]); const nm = st ? st.site_desc : String(r[1]);
         const o = m[key] || (m[key] = {name:nm, qty:0, val:0});
@@ -7111,7 +7122,7 @@ function computeBrandVas(d){
     if (cat==='Device'){ const bk = normalizeBrandKey(r[3]) || 'LAINNYA'; n.dev[bk] = (n.dev[bk]||0) + r[4]; n.devItems.push({b:bk, item:String(r[7]==null?'':r[7]).trim(), q:r[4], v:Number(r[5])||0}); }
     else if (cat==='Operator'){ if (isConsentCardVidioLite(r)) return; n.op.q += r[4]; n.op.v += racingVal(r); n.vasItems.push({c:'op', item:String(r[7]==null?'':r[7]).trim(), q:r[4], v:Number(racingVal(r))||0}); }
     else if (cat==='Repair Contract'){ if (isRcZeroExcluded(r)) return; n.rc.q += r[4]; n.rc.v += r[5]; n.vasItems.push({c:'rc', item:String(r[7]==null?'':r[7]).trim(), q:r[4], v:Number(r[5])||0}); }
-    else if (cat==='Accessories'){ if (!(r[5]>10000)) return; n.acc.q += r[4]; n.acc.v += r[5]; n.vasItems.push({c:'acc', item:String(r[7]==null?'':r[7]).trim(), q:r[4], v:Number(r[5])||0}); }
+    else if (cat==='Accessories'){ if (!(Math.abs(r[5])>10000)) return; n.acc.q += r[4]; n.acc.v += r[5]; n.vasItems.push({c:'acc', item:String(r[7]==null?'':r[7]).trim(), q:r[4], v:Number(r[5])||0}); }
   });
   const zero = function(){ return {devQty:0, notaDev:0, notaVas:0, opN:0, rcN:0, accN:0, opV:0, rcV:0, accV:0, opQ:0, rcQ:0, accQ:0}; };
   const out = {}, tot = zero(), byStore = {}; let orphanN = 0, orphanV = 0, totNota = 0;
@@ -7964,6 +7975,7 @@ function stkViewCmp(D){
   return bar+'<div class="stk-scroll"><table class="stk-tbl"><tr><th>Area</th><th style="text-align:left;">Toko</th><th>Stok</th><th>Terjual</th><th>Jual/hari</th><th>DOS</th><th>Status</th><th>vs Rata-rata</th></tr>'+tb+'<tr style="font-weight:800;"><td></td><td style="text-align:left;">TOTAL ('+rows.length+' toko punya stok)</td><td>'+fmt(tot)+'</td><td colspan="5"></td></tr></table></div><div class="empty-note x-note">Toko dengan DOS &lt; '+STK_T.low+' hari = kandidat isi ulang; DOS &gt; '+STK_T.ok+' hari = kandidat sumber transfer.</div>';
 }
 function renderStockCard(d){
+  if (!STOCK_ALLOWED) return '';
   const key = 'stock', c = stk();
   const D = stkData();
   const tabs = [['store','🏬 Stok per Toko'],['dos','📦 DOS Barang'],['cmp','⚖️ Komparasi Toko']].map(function(t){ return '<button class="stk-tab'+(c.view===t[0]?' on':'')+'" onclick="stkSet(\'view\',\''+t[0]+'\')">'+t[1]+'</button>'; }).join('')+(D?stkCatDropdown(D):'');
