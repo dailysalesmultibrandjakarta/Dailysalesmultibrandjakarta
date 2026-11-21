@@ -1443,6 +1443,7 @@ let state = {
   periodMenuOpen: false,
   weekSel: null, // minggu yang diklik di slide Weekly Revenue: {mon, from, to, prevFrom, prevTo} - null = tidak ada
   dailySelectedDate: null, // tanggal yang sedang dipilih/diklik di chart Daily Sales (null = otomatis pilih hari dgn value terbesar)
+  catRcTakeOut: false, // true = rincian Repair Contract TANPA unit Device/CE borongan (satu invoice berisi >=3 unit Device/handphone; RC tetap dihitung)
   catOpOpen: false, // true = popup Tabel Operator (XL / Indosat / Telkomsel per toko: Target, MTD, Estimasi, GAP, %) terbuka
   topEroSel: null, // nama ERO yang diklik di slide TOP 10 BY ERO -> menampilkan top 10 penjualan ERO tsb
   topEroBy: 'val', // urutan top 10 penjualan ERO: 'val' (omzet) | 'qty'
@@ -2367,7 +2368,7 @@ function toggleCategoryDetail(cat){
   // rincian by Store/by ERO tetap bisa dibuka lewat tombol "Rincian" di popup pivot.
   // (dinonaktifkan) Accessories & Repair Contract kini membuka popup rincian yang sama dengan Laptop; Tabel Pivot tetap bisa dibuka lewat tombol "📊 Tabel Pivot".
   state.catTopOpen = false;
-  state.catPivotOpen = false; state.catOpOpen = false; state.catDetailKey = (state.catDetailKey===cat) ? null : cat; state.catDetailStore = null; state.catDetailView = 'store'; state.catTypeQ = ''; render(); }
+  state.catPivotOpen = false; state.catOpOpen = false; state.catRcTakeOut = false; state.catDetailKey = (state.catDetailKey===cat) ? null : cat; state.catDetailStore = null; state.catDetailView = 'store'; state.catTypeQ = ''; render(); }
 // Popup Top 15 barang Accessories terlaris area Jakpus 2: dibuka lewat tombol 🏅 Top 15 (di sebelah 📊 By ERO), cara kerja sama dengan By ERO.
 function openCatTop(){ state.catTopSel = null; state.catTopBy = 'qty'; state.catTopOpen = true; state.catPivotOpen = false; state.catOpOpen = false; state.catDetailKey = null; state.catDetailStore = null; render(); }
 function closeCatTop(){ state.catTopOpen = false; state.catTopSel = null; render(); }
@@ -2396,6 +2397,7 @@ function fitCatPopupTables(){
 let _catFitTimer = null;
 window.addEventListener('resize', function(){ clearTimeout(_catFitTimer); _catFitTimer = setTimeout(fitCatPopupTables, 150); });
 function openCatOperator(){ state.opSel = null; state.racingSel = null; state.catOpOpen = true; state.catPivotOpen = false; state.catDetailKey = null; state.catDetailStore = null; render(); }
+function toggleRcTakeOut(){ state.catRcTakeOut = !state.catRcTakeOut; render(); }
 function closeCatOperator(){ state.opSel = null; state.racingSel = null; state.catOpOpen = false; render(); }
 // Kembali dari popup pivot / operator ke popup rincian kategori (by Store -> by ERO).
 function backToCatDetail(cat){ state.catTopOpen = false; state.catTopSel = null; state.catPivotEro = null; state.opSel = null; state.racingSel = null; state.catPivotStore = null; state.catPivotOpen = false; state.catOpOpen = false; state.catDetailKey = cat; state.catDetailStore = null; render(); }
@@ -2522,7 +2524,46 @@ function setCatSort(col){
   render();
 }
 function selectCatDetailStore(code){ state.catDetailStore = (state.catDetailStore===code) ? null : code; state.catEroSel = null; state.catStoreSub = 'ero'; state.catTypeQ = ''; render(); }
-function setCatStoreSub(v){ state.catEroSel = null; state.catStoreSub = (v==='type') ? 'type' : (v==='top') ? 'top' : 'ero'; state.catTypeQ = ''; render(); }
+// Rincian invoice borongan (>=3 unit Device dalam satu invoice) yang di-take out pada tombol 🚫 Repair Contract, untuk satu toko.
+function renderRcBulkInvoices(d, selStore){
+  const nf = function(n){ return Math.round(n||0).toLocaleString('en-US'); };
+  const recs = (d.filtered||[]).filter(function(r){ return r[11] && (r[1]===selStore.site_code || r[1]===selStore.site_desc); });
+  const inv = {};
+  recs.forEach(function(r){
+    const k = String(r[11]);
+    const o = inv[k] || (inv[k] = {no:k, date:r[0], sales:{}, dq:0, items:[]});
+    if (r[2]==='Device') o.dq += (r[4]||0);
+    if (r[6]) o.sales[r[6]] = 1;
+    if (r[0] < o.date) o.date = r[0];
+    o.items.push(r);
+  });
+  const list = Object.keys(inv).map(function(k){ return inv[k]; }).filter(function(o){ return o.dq>=3; })
+    .sort(function(a,b){ return a.date<b.date ? -1 : a.date>b.date ? 1 : (b.dq-a.dq); });
+  if (!list.length) return '<div class="cat-hint">Tidak ada invoice borongan (&ge;3 unit Device dalam satu invoice) di toko ini pada rentang tanggal terpilih.</div>';
+  let totDev = 0, totCe = 0, totRc = 0, totDevVal = 0;
+  const body = list.map(function(o, i){
+    let devQ = 0, ceQ = 0, rcQ = 0, devV = 0;
+    const lines = o.items.slice().sort(function(a,b){
+      const w = function(c){ return c==='Device' ? 0 : c==='CE' ? 1 : c==='Repair Contract' ? 2 : 3; };
+      return w(a[2])-w(b[2]) || (b[5]||0)-(a[5]||0);
+    }).map(function(r){
+      const out = (r[2]==='Device' || r[2]==='CE');
+      if (r[2]==='Device'){ devQ += r[4]||0; devV += r[5]||0; }
+      if (r[2]==='CE') ceQ += r[4]||0;
+      if (r[2]==='Repair Contract') rcQ += r[4]||0;
+      const nm = String(r[7]==null?'':r[7]).trim() || 'Tanpa Nama Tipe';
+      const br = String(r[3]==null?'':r[3]).trim();
+      return '<div style="padding:1px 0;'+(out?'color:var(--red);':'')+'">'+(out?'🚫 ':'✔ ')+'<b>'+escapeHtml(r[2])+'</b> &middot; '+(br?escapeHtml(br)+' &middot; ':'')+escapeHtml(nm)+' &times; '+nf(r[4])+' &middot; Rp '+nf(r[5])+'</div>';
+    }).join('');
+    totDev += devQ; totCe += ceQ; totRc += rcQ; totDevVal += devV;
+    return '<tr><td>'+(i+1)+'</td><td style="text-align:left;font-weight:800;white-space:nowrap;">'+escapeHtml(o.no)+'</td><td style="white-space:nowrap;">'+escapeHtml(o.date)+'</td><td style="text-align:left;">'+escapeHtml(Object.keys(o.sales).join(', ')||'-')+'</td>'
+      +'<td style="font-weight:800;color:var(--red);">'+nf(devQ)+'</td><td>'+nf(ceQ)+'</td><td>'+nf(rcQ)+'</td><td style="text-align:left;font-size:10.5px;min-width:320px;">'+lines+'</td></tr>';
+  }).join('');
+  return '<div class="pivot-wrap" style="overflow-x:auto;"><table class="pivot-tbl pv-hp"><thead><tr><th>#</th><th style="text-align:left;">No Invoice</th><th>Tanggal</th><th style="text-align:left;">Sales (ERO)</th><th>Device (unit)</th><th>CE (unit)</th><th>RC (unit)</th><th style="text-align:left;">Barang yang Dijual</th></tr></thead><tbody>'+body
+    +'</tbody><tfoot><tr class="pv-total"><td></td><td style="text-align:left;">TOTAL '+nf(list.length)+' invoice</td><td></td><td></td><td>'+nf(totDev)+'</td><td>'+nf(totCe)+'</td><td>'+nf(totRc)+'</td><td></td></tr></tfoot></table></div>'
+    +'<div class="cat-hint x-note" style="margin-top:4px;">🚫 = unit yang di-take out dari penyebut AR (Device &amp; CE pada invoice ini). ✔ = tetap dihitung (mis. Repair Contract). Invoice borongan = satu invoice di toko ini berisi 3 unit Device (handphone) ke atas.</div>';
+}
+function setCatStoreSub(v){ state.catEroSel = null; state.catStoreSub = (v==='type') ? 'type' : (v==='top') ? 'top' : (v==='bulk') ? 'bulk' : 'ero'; state.catTypeQ = ''; render(); }
 function setCatStoreTopBy(k){ state.catStoreTopBy = (k==='val') ? 'val' : 'qty'; render(); }
 document.addEventListener('keydown', function(e){ if (e.key==='Escape'){ if (state.brandDetailKey) closeBrandDetail(); else if (state.storeHpOpen) closeStoreHp(); else if (state.brandVasOpen) closeBrandVas(); else if (state.samIncOpen) closeSamInc(); else if (state.racingKey) closeRacing(); else if (state.brandPivotKey) closeBrandPivot(); else if (state.brandStoreKey) toggleBrandStore(null); else if (state.catTopOpen) closeCatTop(); else if (state.catOpOpen) closeCatOperator(); else if (state.catPivotOpen) closeCatPivot(); else if (state.catDetailKey) toggleCategoryDetail(''); } });
 function setStoreFilter(v){ state.storeFilter = v; scheduleRender(150); }
@@ -4020,18 +4061,27 @@ function computeDerived(){
   // AR/SOB per toko & per ERO/sales (SPG) - rumus sama persis dgn tabel Pencapaian Semua Kategori per Sales.
   // Hanya dihitung saat rincian sebuah kategori dibuka di kartu OMZET PER KATEGORI.
   const catAchvByStore = {}, catAchvEroRows = [], catAchvEroByStore = {};
-  let catAchvTotal = null;
+  let catAchvTotal = null, catRecs = null;
   if (state.catDetailKey || state.catPivotOpen){
     const _byDesc = {}; stores.forEach(st=>{ _byDesc[st.site_desc]=st; });
+    // Take out borongan (Repair Contract): invoice (per toko + nomor invoice) yang berisi >=3 unit Device (handphone) dikeluarkan seluruhnya dari hitungan.
+    let _catRecs = filtered;
+    if (state.catRcTakeOut && state.catDetailKey==='Repair Contract'){
+      const _dvInv = {}, _bulk = {};
+      filtered.forEach(r=>{ if (r[2]==='Device' && r[11]){ const k = r[1]+'\u0001'+r[11]; _dvInv[k] = (_dvInv[k]||0) + (r[4]||0); } });
+      Object.keys(_dvInv).forEach(k=>{ if (_dvInv[k]>=3) _bulk[k] = true; });
+      _catRecs = filtered.filter(r=>!(r[11] && _bulk[r[1]+'\u0001'+r[11]] && (r[2]==='Device' || r[2]==='CE'))); // hanya unit Device & CE borongan yang di-take out dari penyebut AR; Repair Contract di invoice tsb tetap dihitung
+    }
+    catRecs = _catRecs;
     const rs = {};
-    filtered.forEach(r=>{
+    _catRecs.forEach(r=>{
       const st = storeByCode[r[1]] || _byDesc[r[1]]; if (!st) return;
       (rs[st.site_code] = rs[st.site_code] || []).push(r);
     });
     // Toko channel ERABLUE di-take out dari daftar Pencapaian by Kategori (baris toko/ERO dan Grand Total, termasuk AR & SOB). AGRES ikut dihitung.
     const _exSet = {}; stores.forEach(st=>{ if (chainOfStore(st.site_desc)==='ERABLUE') _exSet[st.site_code] = true; });
     Object.keys(rs).forEach(k=>{ if (_exSet[k]) return; const _g = buildSalesAchv(rs[k]); catAchvByStore[k] = _g.totals; catAchvEroByStore[k] = _g.rows; });
-    const _all = buildSalesAchv(filtered.filter(r=>{ const st = storeByCode[r[1]] || _byDesc[r[1]]; return !(st && _exSet[st.site_code]); }));
+    const _all = buildSalesAchv(_catRecs.filter(r=>{ const st = storeByCode[r[1]] || _byDesc[r[1]]; return !(st && _exSet[st.site_code]); }));
     catAchvTotal = _all.totals;
     _all.rows.forEach(x=>catAchvEroRows.push(x));
   }
@@ -4159,7 +4209,7 @@ function computeDerived(){
 
   return { growth, categories, stores, allStores, leaders, filtered, distinctDays, dim, periodCalDays, totals, byCategory, byGroup, byBrand, byBrandType, brandCards,
     byStore, byLeader, byDay, byWeek, mtd, est, avgDay, asp, target, targetFull, achv, mtdPct, deviasi, filteredStores, trend,
-    topSales, topStores, salesStoreOptions, salesAchvRows, salesAchvTotals, salesAchvByStore, catAchvByStore, catAchvEroRows, catAchvEroByStore, catAchvTotal };
+    topSales, topStores, salesStoreOptions, salesAchvRows, salesAchvTotals, salesAchvByStore, catAchvByStore, catAchvEroRows, catAchvEroByStore, catAchvTotal, catRecs };
 }
 
 /* ============ TREN BULANAN: MoM / YoY / YTD ============
@@ -4394,6 +4444,7 @@ function renderCategoryCard(d){
       +'<td style="text-align:center;color:var(--green);font-weight:800;">'+editableNum(t, canEditTargets(), 'category', cat)+'</td>'
       +'<td style="text-align:center;color:var(--text-strong);">'+fmt(d.byCategory[cat].omzet)+'</td>'
       +'<td style="text-align:center;color:var(--text-strong);">'+fmt(compareValue)+'</td>'
+      +'<td style="text-align:center;color:var(--text-strong);">'+(d.distinctDays>0 ? fmt(d.byCategory[cat].omzet/d.distinctDays) : '-')+'</td>'
       +'<td style="text-align:center;white-space:nowrap;">'+trendPctSpan(growthCalc(d, d.byCategory[cat], d.growth&&d.growth.cat[cat]).val)+'</td></tr>';
   });
 
@@ -4409,7 +4460,7 @@ function renderCategoryCard(d){
     +'</div>';
   });
 
-  let theadHtml = '<tr><th>Kategori</th><th>Target</th><th>MTD</th><th>'+periodCompareLabel()+'</th><th title="Pertumbuhan / penurunan dibanding bulan lalu">Growth vs Bln Lalu</th></tr>';
+  let theadHtml = '<tr><th>Kategori</th><th>Target</th><th>MTD</th><th>'+periodCompareLabel()+'</th><th title=\"Rata-rata penjualan per hari = MTD / jumlah hari berjalan\">Daily Sales</th><th title="Pertumbuhan / penurunan dibanding bulan lalu">Growth vs Bln Lalu</th></tr>';
   if (state.catMetric==='qty'){
     // Tampilan by Qty: porsi qty tiap kategori terhadap total qty (target hanya tersedia dalam Value).
     const totQty = d.categories.reduce(function(a,c){ return a+(d.byCategory[c].qty||0); },0);
@@ -4478,7 +4529,7 @@ function renderCategoryTypeView(d, cat, store){
   const map = {}; let gross = 0, retur = 0;
   // Accessories saat toko diklik: hanya barang dengan value transaksi di atas Rp10.000.
   const accMin = (cat==='Accessories' && store) ? 10000 : null;
-  (d.filtered||[]).forEach(function(r){
+  (d.catRecs||d.filtered||[]).forEach(function(r){
     if (r[2]!==cat) return;
     if (store && r[1]!==store.site_code && r[1]!==store.site_desc) return;
     if (accMin!==null && !(Math.abs(r[5])>accMin)) return;
@@ -4502,7 +4553,7 @@ function renderCategoryTypeView(d, cat, store){
   // Label cakupan + pemeriksaan: total tipe harus sama dengan jumlah transaksi kategori ini di toko-toko terdaftar.
   const storeList = d.stores||[];
   const known = {}; storeList.forEach(function(st){ known[st.site_code]=1; known[st.site_desc]=1; });
-  const unmatched = store ? 0 : (d.filtered||[]).reduce(function(a,r){ return (r[2]===cat && !known[r[1]]) ? a+r[5] : a; },0);
+  const unmatched = store ? 0 : (d.catRecs||d.filtered||[]).reduce(function(a,r){ return (r[2]===cat && !known[r[1]]) ? a+r[5] : a; },0);
   const scope = store ? ('Toko: '+store.site_desc) : ('Semua toko ('+fmt(storeList.length)+' toko)');
   const scopeChip = '<span style="font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:999px;border:1px solid var(--border);color:var(--green);">'+escapeHtml(scope)+'</span>';
   const warn = unmatched!==0 ? '<span style="font-size:10.5px;color:var(--yellow);">&#9888; Rp '+fmt(unmatched)+' berasal dari nama toko yang tidak ada di daftar toko</span>' : '';
@@ -4928,13 +4979,15 @@ function renderCategoryDetailStore(d){
   const arNote = cat==='Accessories'
     ? ' AR Aksesoris = Qty Accessories (hanya transaksi bernilai &gt; Rp10.000) &divide; Qty Device. SOB Aksesoris = value Accessories (semua transaksi) &divide; value Device (hijau &ge;6% = target tercapai, merah &lt;6%). Warna AR Aksesoris: hijau &ge;150%, kuning &ge;100%, merah &lt;100%. Tampilan by Store: kolom Qty &amp; Value Device saja; Medpoin = tipe aksesoris Medpoin (value dari total_nett_amount_with_tax).'
     : (cat==='Operator' ? ' Tampilan by Store Operator: Ar = Qty Operator &divide; Qty Device, SoB = Value Operator &divide; Value Device (Operator = hanya Indosat, XL, Telkomsel; Value Operator = kolom price). Warna Ar: hijau &ge;25%, kuning &ge;20%, merah &lt;20% (sama dengan Repair Contract). Warna SoB: hijau &ge;50%, kuning &ge;20%, merah &lt;20%.'
-    : cat==='Repair Contract' ? ' AR Boltech = Qty Repair Contract (semua transaksi) &divide; (Qty Device + Qty CE). Warna AR Boltech: hijau &ge;25%, kuning &ge;20%, merah &lt;20%.' : '');
+    : cat==='Repair Contract' ? ' AR Boltech = Qty Repair Contract (semua transaksi) &divide; (Qty Device + Qty CE). Warna AR Boltech: hijau &ge;25%, kuning &ge;20%, merah &lt;20%.'+(state.catRcTakeOut?' <b>Take out borongan aktif:</b> unit Device dan CE pada invoice yang berisi 3 unit Device (handphone) ke atas dikeluarkan dari penyebut AR/SoB. Repair Contract pada invoice tsb tetap dihitung.':'') : '');
   const subTop = (cat==='Accessories' && state.catStoreSub==='top');
   const subType = state.catStoreSub==='type';
+  const subBulk = (cat==='Repair Contract' && state.catRcTakeOut && state.catStoreSub==='bulk');
   const subTabs = selStore ? ('<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:4px 0 6px;"><span style="font-weight:800;font-size:11px;color:var(--green);">'+escapeHtml(selStore.site_desc)+'</span>'
-    +'<button class="pv-btn'+((subType||subTop)?'':' on')+'" onclick="setCatStoreSub(\'ero\')">👤 By ERO (Sales / SPG)</button>'
+    +'<button class="pv-btn'+((subType||subTop||subBulk)?'':' on')+'" onclick="setCatStoreSub(\'ero\')">👤 By ERO (Sales / SPG)</button>'
     +'<button class="pv-btn'+(subType?' on':'')+'" onclick="setCatStoreSub(\'type\')">🏷️ By Tipe (Barang Terjual)</button>'
-    +(cat==='Accessories'?'<button class="pv-btn'+(subTop?' on':'')+'" onclick="setCatStoreSub(\'top\')" title="10 tipe barang Accessories paling banyak terjual di toko ini">🏅 Top 10 by Tipe</button>':'')+((subType||subTop)?'':'<span style="font-size:10px;color:var(--muted);">👆 Klik nama ERO untuk lihat tipe yang dijual di kategori ini</span>')+'</div>') : '';
+    +(cat==='Repair Contract'&&state.catRcTakeOut?'<button class="pv-btn'+(subBulk?' on':'')+'" onclick="setCatStoreSub(\'bulk\')" title="No invoice borongan (&ge;3 unit Device) yang di-take out di toko ini beserta barang yang dijual">🚫 Invoice Take Out</button>':'')
+    +(cat==='Accessories'?'<button class="pv-btn'+(subTop?' on':'')+'" onclick="setCatStoreSub(\'top\')" title="10 tipe barang Accessories paling banyak terjual di toko ini">🏅 Top 10 by Tipe</button>':'')+((subType||subTop||subBulk)?'':'<span style="font-size:10px;color:var(--muted);">👆 Klik nama ERO untuk lihat tipe yang dijual di kategori ini</span>')+'</div>') : '';
   // Repair Contract: By ERO tampil seperti Tabel Pivot (Device Qty/Value | Repair Contract Qty/Value | Ar | SoB) + kolom Lost
   // (Lost = unit Device yang terjual tanpa Repair Contract = Qty Device - Qty Repair Contract, minimal 0).
   function rcEroPivotHtml(){
@@ -4973,12 +5026,12 @@ function renderCategoryDetailStore(d){
   }
   const eroHtml = selStore
     ? '<div class="cat-ero-box" style="margin:4px 0 0 10px;padding:6px 0 2px 10px;border-left:3px solid var(--green);border-top:0;">'+subTabs
-      +(subTop ? renderStoreTop10(d, selStore) : subType ? renderCategoryTypeView(d, cat, selStore) : (cat==='Accessories'||cat==='Operator') ? eroPivotHtml() : (cat==='Repair Contract') ? rcEroPivotHtml() : eroRows.length ? tbl(eroRows,'Nama Sales',false,{},(d.catAchvByStore||{})[selStore.site_code],true,false,selTotalOmzet,selTotalQty) : '<div class="cat-hint">Belum ada data sales untuk toko ini di rentang tanggal terpilih.</div>')
+      +(subBulk ? renderRcBulkInvoices(d, selStore) : subTop ? renderStoreTop10(d, selStore) : subType ? renderCategoryTypeView(d, cat, selStore) : (cat==='Accessories'||cat==='Operator') ? eroPivotHtml() : (cat==='Repair Contract') ? rcEroPivotHtml() : eroRows.length ? tbl(eroRows,'Nama Sales',false,{},(d.catAchvByStore||{})[selStore.site_code],true,false,selTotalOmzet,selTotalQty) : '<div class="cat-hint">Belum ada data sales untuk toko ini di rentang tanggal terpilih.</div>')
       +'</div>'
     : '';
   return '<div class="cat-overlay" onclick="if(event.target===this)toggleCategoryDetail(\'\')">'
     +'<div class="cat-detail">'
-    +'<div class="cat-detail-title"><span>Pencapaian '+escapeHtml(label)+' &ndash; by Store'+(selStore?' &rsaquo; by ERO':'')+'</span><span style="display:flex;gap:6px;align-items:center;"><span class="x cap-hide" style="border:1px solid var(--border);" onclick="captureCatPopup()" title="Simpan semua data sebagai gambar">📸</span>'+(cat==='Operator'?'<span class="x" style="border:1px solid var(--border);" onclick="openCatOperator()" title="Racing Operator (XL / Indosat / Telkomsel) per toko">🏁 Racing</span>':'')+(RACING_CAT_KEY[cat] && state.raw && state.raw.racing ? '<span class="x" style="border:1px solid var(--border);" onclick="openRacing(\''+RACING_CAT_KEY[cat]+'\',\''+cat+'\')" title="Pencapaian racing by Store">🏁 Racing</span>' : '')+(cat==='Accessories'?'<span class="x" style="border:1px solid var(--border);" onclick="openCatTop()" title="Top 15 barang Accessories paling banyak terjual">🏅 Top 15</span>':'')+(hasCatPivot(cat)?'<span class="x" style="border:1px solid var(--border);" onclick="openCatPivot(\''+catPivotModeOf(cat)+'\',null,\''+cat+'\')" title="Tampilkan sebagai tabel pivot Store + ERO">📊 By ERO</span>':'')+'<span class="x" onclick="toggleCategoryDetail(\'\')" title="Tutup (Esc)">✕ Tutup</span></span></div>'
+    +'<div class="cat-detail-title"><span>Pencapaian '+escapeHtml(label)+' &ndash; by Store'+(selStore?' &rsaquo; by ERO':'')+(cat==='Repair Contract'&&state.catRcTakeOut?' <span style="color:var(--yellow);font-size:.8em;">&middot; tanpa invoice borongan (&ge;3 HP)</span>':'')+'</span><span style="display:flex;gap:6px;align-items:center;"><span class="x cap-hide" style="border:1px solid var(--border);" onclick="captureCatPopup()" title="Simpan semua data sebagai gambar">📸</span>'+(cat==='Repair Contract'?'<span class="x" style="border:1px solid var(--border);'+(state.catRcTakeOut?'background:rgba(255,200,60,.35);':'')+'" onclick="toggleRcTakeOut()" title="Take out borongan: unit Device & CE pada invoice berisi 3 unit Device (handphone) ke atas dikeluarkan dari penyebut AR Repair Contract (RC tetap dihitung)'+(state.catRcTakeOut?' (AKTIF - klik untuk matikan)':'')+'">🚫</span>':'')+(cat==='Operator'?'<span class="x" style="border:1px solid var(--border);" onclick="openCatOperator()" title="Racing Operator (XL / Indosat / Telkomsel) per toko">🏁 Racing</span>':'')+(RACING_CAT_KEY[cat] && state.raw && state.raw.racing ? '<span class="x" style="border:1px solid var(--border);" onclick="openRacing(\''+RACING_CAT_KEY[cat]+'\',\''+cat+'\')" title="Pencapaian racing by Store">🏁 Racing</span>' : '')+(cat==='Accessories'?'<span class="x" style="border:1px solid var(--border);" onclick="openCatTop()" title="Top 15 barang Accessories paling banyak terjual">🏅 Top 15</span>':'')+(hasCatPivot(cat)?'<span class="x" style="border:1px solid var(--border);" onclick="openCatPivot(\''+catPivotModeOf(cat)+'\',null,\''+cat+'\')" title="Tampilkan sebagai tabel pivot Store + ERO">📊 By ERO</span>':'')+'<span class="x" onclick="toggleCategoryDetail(\'\')" title="Tutup (Esc)">✕ Tutup</span></span></div>'
     +'<h4>🏬 BY STORE</h4>'
     +'<div class="pv-ctl">'
       +((state.locked || cat==='Accessories' || cat==='Operator' || cat==='Repair Contract') ? '' : '<button class="pv-btn'+(state.editing?' on':'')+'" onclick="toggleEditing()">'+(state.editing?'✓ Selesai Isi Target':'✎ Isi / Edit Target per Toko')+'</button>')
