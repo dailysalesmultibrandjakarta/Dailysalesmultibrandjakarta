@@ -701,6 +701,11 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
 .cat-detail table.pivot-tbl.pv-hp tr.ero-expand-row table td,.cat-detail table.pivot-tbl.pv-hp tr.ero-expand-row table th{border:1px solid rgba(150,150,150,.5) !important;}
 .cat-detail table.pivot-tbl.pv-hp tr.ero-expand-row .pv-btn{color:var(--text-strong) !important;}
 .cat-detail table.pivot-tbl.pv-hp tr.ero-expand-row .pv-btn.on{color:#fff !important;}
+
+/* Baris TSH di tabel simulasi: seluruh kolom diberi warna beda (teal solid, tulisan putih) supaya jelas terpisah dari baris toko */
+.cat-detail table.pivot-tbl.pv-hp tbody tr.area-hdr.sim-tsh td,.cat-detail table.pivot-tbl.pv-hp tbody tr.area-hdr.sim-tsh td[style]{background:#0f766e !important;color:#ffffff !important;font-weight:900 !important;font-size:11.5px;border-top:3px solid #5eead4 !important;border-bottom:2px solid #5eead4 !important;border-left:1px solid rgba(255,255,255,.35) !important;border-right:1px solid rgba(255,255,255,.35) !important;}
+.cat-detail table.pivot-tbl.pv-hp tbody tr.area-hdr.sim-tsh td.cat-nm{background:#134e4a !important;font-size:13px;text-transform:uppercase;letter-spacing:.5px;border-left:8px solid #5eead4 !important;}
+.cat-detail table.pivot-tbl.pv-hp tbody tr.sim-tsh ~ tr:not(.sim-tsh) td.cat-nm{padding-left:24px !important;border-left:4px solid #14b8a6 !important;}
 </style>
 <style id="bold-all">
 /* Semua tulisan dibuat tebal (bold) supaya lebih jelas terbaca */
@@ -1443,6 +1448,7 @@ let state = {
   periodMenuOpen: false,
   weekSel: null, // minggu yang diklik di slide Weekly Revenue: {mon, from, to, prevFrom, prevTo} - null = tidak ada
   dailySelectedDate: null, // tanggal yang sedang dipilih/diklik di chart Daily Sales (null = otomatis pilih hari dgn value terbesar)
+  catSimOn: false, catSimMode: 'ar', simByTsh: false, opSimPct: 100, opSimSel: 1, catSimTarget: {Accessories:150, Operator:25}, rcSimOn: false, rcSimTarget: 0, rcSimTgt: {}, rcSimMode: 'ar', rcSimPct: 0, // Simulasi Target AR Repair Contract (tombol 🎯 di popup Repair Contract by Store)
   catRcTakeOut: false, // true = rincian Repair Contract TANPA unit Device/CE borongan (satu invoice berisi >=3 unit Device/handphone; RC tetap dihitung)
   catOpOpen: false, // true = popup Tabel Operator (XL / Indosat / Telkomsel per toko: Target, MTD, Estimasi, GAP, %) terbuka
   topEroSel: null, // nama ERO yang diklik di slide TOP 10 BY ERO -> menampilkan top 10 penjualan ERO tsb
@@ -2368,7 +2374,7 @@ function toggleCategoryDetail(cat){
   // rincian by Store/by ERO tetap bisa dibuka lewat tombol "Rincian" di popup pivot.
   // (dinonaktifkan) Accessories & Repair Contract kini membuka popup rincian yang sama dengan Laptop; Tabel Pivot tetap bisa dibuka lewat tombol "📊 Tabel Pivot".
   state.catTopOpen = false;
-  state.catPivotOpen = false; state.catOpOpen = false; state.catRcTakeOut = false; state.catDetailKey = (state.catDetailKey===cat) ? null : cat; state.catDetailStore = null; state.catDetailView = 'store'; state.catTypeQ = ''; render(); }
+  state.catPivotOpen = false; state.catOpOpen = false; state.catRcTakeOut = false; state.catSimOn = false; state.catSimMode = 'ar'; state.catDetailKey = (state.catDetailKey===cat) ? null : cat; state.catDetailStore = null; state.catDetailView = 'store'; state.catTypeQ = ''; render(); }
 // Popup Top 15 barang Accessories terlaris area Jakpus 2: dibuka lewat tombol 🏅 Top 15 (di sebelah 📊 By ERO), cara kerja sama dengan By ERO.
 function openCatTop(){ state.catTopSel = null; state.catTopBy = 'qty'; state.catTopOpen = true; state.catPivotOpen = false; state.catOpOpen = false; state.catDetailKey = null; state.catDetailStore = null; render(); }
 function closeCatTop(){ state.catTopOpen = false; state.catTopSel = null; render(); }
@@ -2398,6 +2404,370 @@ let _catFitTimer = null;
 window.addEventListener('resize', function(){ clearTimeout(_catFitTimer); _catFitTimer = setTimeout(fitCatPopupTables, 150); });
 function openCatOperator(){ state.opSel = null; state.racingSel = null; state.catOpOpen = true; state.catPivotOpen = false; state.catDetailKey = null; state.catDetailStore = null; render(); }
 function toggleRcTakeOut(){ state.catRcTakeOut = !state.catRcTakeOut; render(); }
+function toggleRcSim(){ state.rcSimOn = !state.rcSimOn; render(); }
+function setRcSimTgt(code, v){ if (!state.rcSimTgt) state.rcSimTgt = {}; const n = parseFloat(String(v).replace(/\./g,'').replace(',','.')); if (String(v).trim()==='' || !isFinite(n)) delete state.rcSimTgt[code]; else state.rcSimTgt[code] = Math.max(0,n); render(); }
+function setRcSimMode(m){ state.rcSimMode = (m==='val') ? 'val' : 'ar'; render(); }
+function setRcSimPct(v){ const n = parseFloat(String(v).replace(',','.')); if (isFinite(n) && n>=0 && n<=1000) state.rcSimPct = n; render(); }
+function setRcSimTarget(v){ const n = parseFloat(String(v).replace(',','.')); if (isFinite(n) && n>=0 && n<=500){ state.rcSimTarget = n; } render(); }
+function setOpSimPct(v){ const n = parseFloat(String(v).replace(',','.')); if (isFinite(n) && n>=0 && n<=1000) state.opSimPct = n; render(); }
+function toggleSimTsh(on){ state.simByTsh = !!on; render(); }
+// Pilihan tampilan simulasi: per Store atau per TSH (subtotal area/TSH saja). Hanya muncul bila data area/TSH tersedia.
+function simViewBtns(){
+  if (!(state.raw && state.raw.areaByStore)) return '';
+  return '';
+}
+function setOpSimSel(i){ state.opSimSel = (i===0||i===1||i===2) ? i : 1; render(); }
+// Simulasi Operator berbasis VALUE, per operator (Indosat / XL / Telkomsel) dengan kolom seperti tombol Racing Operator.
+// Target diambil otomatis dari Target Racing Operator (sheet Target Racing; isian manual target Operator tetap diutamakan, sama seperti tabel Racing Operator).
+function opSimHtml(d){
+  const tg = getEffectiveTargets(), opT = tg.opStore || {};
+  const PCT = (state.opSimPct===undefined||state.opSimPct===null) ? 100 : state.opSimPct;
+  const selIdx = (state.opSimSel===0||state.opSimSel===1||state.opSimSel===2) ? state.opSimSel : 1; // default Indosat
+  const G = OP_TABLE_GROUPS[selIdx];
+  const num = n => Math.round(n||0).toLocaleString('id-ID');
+  const stores = (d.stores||[]).filter(function(st){ return !racingStoreExcluded(st.site_desc); });
+  const byCode = {}, agg = {};
+  stores.forEach(function(st){ byCode[st.site_code]=st; byCode[st.site_desc]=st; agg[st.site_code] = {q:0, v:0}; });
+  (d.filtered||[]).forEach(function(r){
+    if (r[2]!=='Operator') return;
+    const st = byCode[r[1]]; if (!st) return;
+    if (operatorBrandLabel(r[3])!==G.key || !racingOpCounts(r)) return;
+    agg[st.site_code].q += r[4]; agg[st.site_code].v += racingOpVal(r);
+  });
+  const factor = (isProjectionMode() && d.distinctDays>0) ? d.dim/d.distinctDays : 1;
+  let allQ = 0, allV = 0;
+  const rows = stores.map(function(st){
+    const a = agg[st.site_code]; allQ += a.q; allV += a.v;
+    const manualT = Number(opT[st.site_code+'|'+G.key])||0;
+    const tm = manualT>0 ? manualT : opRacingSheetTarget(st.site_code, G.key);
+    const pp = periodPct(tm, a.v, d);
+    return {name:st.site_desc, t:pp.target, q:a.q, v:a.v, eq:Math.round(a.q*factor), ev:pp.compareValue, gap:a.v-pp.target, pct:pp.hasTarget?pp.pct:null};
+  }).filter(function(r){ return r.t>0 || r.q>0; });
+  const avgAll = allQ>0 ? allV/allQ : 0;
+  rows.forEach(function(r){
+    const avg = r.q>0 ? r.v/r.q : avgAll;
+    r.needV = r.t>0 ? r.t*PCT/100 : 0;
+    r.addV = r.t>0 ? Math.max(0, r.needV - r.v) : 0;
+    r.addQ = (r.t>0 && avg>0) ? Math.ceil(r.addV/avg - 1e-9) : 0;
+  });
+  function sum(list){
+    const o = {t:0, q:0, v:0, eq:0, ev:0, gap:0, needV:0, addV:0, addQ:0};
+    list.forEach(function(r){ Object.keys(o).forEach(function(k){ if (k==='gap' && !(r.t>0)) return; o[k] += (r[k]||0); }); });
+    o.pct = o.t>0 ? o.ev/o.t*100 : null;
+    return o;
+  }
+  const tot = sum(rows);
+  const scale = makeColorScale(rows.map(function(r){ return r.pct; }));
+  const st = 'background:'+G.bg+';color:'+G.fg+';', sim = 'background:#7a5a00;color:#fff;';
+  function cells(o, useScale){
+    const bg = useScale ? scale(o.pct) : '';
+    return '<td>'+(o.t>0?num(o.t):'-')+'</td><td>'+num(o.q)+'</td><td>'+num(o.v)+'</td><td>'+num(o.eq)+'</td><td>'+num(o.ev)+'</td>'
+      +'<td>'+(o.t>0?num(o.gap):'-')+'</td>'
+      +'<td style="font-weight:800;'+(bg?'background:'+bg+';':'')+'">'+(o.pct===null?'-':fmtPct(o.pct))+'</td>'
+      +'<td>'+(o.t>0?num(o.needV):'-')+'</td>'
+      +'<td style="font-weight:800;'+(o.t>0&&o.addQ===0?'color:var(--green);':(o.addQ>0?'color:var(--red);':''))+'">'+(o.t<=0?'-':(o.addV<=0?'\u2714':'+'+num(o.addQ)))+'</td>'
+      +'<td style="font-weight:800;">'+(o.addV>0?num(o.addV):'-')+'</td>'
+      +'<td style="font-weight:800;">'+(o.t>0?fmtPct((o.v+o.addV)/o.t*100):'-')+'</td>';
+  }
+  function kpi(lbl, main, sub, hi){
+    return '<div style="border:1px solid var(--border);border-radius:8px;padding:5px 9px;line-height:1.25;'+(hi?'background:rgba(255,200,60,.14);':'')+'">'
+      +'<div style="font-size:9.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.02em;">'+lbl+'</div>'
+      +'<div style="font-size:15px;font-weight:800;color:var(--text-strong);">'+main+'</div>'
+      +'<div style="font-size:10px;color:var(--muted);">'+sub+'</div></div>';
+  }
+  const grp = racingGroupByArea(rows, function(r){ return r.name; });
+  const head = '<thead><tr><th rowspan="2" style="min-width:210px;text-align:left;">'+(grp?'TSH / Store':'Store')+'</th><th rowspan="2" style="'+st+'">Target '+G.label+'</th><th colspan="2" style="'+st+'">MTD</th><th colspan="2" style="'+st+'">Estimasi</th><th rowspan="2" style="'+st+'">GAP</th><th rowspan="2" style="'+st+'">%</th>'
+    +'<th colspan="4" style="'+sim+'">SIMULASI ACHIEVEMENT '+pf(PCT)+'%</th></tr>'
+    +'<tr><th style="'+st+'">QTY</th><th style="'+st+'">VALUE</th><th style="'+st+'">QTY</th><th style="'+st+'">VALUE</th>'
+    +'<th style="'+sim+'">Value<br>dibutuhkan</th><th style="'+sim+'">Tambah<br>Qty</th><th style="'+sim+'">Tambah Value<br>(Rp)</th><th style="'+sim+'">% Achv<br>hasil</th></tr></thead>';
+  const byAdd = function(a,b){ return (b.addV-a.addV) || (b.v-a.v); };
+  function storeRow(r){ return '<tr><td class="cat-nm" style="text-align:left;font-weight:600;">'+escapeHtml(r.name)+'</td>'+cells(r, true)+'</tr>'; }
+  let body = '';
+  if (grp){
+    grp.forEach(function(g){
+      const list = g.idx.map(function(i){ return rows[i]; }).sort(byAdd);
+      body += '<tr class="area-hdr sim-tsh"><td class="cat-nm" style="text-align:left;">\uD83D\uDC54 '+racingAreaLabel(g)+'</td>'+cells(sum(list), false)+'</tr>';
+      list.forEach(function(r){ body += storeRow(r); });
+    });
+  } else rows.slice().sort(byAdd).forEach(function(r){ body += storeRow(r); });
+  const opBtns = [1,0,2].map(function(i){
+    return '<button class="pv-btn'+(i===selIdx?' on':'')+'" onclick="setOpSimSel('+i+')">'+OP_TABLE_GROUPS[i].label+'</button>';
+  }).join('');
+  return '<div class="cat-ero-box" style="margin:6px 0 10px;padding:8px 10px;border-left:3px solid var(--yellow);text-align:left;white-space:normal;">'
+    +'<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px;"><b>\uD83C\uDFAF Simulasi Value Operator</b>'
+    +opBtns+catSimModeBtns('Operator')
+    +'<label style="font-size:11px;">Target Achievement <input type="number" min="0" max="1000" step="1" value="'+PCT+'" style="width:64px;" onchange="setOpSimPct(this.value)" onkeydown="if(event.key===\'Enter\')setOpSimPct(this.value)"> %</label></div>'
+    +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:6px;margin:0 0 8px;">'
+    +kpi('Target '+G.label, 'Rp '+num(tot.t), 'dikejar '+pf(PCT)+'% = Rp '+num(tot.t*PCT/100))
+    +kpi('Value '+G.label+' MTD', 'Rp '+num(tot.v), tot.t>0 ? 'estimasi '+fmtPct(tot.pct)+' dari target' : 'belum ada target')
+    +kpi('Kekurangan (tiap toko)', 'Rp '+num(tot.addV), '\u2248 '+num(tot.addQ)+' qty '+G.label, true)
+    +'</div>'
+    +'<div class="pivot-wrap"><table class="pivot-tbl pv-hp">'+head+'<tbody>'+body+'</tbody><tfoot><tr class="pv-total"><td style="text-align:left;font-weight:800;">GRAND TOTAL</td>'+cells(tot, false)+'</tr></tfoot></table></div>'
+    +'<div class="cat-hint x-note" style="margin-top:4px;">Kolom Target, MTD, Estimasi, GAP dan % sama dengan tombol \uD83C\uDFC1 Racing Operator (target otomatis dari sheet Target Racing; isian manual target Operator tetap diutamakan; Indosat hanya paket Platinum yang masuk racing). Pilih operator (Indosat / XL / Telkomsel) di atas tabel. <b>Value dibutuhkan</b> = Target &times; % yang dikejar. <b>Tambah Value</b> = Value dibutuhkan &minus; Value MTD (toko yang sudah tercapai = 0). <b>Tambah Qty</b> = Tambah Value &divide; rata-rata harga '+G.label+' toko itu (dibulatkan ke atas; toko tanpa penjualan memakai rata-rata semua toko). Toko tanpa target tidak dihitung. Data dikelompokkan per TSH (baris berwarna = subtotal TSH).</div></div>';
+}
+
+function setCatSimMode(m){ state.catSimMode = (m==='val') ? 'val' : 'ar'; render(); }
+function catSimModeBtns(cat){
+  const v = state.catSimMode==='val';
+  if (cat==='Operator') return '<button class="pv-btn on" onclick="setCatSimMode(\'val\')">TARGET BY VALUE</button>';
+  return '<button class="pv-btn'+(v?'':' on')+'" onclick="setCatSimMode(\'ar\')">\uD83D\uDEE1\uFE0F Target by AR</button><button class="pv-btn'+(v?' on':'')+'" onclick="setCatSimMode(\'val\')">SOB</button>';
+}
+
+// Simulasi SOB Accessories: SOB = Value Accessories / Value Device. Menghitung Value Accessories tambahan dari MTD agar SOB mencapai target %.
+function setAccSobTarget(v){ const n = parseFloat(String(v).replace(',','.')); if (isFinite(n) && n>=0 && n<=1000) state.accSobTarget = n; render(); }
+function accSimHtml(d, storeRows){
+  const T = (state.accSobTarget===undefined||state.accSobTarget===null) ? 6 : state.accSobTarget, f = T/100;
+  const num = n => Math.round(n||0).toLocaleString('id-ID');
+  const achv = d.catAchvByStore || {};
+  let allQ = 0, allV = 0;
+  const rows = (storeRows||[]).map(function(r){
+    const a = achv[r.achvKey]; if (!a) return null;
+    const dv = a.deviceVal||0, cv = a.accValAll||0, cq = a.accQty10k||0;
+    allQ += cq; allV += cv;
+    return {name:r.name, dv:dv, cq:cq, cv:cv};
+  }).filter(function(r){ return r && (r.dv>0 || r.cv>0); });
+  const avgAll = allQ>0 ? allV/allQ : 0;
+  rows.forEach(function(r){
+    const avg = r.cq>0 ? r.cv/r.cq : avgAll;
+    r.needV = f*r.dv;
+    r.addV = r.dv>0 ? Math.max(0, r.needV - r.cv) : 0;
+    r.addQ = (r.addV>0 && avg>0) ? Math.ceil(r.addV/avg - 1e-9) : 0;
+  });
+  function sum(list){
+    const o = {dv:0, cq:0, cv:0, needV:0, addV:0, addQ:0};
+    list.forEach(function(r){ Object.keys(o).forEach(function(k){ o[k] += (r[k]||0); }); });
+    return o;
+  }
+  const tot = sum(rows);
+  const st = 'background:#1f2f5f;color:#fff;', sim = 'background:#7a5a00;color:#fff;';
+  function cells(o){
+    const sob = o.dv>0 ? o.cv/o.dv*100 : null, sob2 = o.dv>0 ? (o.cv+o.addV)/o.dv*100 : null;
+    const ok = o.dv>0 && o.addV<=0;
+    return '<td>'+num(o.dv)+'</td><td>'+num(o.cq)+'</td><td>'+num(o.cv)+'</td>'
+      +sobStdTd(sob,'acc')
+      +'<td>'+(o.dv>0?num(o.needV):'-')+'</td>'
+      +'<td style="font-weight:800;'+(ok?'color:var(--green);':(o.addQ>0?'color:var(--red);':''))+'">'+(o.dv<=0?'-':(ok?'\u2714':'+'+num(o.addQ)))+'</td>'
+      +'<td style="font-weight:800;">'+(o.addV>0?num(o.addV):'-')+'</td>'
+      +sobStdTd(sob2,'acc');
+  }
+  function kpi(lbl, main, sub, hi){
+    return '<div style="border:1px solid var(--border);border-radius:8px;padding:5px 9px;line-height:1.25;'+(hi?'background:rgba(255,200,60,.14);':'')+'">'
+      +'<div style="font-size:9.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.02em;">'+lbl+'</div>'
+      +'<div style="font-size:15px;font-weight:800;color:var(--text-strong);">'+main+'</div>'
+      +'<div style="font-size:10px;color:var(--muted);">'+sub+'</div></div>';
+  }
+  const grp = racingGroupByArea(rows, function(r){ return r.name; });
+  const head = '<thead><tr><th rowspan="2" style="min-width:210px;text-align:left;">'+(grp?'TSH / Store':'Store')+'</th><th rowspan="2" style="'+st+'">Value<br>Device</th><th colspan="2" style="'+st+'">Accessories MTD</th><th rowspan="2" style="'+st+'">SOB<br>sekarang</th>'
+    +'<th colspan="4" style="'+sim+'">SIMULASI SOB '+pf(T)+'%</th></tr>'
+    +'<tr><th style="'+st+'">Qty</th><th style="'+st+'">Value</th>'
+    +'<th style="'+sim+'">Value Acc<br>dibutuhkan</th><th style="'+sim+'">Tambah<br>Qty</th><th style="'+sim+'">Tambah Value<br>(Rp)</th><th style="'+sim+'">Hasil<br>SOB</th></tr></thead>';
+  const byAdd = function(a,b){ return (b.addV-a.addV) || (b.dv-a.dv); };
+  function storeRow(r){ return '<tr><td class="cat-nm" style="text-align:left;font-weight:600;">'+escapeHtml(r.name)+'</td>'+cells(r)+'</tr>'; }
+  let body = '';
+  if (grp){
+    grp.forEach(function(g){
+      const list = g.idx.map(function(i){ return rows[i]; }).sort(byAdd);
+      body += '<tr class="area-hdr sim-tsh"><td class="cat-nm" style="text-align:left;">\uD83D\uDC54 '+racingAreaLabel(g)+'</td>'+cells(sum(list))+'</tr>';
+      list.forEach(function(r){ body += storeRow(r); });
+    });
+  } else rows.slice().sort(byAdd).forEach(function(r){ body += storeRow(r); });
+  const sobNow = tot.dv>0 ? tot.cv/tot.dv*100 : null;
+  return '<div class="cat-ero-box" style="margin:6px 0 10px;padding:8px 10px;border-left:3px solid var(--yellow);text-align:left;white-space:normal;">'
+    +'<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px;"><b>\uD83C\uDFAF Simulasi SOB Accessories</b>'
+    +catSimModeBtns()
+    +'<label style="font-size:11px;">Target SOB <input type="number" min="0" max="1000" step="0.5" value="'+T+'" style="width:64px;" onchange="setAccSobTarget(this.value)" onkeydown="if(event.key===\'Enter\')setAccSobTarget(this.value)"> %</label></div>'
+    +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:6px;margin:0 0 8px;">'
+    +kpi('SOB sekarang', sobNow===null?'-':fmtPct(sobNow), 'Rp '+num(tot.cv)+' Accessories / Rp '+num(tot.dv)+' Device')
+    +kpi('Value Acc dibutuhkan SOB '+pf(T)+'%', 'Rp '+num(tot.needV), 'dari Value Device Rp '+num(tot.dv))
+    +kpi('Kekurangan (tiap toko)', 'Rp '+num(tot.addV), '\u2248 '+num(tot.addQ)+' qty Accessories', true)
+    +'</div>'
+    +'<div class="pivot-wrap"><table class="pivot-tbl pv-hp">'+head+'<tbody>'+body+'</tbody><tfoot><tr class="pv-total"><td style="text-align:left;font-weight:800;">GRAND TOTAL</td>'+cells(tot)+'</tr></tfoot></table></div>'
+    +'<div class="cat-hint x-note" style="margin-top:4px;">SOB = Value Accessories (semua transaksi) &divide; Value Device. <b>Value Acc dibutuhkan</b> = Target SOB &times; Value Device toko. <b>Tambah Value</b> = Value dibutuhkan &minus; Value Accessories MTD (toko yang sudah mencapai target = 0). <b>Tambah Qty</b> = Tambah Value &divide; rata-rata harga Accessories toko itu (dibulatkan ke atas; toko tanpa penjualan memakai rata-rata semua toko). <b>Hasil SOB</b> = (Value MTD + Tambah Value) &divide; Value Device. Data dikelompokkan per TSH (baris berwarna = subtotal TSH).</div></div>';
+}
+function toggleCatSim(){ state.catSimOn = !state.catSimOn; if (state.catSimOn) state.catSimMode = (state.catDetailKey==='Operator') ? 'val' : 'ar'; render(); }
+function setCatSimTarget(cat, v){ const n = parseFloat(String(v).replace(',','.')); if (isFinite(n) && n>=0 && n<=1000){ if (!state.catSimTarget) state.catSimTarget = {}; state.catSimTarget[cat] = n; } render(); }
+// Simulasi AR Aksesoris / Operator: berapa Qty & Value tambahan per toko agar AR (Qty kategori / Qty Device) mencapai target %.
+function catSimHtml(d, cat, storeRows){
+  if (cat==='Operator' || state.catSimMode==='val') return cat==='Operator' ? opSimHtml(d) : accSimHtml(d, storeRows);
+  const isOp = cat==='Operator', kind = isOp ? 'rc' : 'acc';
+  const T = (state.catSimTarget||{})[cat]; const tgt = (T===undefined||T===null) ? (isOp?25:150) : T, f = tgt/100;
+  const num = n => Math.round(n||0).toLocaleString('id-ID');
+  const label = isOp ? 'Operator' : 'Accessories';
+  const achv = d.catAchvByStore || {};
+  let allQ = 0, allV = 0;
+  const rows = (storeRows||[]).map(function(r){
+    const a = achv[r.achvKey]; if (!a) return null;
+    const dq = a.deviceQty||0, dv = a.deviceVal||0;
+    const cq = isOp ? (a.opQ3!==undefined ? a.opQ3 : ((a.catQty&&a.catQty.Operator)||0)) : (a.accQty10k||0);
+    const cv = isOp ? (a.opP!==undefined ? a.opP : ((a.cat&&a.cat.Operator)||0)) : (a.accValAll||0);
+    allQ += cq; allV += cv;
+    return {name:r.name, dq:dq, dv:dv, cq:cq, cv:cv};
+  }).filter(function(r){ return r && (r.dq>0 || r.cq>0); });
+  const avgAll = allQ>0 ? allV/allQ : 0;
+  rows.forEach(function(r){
+    const avg = r.cq>0 ? r.cv/r.cq : avgAll;
+    r.need = Math.ceil(f*r.dq - 1e-9); r.add = Math.max(0, r.need - r.cq); r.val = r.add*avg;
+  });
+  function sum(list){
+    const o = {dq:0, dv:0, cq:0, cv:0, need:0, add:0, val:0};
+    list.forEach(function(r){ Object.keys(o).forEach(function(k){ o[k] += (r[k]||0); }); });
+    return o;
+  }
+  const tot = sum(rows); tot.ar = tot.dq>0 ? tot.cq/tot.dq*100 : null;
+  const needAgg = Math.ceil(f*tot.dq - 1e-9), addAgg = Math.max(0, needAgg - tot.cq);
+  const th = 'background:#1f2f5f;color:#fff;', sim = 'background:#7a5a00;color:#fff;';
+  function cells(o){
+    const ar = o.dq>0 ? o.cq/o.dq*100 : null;
+    const ok = o.add===0 && o.dq>0;
+    const ar2 = o.dq>0 ? (o.cq+o.add)/o.dq*100 : null;
+    return '<td>'+num(o.dq)+'</td><td>'+num(o.dv)+'</td><td>'+num(o.cq)+'</td><td>'+(o.cv?num(o.cv):'-')+'</td>'
+      +'<td style="font-weight:800;color:'+(ar===null?'var(--muted-2)':arColor(kind, ar))+';">'+fmtPct(ar)+'</td>'
+      +'<td>'+num(o.cq+o.add)+'</td>'
+      +'<td style="font-weight:800;'+(ok?'color:var(--green);':(o.add>0?'color:var(--red);':''))+'">'+(ok?'\u2714':(o.add>0?'+'+num(o.add):'-'))+'</td>'
+      +'<td style="font-weight:800;">'+(o.add>0?num(o.val):'-')+'</td>'
+      +'<td style="font-weight:800;color:'+(ar2===null?'var(--muted-2)':arColor(kind, ar2))+';">'+fmtPct(ar2)+'</td>';
+  }
+  function kpi(lbl, main, sub, hi){
+    return '<div style="border:1px solid var(--border);border-radius:8px;padding:5px 9px;line-height:1.25;'+(hi?'background:rgba(255,200,60,.14);':'')+'">'
+      +'<div style="font-size:9.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.02em;">'+lbl+'</div>'
+      +'<div style="font-size:15px;font-weight:800;color:var(--text-strong);">'+main+'</div>'
+      +'<div style="font-size:10px;color:var(--muted);">'+sub+'</div></div>';
+  }
+  const grp = racingGroupByArea(rows, function(r){ return r.name; });
+  const head = '<thead><tr><th rowspan="2" style="min-width:210px;text-align:left;">'+(grp?'TSH / Store':'Store')+'</th><th colspan="2" style="'+th+'">Device</th><th colspan="2" style="'+th+'">'+label+'</th><th rowspan="2" style="'+th+'">AR<br>sekarang</th>'
+    +'<th colspan="4" style="'+sim+'">SIMULASI '+tgt+'% AR</th></tr>'
+    +'<tr><th style="'+th+'">Qty</th><th style="'+th+'">Value</th><th style="'+th+'">Qty</th><th style="'+th+'">Value</th>'
+    +'<th style="'+sim+'">'+label+'<br>dibutuhkan</th><th style="'+sim+'">Tambah<br>Qty</th><th style="'+sim+'">Tambah Value<br>(Rp)</th><th style="'+sim+'">AR hasil<br>simulasi</th></tr></thead>';
+  const byAdd = function(a,b){ return (b.add-a.add) || (b.dq-a.dq); };
+  function storeRow(r){ return '<tr><td class="cat-nm" style="text-align:left;font-weight:600;">'+escapeHtml(r.name)+'</td>'+cells(r)+'</tr>'; }
+  let body = '';
+  if (grp){
+    grp.forEach(function(g){
+      const list = g.idx.map(function(i){ return rows[i]; }).sort(byAdd);
+      body += '<tr class="area-hdr sim-tsh"><td class="cat-nm" style="text-align:left;">\uD83D\uDC54 '+racingAreaLabel(g)+'</td>'+cells(sum(list))+'</tr>';
+      list.forEach(function(r){ body += storeRow(r); });
+    });
+  } else rows.slice().sort(byAdd).forEach(function(r){ body += storeRow(r); });
+  const note = isOp
+    ? 'AR Operator = Qty Operator (Indosat, XL, Telkomsel) &divide; Qty Device. Warna AR sama dengan Repair Contract (hijau &ge;25%, kuning &ge;20%).'
+    : 'AR Aksesoris = Qty Accessories (transaksi bernilai &gt; Rp10.000) &divide; Qty Device. Warna AR: hijau &ge;150%, kuning &ge;100%.';
+  return '<div class="cat-ero-box" style="margin:6px 0 10px;padding:8px 10px;border-left:3px solid var(--yellow);text-align:left;white-space:normal;">'
+    +'<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px;"><b>\uD83C\uDFAF Simulasi AR '+label+'</b>'
+    +'<label style="font-size:11px;">Target AR <input type="number" min="0" max="1000" step="0.5" value="'+tgt+'" style="width:64px;" onchange="setCatSimTarget(\''+cat+'\',this.value)" onkeydown="if(event.key===\'Enter\')setCatSimTarget(\''+cat+'\',this.value)"> %</label>'+catSimModeBtns()+'</div>'
+    +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:6px;margin:0 0 8px;">'
+    +kpi('AR sekarang', fmtPct(tot.ar), num(tot.cq)+' '+label+' / '+num(tot.dq)+' unit Device')
+    +kpi('Target AR '+tgt+'% (gabungan)', num(needAgg)+' '+label, tot.dq>0 ? 'tambah '+num(addAgg)+' qty \u2248 Rp '+num(addAgg*avgAll) : '-')
+    +kpi('Kekurangan (tiap toko)', '+'+num(tot.add)+' qty', '\u2248 Rp '+num(tot.val), true)
+    +'</div>'
+    +'<div class="pivot-wrap"><table class="pivot-tbl pv-hp">'+head+'<tbody>'+body+'</tbody><tfoot><tr class="pv-total"><td style="text-align:left;font-weight:800;">GRAND TOTAL</td>'+cells(tot)+'</tr></tfoot></table></div>'
+    +'<div class="cat-hint x-note" style="margin-top:4px;">'+note+' Tambah Qty = Qty dibutuhkan &minus; Qty sekarang (toko yang sudah di atas target = 0). Tambah Value = Tambah Qty &times; rata-rata harga '+label+' toko itu (toko tanpa penjualan memakai rata-rata semua toko). Target AR bisa diubah bebas.</div></div>';
+}
+// Simulasi Target AR Repair Contract: berapa Qty & Value RC tambahan agar AR (Qty RC / (Qty Device + Qty CE)) mencapai target %.
+function rcSimHtml(d){
+  const T = state.rcSimTarget, f = T/100;
+  const num = n => Math.round(n||0).toLocaleString('id-ID');
+  const c = racingCompute('boltech', d);
+  if (!c) return '<div class="cat-hint">Simulasi AR belum bisa ditampilkan (data racing Boltech belum tersedia).</div>';
+  const raw = state.raw;
+  const fct = (c.hasPeriod && c.factor>0) ? c.factor : 1; // faktor estimasi sama dengan tabel racing Boltech
+  const byName = {}; c.rows.forEach(function(r){ byName[r.code]=r; byName[r.name]=r; });
+  // Penyebut AR (Device + CE), Qty RC & harga RC per toko pada periode racing (sama dengan tabel racing Boltech)
+  const sx = {}; let allV = 0, allQ = 0;
+  (raw.records||[]).forEach(function(r){
+    if (r[0]<c.start || r[0]>c.end) return;
+    const row = byName[r[1]]; if (!row) return;
+    const o = sx[row.code] || (sx[row.code] = {dq:0, rq:0, v:0, q:0});
+    if (r[2]==='Device' || r[2]==='CE') o.dq += r[4];
+    else if (r[2]==='Repair Contract' && !isRcZeroExcluded(r)){ o.rq += r[4]; o.v += racingVal(r); o.q += r[4]; allV += racingVal(r); allQ += r[4]; }
+  });
+  let _rv=0,_rq=0; c.rows.forEach(function(r){ const a_=(d.catAchvByStore||{})[r.code]||{}; _rv+=a_.rcVal||0; _rq+=a_.rcQty||0; });
+  const avgAll = _rq>0 ? _rv/_rq : 0; // rata-rata harga RC per unit, basis kolom Value Repair Contract yang tampil (sama dengan Tabel Pivot)
+  const tg0 = getEffectiveTargets(), ratio0 = tg0.overall>0 ? ((tg0.category||{})['Repair Contract']||0)/tg0.overall : 0, catT = tg0.catStore||{}, manual = state.rcSimTgt||{};
+  const PCT = state.rcSimPct||0, VMODE = state.rcSimMode==='val';
+  const rows = c.rows.map(function(r){
+    const x = sx[r.code] || {dq:0, rq:0, v:0, q:0};
+    const ac = (d.catAchvByStore||{})[r.code] || {}; // sumber sama dengan Tabel Pivot (Device+CE | Repair Contract)
+    const dq = (ac.deviceQty||0)+(ac.ceQty||0), dv = ac.deviceVal||0, rq = ac.rcQty||0, rv = ac.rcVal||0;
+    const avg = rq>0 ? rv/rq : avgAll;
+    const need = Math.ceil(f*dq - 1e-9), add = Math.max(0, need - rq);
+    // Target: 1) manual (diisi di tabel ini) 2) sheet Target Racing Boltech 3) target kategori Repair Contract per toko dari dashboard
+    let tv = r.tv, src = tv>0 ? 'racing' : '';
+    if (!(tv>0)){ const k = r.code+'|Repair Contract'; const t3 = Object.prototype.hasOwnProperty.call(catT, k) ? (Number(catT[k])||0) : ((tg0.store||{})[r.code]||0)*ratio0; if (t3>0){ tv = t3; src = 'kategori'; } }
+    if (manual && Object.prototype.hasOwnProperty.call(manual, r.code)){ tv = manual[r.code]; src = 'manual'; }
+    return {gap:r.av-tv, pct:tv>0 ? r.av*fct/tv*100 : null, code:r.code, src:src, name:r.name, tv:tv, aq:r.aq, av:r.av, eq:Math.round(r.aq*fct), ev:r.av*fct, dq:dq, dv:dv, rq:rq, rv:rv, ar:dq>0 ? rq/dq*100 : null, need:need, add:add, val:add*avg, needV:tv>0 ? tv*PCT/100 : 0, addV:tv>0 ? Math.max(0, tv*PCT/100 - rv) : 0, addQ:(tv>0 && avg>0) ? Math.ceil(Math.max(0, tv*PCT/100 - rv)/avg - 1e-9) : 0};
+  }).filter(function(r){ return r.dq>0 || r.rq>0 || r.aq!==0; });
+  function sum(list){
+    const o = {tv:0, aq:0, av:0, eq:0, ev:0, dq:0, dv:0, rq:0, rv:0, add:0, val:0, needV:0, addV:0, addQ:0};
+    list.forEach(function(r){ Object.keys(o).forEach(function(k){ o[k] += (r[k]||0); }); });
+    o.ar = o.dq>0 ? o.rq/o.dq*100 : null; o.pct = o.tv>0 ? o.ev/o.tv*100 : null; o.gap = o.av - o.tv;
+    return o;
+  }
+  const tot = sum(rows);
+  const needAgg = Math.ceil(f*tot.dq - 1e-9), addAgg = Math.max(0, needAgg - tot.rq);
+  const th = 'background:#1f2f5f;color:#fff;';
+  const lbl = c.hasPeriod ? 'EST' : 'AKTUAL';
+  const gapTxt = g => g<0 ? '('+num(-g)+')' : num(g);
+  const B = ' style="font-weight:800;"';
+  function cells(o, bold, isTot){
+    const bs = bold ? ' style="font-weight:800;"' : '';
+    const ok = o.add===0 && o.dq>0;
+    const srcTxt = {racing:'sheet Target Racing', kategori:'target kategori Repair Contract (dashboard)', manual:'diisi manual'}[o.src] || 'belum ada target - isi manual';
+    const tcell = o.code!==undefined
+      ? '<td title="Sumber target: '+srcTxt+'" style="'+(o.src==='manual'?'background:rgba(255,200,60,.3);':'')+'"><input type="text" inputmode="numeric" value="'+(o.tv>0?num(o.tv):'')+'" placeholder="isi" style="width:112px;text-align:right;font-weight:700;" onchange="setRcSimTgt(\''+String(o.code).replace(/'/g,"\\'")+'\',this.value)"></td>'
+      : '<td'+bs+'>'+(o.tv>0?num(o.tv):'-')+'</td>';
+    return tcell+'<td'+bs+'>'+num(o.dq)+'</td><td'+bs+'>'+num(o.dv)+'</td><td'+bs+'>'+num(o.rq)+'</td><td'+bs+'>'+num(o.rv)+'</td>'
+      +'<td'+bs+'>'+num(o.eq)+'</td><td'+bs+'>'+num(o.ev)+'</td>'
+      +'<td'+bs+'>'+(o.tv>0?gapTxt(o.gap):'-')+'</td><td style="font-weight:800;'+(o.pct!==null&&o.pct<100?'background:rgba(255,122,92,.22);color:var(--red);':'')+'">'+(o.pct===null?'-':fmtPct(o.pct))+'</td>'
+      +'<td style="font-weight:800;color:'+(o.ar===null?'var(--muted-2)':arColor('rc', o.ar))+';">'+fmtPct(o.ar)+'</td>'
+      +(VMODE
+        ? '<td'+bs+'>'+(o.tv>0?num(o.needV):'-')+'</td>'
+          +'<td style="font-weight:800;'+(o.tv>0&&o.addQ===0?'color:var(--green);':(o.addQ>0?'color:var(--red);':''))+'">'+(o.tv<=0?'-':(o.addV<=0?'\u2714':'+'+num(o.addQ)))+'</td>'
+          +'<td style="font-weight:800;">'+(o.addV>0?num(o.addV):'-')+'</td>'
+          +'<td style="font-weight:800;">'+(o.tv>0?fmtPct((o.rv+o.addV)/o.tv*100):'-')+'</td>'
+          +(function(){ const ar2 = (o.dq>0 && o.tv>0) ? (o.rq+o.addQ)/o.dq*100 : null; return '<td style="font-weight:800;color:'+(ar2===null?'var(--muted-2)':arColor('rc', ar2))+';">'+fmtPct(ar2)+'</td>'; })()
+        : '<td'+bs+'>'+num(o.rq+o.add)+'</td>'
+          +'<td style="font-weight:800;'+(ok?'color:var(--green);':(o.add>0?'color:var(--red);':''))+'">'+(ok?'\u2714':(o.add>0?'+'+num(o.add):'-'))+'</td>'
+          +'<td style="font-weight:800;">'+(o.add>0?num(o.val):'-')+'</td>'
+          +(function(){ const ar2 = o.dq>0 ? (o.rq+o.add)/o.dq*100 : null; return '<td style="font-weight:800;color:'+(ar2===null?'var(--muted-2)':arColor('rc', ar2))+';">'+fmtPct(ar2)+'</td>'; })());
+  }
+  const grp = racingGroupByArea(rows, function(r){ return r.name; });
+  let body = '';
+  function storeRow(r){ return '<tr><td class="cat-nm" style="text-align:left;font-weight:600;">'+escapeHtml(r.name)+'</td>'+cells(r,false)+'</tr>'; }
+  if (grp){
+    grp.forEach(function(g){
+      const list = g.idx.map(function(i){ return rows[i]; }).sort(function(a,b){ return VMODE ? (b.addV-a.addV || b.dq-a.dq) : (b.add-a.add || b.dq-a.dq); });
+      body += '<tr class="area-hdr sim-tsh"><td class="cat-nm" style="text-align:left;">\uD83D\uDC54 '+racingAreaLabel(g)+'</td>'+cells(sum(list), true)+'</tr>';
+      list.forEach(function(r){ body += storeRow(r); });
+    });
+  } else rows.slice().sort(function(a,b){ return VMODE ? (b.addV-a.addV || b.dq-a.dq) : (b.add-a.add || b.dq-a.dq); }).forEach(function(r){ body += storeRow(r); });
+  function kpi(lbl, main, sub, hi){
+    return '<div style="border:1px solid var(--border);border-radius:8px;padding:5px 9px;line-height:1.25;'+(hi?'background:rgba(255,200,60,.14);':'')+'">'
+      +'<div style="font-size:9.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.02em;">'+lbl+'</div>'
+      +'<div style="font-size:15px;font-weight:800;color:var(--text-strong);">'+main+'</div>'
+      +'<div style="font-size:10px;color:var(--muted);">'+sub+'</div></div>';
+  }
+  const sim = 'background:#7a5a00;color:#fff;';
+  const head = '<thead><tr><th rowspan="2" style="min-width:210px;text-align:left;">TSH / Store</th><th rowspan="2" style="'+th+'">TARGET<br>VALUE</th><th colspan="2" style="'+th+'">Device + CE</th><th colspan="2" style="'+th+'">Repair Contract</th><th colspan="2" style="'+th+'">'+lbl+'</th><th rowspan="2" style="'+th+'">GAP</th><th rowspan="2" style="'+th+'">%</th>'
+    +'<th rowspan="2" style="'+th+'">AR<br>Boltech</th><th rowspan="2" style="'+th+'">'+(VMODE?'Value<br>dibutuhkan':'RC<br>dibutuhkan')+'</th><th colspan="'+(VMODE?4:3)+'" style="'+sim+'">SIMULASI '+(VMODE?'ACHIEVEMENT '+pf(PCT)+'%':pf(T)+'% AR')+'</th></tr>'
+    +'<tr><th style="'+th+'">Qty</th><th style="'+th+'">Value</th><th style="'+th+'">Qty</th><th style="'+th+'">Value</th><th style="'+th+'">QTY</th><th style="'+th+'">VALUE</th>'
+    +'<th style="'+sim+'">Tambah<br>Qty RC</th><th style="'+sim+'">Tambah Value<br>(Rp)</th>'+(VMODE?'<th style="'+sim+'">% Achv<br>hasil</th>':'')+'<th style="'+sim+'">AR hasil<br>simulasi</th></tr></thead>';
+  return '<div class="cat-ero-box" style="margin:6px 0 10px;padding:8px 10px;border-left:3px solid var(--yellow);text-align:left;white-space:normal;">'
+    +'<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px;"><b>🎯 Simulasi Repair Contract</b>'
+    +'<button class="pv-btn'+(VMODE?'':' on')+'" onclick="setRcSimMode(\'ar\')">🛡️ Target by AR</button><button class="pv-btn'+(VMODE?' on':'')+'" onclick="setRcSimMode(\'val\')">TARGET BY VALUE</button>'
+    +(VMODE ? '<label style="font-size:11px;">Target Achievement <input type="number" min="0" max="1000" step="1" value="'+PCT+'" style="width:64px;" onchange="setRcSimPct(this.value)" onkeydown="if(event.key===\'Enter\')setRcSimPct(this.value)"> %</label>' : '<label style="font-size:11px;">Target AR <input type="number" min="0" max="500" step="0.5" value="'+T+'" style="width:64px;" onchange="setRcSimTarget(this.value)" onkeydown="if(event.key===\'Enter\')setRcSimTarget(this.value)"> %</label>')
+    +'</div>'
+    +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:6px;margin:0 0 8px;">'
+    +(VMODE
+      ? kpi('Target Value', 'Rp '+num(tot.tv), 'dikejar '+pf(PCT)+'% = Rp '+num(tot.tv*PCT/100))
+        +kpi('Value RC MTD', 'Rp '+num(tot.rv), tot.tv>0 ? fmtPct(tot.rv/tot.tv*100)+' dari target' : 'belum ada target')
+        +kpi('Kekurangan (tiap toko)', 'Rp '+num(tot.addV), '≈ '+num(tot.addQ)+' qty RC', true)
+      : kpi('AR sekarang', fmtPct(tot.ar), num(tot.rq)+' RC / '+num(tot.dq)+' unit Device+CE')
+        +kpi('Target AR '+pf(T)+'% (gabungan)', num(needAgg)+' RC', tot.dq>0 ? 'tambah '+num(addAgg)+' qty ≈ Rp '+num(addAgg*avgAll) : '-')
+        +kpi('Kekurangan (tiap toko)', '+'+num(tot.add)+' qty', '≈ Rp '+num(tot.val), true))
+    +'</div>'
+    +'<div class="pivot-wrap"><table class="pivot-tbl pv-hp">'+head+'<tbody>'+body+'</tbody><tfoot><tr class="pv-total"><td style="text-align:left;font-weight:800;">GRAND TOTAL</td>'+cells(tot,true)+'</tr></tfoot></table></div>'
+    +'<div class="cat-hint x-note" style="margin-top:4px;">Dikelompokkan per Area / TSH. <b>TARGET VALUE</b> tampil dari data asli dulu (sheet Target Racing Boltech; bila kosong memakai target kategori Repair Contract per toko di dashboard) dan bisa diubah langsung di kolomnya (sel kuning = diisi manual; kosongkan sel untuk kembali ke data asli). Device + CE (Qty, Value Device) dan Repair Contract (Qty, Value) sama dengan Tabel Pivot. TARGET, '+lbl+', GAP &amp; % sama dengan tombol 🏁 Racing Boltech (target = sheet Target Racing, value = total_nett_amount_with_tax, periode &amp; toko racing; toko channel Erablue / Operator / JB tidak ikut). <b>% Achievement:</b> Value dibutuhkan = Target Value &times; % yang dikejar; Tambah Value = Value dibutuhkan &minus; <b>Value Repair Contract MTD</b> (kolom Value Repair Contract di tabel ini, jadi Value MTD + Tambah Value = Value dibutuhkan); Tambah Qty = Tambah Value &divide; rata-rata harga RC toko (dibulatkan ke atas); AR hasil = (RC sekarang + Tambah Qty) &divide; Device+CE (perkiraan). Toko tanpa target tidak dihitung. <b>Target by AR:</b> RC dibutuhkan = target AR &times; (Qty Device + Qty CE), dibulatkan ke atas. Tambah Qty = dibutuhkan &minus; RC sekarang (toko yang sudah di atas target = 0). Tambah Value = Tambah Qty &times; rata-rata harga RC toko itu (Value RC &divide; Qty RC; toko tanpa RC memakai rata-rata semua toko). Baris area = jumlah toko di area itu.</div></div>';
+}
 function closeCatOperator(){ state.opSel = null; state.racingSel = null; state.catOpOpen = false; render(); }
 // Kembali dari popup pivot / operator ke popup rincian kategori (by Store -> by ERO).
 function backToCatDetail(cat){ state.catTopOpen = false; state.catTopSel = null; state.catPivotEro = null; state.opSel = null; state.racingSel = null; state.catPivotStore = null; state.catPivotOpen = false; state.catOpOpen = false; state.catDetailKey = cat; state.catDetailStore = null; render(); }
@@ -5031,16 +5401,17 @@ function renderCategoryDetailStore(d){
     : '';
   return '<div class="cat-overlay" onclick="if(event.target===this)toggleCategoryDetail(\'\')">'
     +'<div class="cat-detail">'
-    +'<div class="cat-detail-title"><span>Pencapaian '+escapeHtml(label)+' &ndash; by Store'+(selStore?' &rsaquo; by ERO':'')+(cat==='Repair Contract'&&state.catRcTakeOut?' <span style="color:var(--yellow);font-size:.8em;">&middot; tanpa invoice borongan (&ge;3 HP)</span>':'')+'</span><span style="display:flex;gap:6px;align-items:center;"><span class="x cap-hide" style="border:1px solid var(--border);" onclick="captureCatPopup()" title="Simpan semua data sebagai gambar">📸</span>'+(cat==='Repair Contract'?'<span class="x" style="border:1px solid var(--border);'+(state.catRcTakeOut?'background:rgba(255,200,60,.35);':'')+'" onclick="toggleRcTakeOut()" title="Take out borongan: unit Device & CE pada invoice berisi 3 unit Device (handphone) ke atas dikeluarkan dari penyebut AR Repair Contract (RC tetap dihitung)'+(state.catRcTakeOut?' (AKTIF - klik untuk matikan)':'')+'">🚫</span>':'')+(cat==='Operator'?'<span class="x" style="border:1px solid var(--border);" onclick="openCatOperator()" title="Racing Operator (XL / Indosat / Telkomsel) per toko">🏁 Racing</span>':'')+(RACING_CAT_KEY[cat] && state.raw && state.raw.racing ? '<span class="x" style="border:1px solid var(--border);" onclick="openRacing(\''+RACING_CAT_KEY[cat]+'\',\''+cat+'\')" title="Pencapaian racing by Store">🏁 Racing</span>' : '')+(cat==='Accessories'?'<span class="x" style="border:1px solid var(--border);" onclick="openCatTop()" title="Top 15 barang Accessories paling banyak terjual">🏅 Top 15</span>':'')+(hasCatPivot(cat)?'<span class="x" style="border:1px solid var(--border);" onclick="openCatPivot(\''+catPivotModeOf(cat)+'\',null,\''+cat+'\')" title="Tampilkan sebagai tabel pivot Store + ERO">📊 By ERO</span>':'')+'<span class="x" onclick="toggleCategoryDetail(\'\')" title="Tutup (Esc)">✕ Tutup</span></span></div>'
-    +'<h4>🏬 BY STORE</h4>'
+    +'<div class="cat-detail-title"><span>Pencapaian '+escapeHtml(label)+' &ndash; by Store'+(selStore?' &rsaquo; by ERO':'')+(cat==='Repair Contract'&&state.catRcTakeOut?' <span style="color:var(--yellow);font-size:.8em;">&middot; tanpa invoice borongan (&ge;3 HP)</span>':'')+'</span><span style="display:flex;gap:6px;align-items:center;"><span class="x cap-hide" style="border:1px solid var(--border);" onclick="captureCatPopup()" title="Simpan semua data sebagai gambar">📸</span>'+(cat==='Repair Contract'?'<span class="x" style="border:1px solid var(--border);'+(state.rcSimOn?'background:rgba(255,200,60,.35);':'')+'" onclick="toggleRcSim()" title="Simulasi: Qty & Value Repair Contract yang dibutuhkan untuk mencapai target AR (bisa diisi bebas)">\uD83C\uDFAF Simulasi AR</span>':'')+(cat==='Repair Contract'?'<span class="x" style="border:1px solid var(--border);'+(state.catRcTakeOut?'background:rgba(255,200,60,.35);':'')+'" onclick="toggleRcTakeOut()" title="Take out borongan: unit Device & CE pada invoice berisi 3 unit Device (handphone) ke atas dikeluarkan dari penyebut AR Repair Contract (RC tetap dihitung)'+(state.catRcTakeOut?' (AKTIF - klik untuk matikan)':'')+'">🚫</span>':'')+((cat==='Accessories'||cat==='Operator')?'<span class="x" style="border:1px solid var(--border);'+(state.catSimOn?'background:rgba(255,200,60,.35);':'')+'" onclick="toggleCatSim()" title="'+(cat==='Operator'?'Simulasi: Qty & Value Operator yang dibutuhkan untuk mencapai Target Value (bisa pilih By Store / By TSH)':'Simulasi: Qty & Value Accessories yang dibutuhkan untuk mencapai target AR (bisa diisi bebas)')+'">\uD83C\uDFAF Simulasi '+(cat==='Operator'?'Value':'AR')+'</span>':'')+(cat==='Operator'?'<span class="x" style="border:1px solid var(--border);" onclick="openCatOperator()" title="Racing Operator (XL / Indosat / Telkomsel) per toko">🏁 Racing</span>':'')+(RACING_CAT_KEY[cat] && state.raw && state.raw.racing ? '<span class="x" style="border:1px solid var(--border);" onclick="openRacing(\''+RACING_CAT_KEY[cat]+'\',\''+cat+'\')" title="Pencapaian racing by Store">🏁 Racing</span>' : '')+(cat==='Accessories'?'<span class="x" style="border:1px solid var(--border);" onclick="openCatTop()" title="Top 15 barang Accessories paling banyak terjual">🏅 Top 15</span>':'')+(hasCatPivot(cat)?'<span class="x" style="border:1px solid var(--border);" onclick="openCatPivot(\''+catPivotModeOf(cat)+'\',null,\''+cat+'\')" title="Tampilkan sebagai tabel pivot Store + ERO">📊 By ERO</span>':'')+'<span class="x" onclick="toggleCategoryDetail(\'\')" title="Tutup (Esc)">✕ Tutup</span></span></div>'
+    +(cat==='Repair Contract' && state.rcSimOn ? rcSimHtml(d) : '')
+    +((cat==='Accessories'||cat==='Operator') && state.catSimOn ? catSimHtml(d, cat, storeRows) : '')
+    +((cat==='Repair Contract' && state.rcSimOn) || ((cat==='Accessories'||cat==='Operator') && state.catSimOn) ? '' : (function(){ return '<h4>🏬 BY STORE</h4>'
     +'<div class="pv-ctl">'
       +((state.locked || cat==='Accessories' || cat==='Operator' || cat==='Repair Contract') ? '' : '<button class="pv-btn'+(state.editing?' on':'')+'" onclick="toggleEditing()">'+(state.editing?'✓ Selesai Isi Target':'✎ Isi / Edit Target per Toko')+'</button>')
       +(!state.locked && cat!=='Accessories' && cat!=='Operator' && cat!=='Repair Contract' && state.editing && isMultiMonthRange() ? '<span style="font-size:10.5px;color:var(--yellow);">Target hanya bisa diedit saat rentang dalam 1 bulan</span>' : '')
       +(!state.locked && cat!=='Accessories' && cat!=='Operator' && cat!=='Repair Contract' && state.editing && !isMultiMonthRange() ? '<span style="font-size:10.5px;color:var(--muted);">Kosongkan kolom untuk kembali ke perkiraan otomatis</span>' : '')
     +'</div>'
     +((cat==='Accessories' || cat==='Repair Contract' || cat==='Operator') ? tblStorePivotAcc(storeRows) : tblStoreNew(storeRows.slice().sort((a,b)=>String(a.name).localeCompare(String(b.name),'id'))))
-    +(selStore ? '' : eroHtml)
-    +''
+    +(selStore ? '' : eroHtml); })())
   +'</div></div>';
 }
 
