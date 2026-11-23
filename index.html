@@ -946,11 +946,20 @@ function opEroProv(x){
   });
   return out;
 }
-function opEroHeadTop(){ return OP_ERO_COLS.map(function(g){ return '<th colspan="2" style="background:'+g.bg+';color:'+g.fg+';">'+g.label+'</th>'; }).join(''); }
-function opEroHeadSub(){ return OP_ERO_COLS.map(function(g){ return '<th style="background:'+g.bg+';color:'+g.fg+';">Qty</th><th style="background:'+g.bg+';color:'+g.fg+';">Value</th>'; }).join(''); }
-function opEroCells(pr){
+// Deteksi Tablet (dikeluarkan dari hitungan "Invoice Device" untuk kontribusi Vidio Lite). item_group_desc 'Tablet...' (bukan case/cover/aksesoris) atau, bila kolom kosong, dari nama barang.
+const TABLET_NAME_RE = /\b(IPAD|TABLET|IDEATAB|MATEPAD|(REDMI|POCO|HONOR|XIAOMI|OPPO|REALME|VIVO|LENOVO|HUAWEI)\s+PAD|(GALAXY\s+)?TAB\s?[A-Z]?\d+)/i;
+function isTabletRow(igd, itemName){
+  const g = String(igd==null?'':igd).trim();
+  if (g) return /^\s*tablet/i.test(g) && !/cas\s*&?\s*cov|case|cover|accessor|keyboard|pen\b/i.test(g);
+  return TABLET_NAME_RE.test(String(itemName==null?'':itemName));
+}
+function recIsTablet(r){ return r[12]!==undefined ? !!r[12] : isTabletRow('', r[7]); }
+function opEroCols(noVidio){ return noVidio ? OP_ERO_COLS.filter(function(g){ return g.k!=='Vidio'; }) : OP_ERO_COLS; } // noVidio: sembunyikan kolom Vidio (sisakan Vidio Lite)
+function opEroHeadTop(nv){ return opEroCols(nv).map(function(g){ return '<th colspan="2" style="background:'+g.bg+';color:'+g.fg+';">'+g.label+'</th>'; }).join(''); }
+function opEroHeadSub(nv){ return opEroCols(nv).map(function(g){ return '<th style="background:'+g.bg+';color:'+g.fg+';">Qty</th><th style="background:'+g.bg+';color:'+g.fg+';">Value</th>'; }).join(''); }
+function opEroCells(pr, nv){
   const n = function(v){ return Math.round(v||0).toLocaleString('en-US'); };
-  return OP_ERO_COLS.map(function(g){ const c = pr[g.k]||{q:0,v:0}; return '<td>'+n(c.q)+'</td><td>'+(c.v ? n(c.v) : '-')+'</td>'; }).join('');
+  return opEroCols(nv).map(function(g){ const c = pr[g.k]||{q:0,v:0}; return '<td>'+n(c.q)+'</td><td>'+(c.v ? n(c.v) : '-')+'</td>'; }).join('');
 }
 const CATEGORY_LABEL = {Device:'Handphone',Accessories:'Accessories','Repair Contract':'Repair Contract',Operator:'Operator',CE:'CE',Laptop:'Laptop'};
 const CATEGORY_ICON = {Device:'📱',Accessories:'🎧','Repair Contract':'🛡️',Operator:'📡',CE:'🖥️',Laptop:'💻'};
@@ -1448,6 +1457,8 @@ let state = {
   periodMenuOpen: false,
   weekSel: null, // minggu yang diklik di slide Weekly Revenue: {mon, from, to, prevFrom, prevTo} - null = tidak ada
   dailySelectedDate: null, // tanggal yang sedang dipilih/diklik di chart Daily Sales (null = otomatis pilih hari dgn value terbesar)
+  vlInvOpen: false, vlInvFilter: 'all', // tombol 🧾 Invoice Vidio Lite di By ERO Operator
+  vlMode: 'real', // Vidio Lite di slide Operator by Store: 'real' (Qty Vidio Lite / Qty Device) | 'adj' (Tablet di-take out, 1 invoice = 1 Device)
   catSimOn: false, catSimMode: 'ar', simByTsh: false, opSimPct: 100, opSimSel: 1, catSimTarget: {Accessories:150, Operator:25}, rcSimOn: false, rcSimTarget: 0, rcSimTgt: {}, rcSimMode: 'ar', rcSimPct: 0, // Simulasi Target AR Repair Contract (tombol 🎯 di popup Repair Contract by Store)
   catRcTakeOut: false, // true = rincian Repair Contract TANPA unit Device/CE borongan (satu invoice berisi >=3 unit Device/handphone; RC tetap dihitung)
   catOpOpen: false, // true = popup Tabel Operator (XL / Indosat / Telkomsel per toko: Target, MTD, Estimasi, GAP, %) terbuka
@@ -1922,7 +1933,8 @@ function parseWorkbook(wb, fileName){
     // dari baris penjualan asli (Non PO, ber-IMEI) saat unit diambil. Tanpa ini value PO terhitung dobel (hari booking + hari pengambilan).
     if (isPO && brand.toUpperCase()==='APPLE') continue;
     const invoiceNo = col.invoice!==-1 && row[col.invoice]!=null ? String(row[col.invoice]).trim() : ''; // index 11 = nomor nota/invoice (dipakai analisis Kontribusi VAS by Brand)
-    records.push([dateISO, siteDesc, category, brand, qty, omzet, salesName, itemName, withTax, racingValue, isPO, invoiceNo]);
+    const isTab = isTabletRow(col.item_group_desc!==-1 ? row[col.item_group_desc] : '', itemName) ? 1 : 0; // index 12 = penanda Tablet (dikeluarkan dari Invoice Device Vidio Lite)
+    records.push([dateISO, siteDesc, category, brand, qty, omzet, salesName, itemName, withTax, racingValue, isPO, invoiceNo, isTab]);
     if (col.article!==-1 && row[col.article]!=null && String(row[col.article]).trim()!==''){
       const _art = normArticle(row[col.article]);
       devMap[_art] = (category==='Device');
@@ -2416,6 +2428,45 @@ function simViewBtns(){
   if (!(state.raw && state.raw.areaByStore)) return '';
   return '';
 }
+function toggleVlInv(){ state.vlInvOpen = !state.vlInvOpen; render(); }
+function setVlInvFilter(f){ state.vlInvFilter = (f==='ada'||f==='tidak') ? f : 'all'; render(); }
+// Daftar invoice satu toko: mana yang ada Vidio Lite dan mana yang tidak (invoice yang berisi Device, Tablet tidak dihitung).
+function renderVlInvoices(d, selStore){
+  const nf = function(n){ return Math.round(n||0).toLocaleString('en-US'); };
+  const recs = (d.catRecs||d.filtered||[]).filter(function(r){ return r[11] && (r[1]===selStore.site_code || r[1]===selStore.site_desc); });
+  const inv = {};
+  recs.forEach(function(r){
+    const k = String(r[11]);
+    const o = inv[k] || (inv[k] = {no:k, date:r[0], sales:{}, dev:0, tab:0, vl:0});
+    if (r[0] < o.date) o.date = r[0];
+    if (r[6]) o.sales[r[6]] = 1;
+    if (r[2]==='Device'){ if (recIsTablet(r)) o.tab += (r[4]||0); else o.dev += (r[4]||0); }
+    if (r[2]==='Operator' && String(r[3]||'').toUpperCase().indexOf('VIDIO')>=0 && /VIDIO[\s._-]*LITE/i.test(String(r[7]||'')+' '+String(r[3]||''))) o.vl += (r[4]||0);
+  });
+  const all = Object.keys(inv).map(function(k){ return inv[k]; }).filter(function(o){ return o.dev>0 || o.vl>0; })
+    .sort(function(a,b){ return a.date<b.date ? -1 : a.date>b.date ? 1 : (a.no<b.no ? -1 : 1); });
+  const nAda = all.filter(function(o){ return o.vl>0; }).length;
+  const nDevAda = all.filter(function(o){ return o.dev>0 && o.vl>0; }).length;
+  const nDev = all.filter(function(o){ return o.dev>0; }).length;
+  const nTidak = nDev - nDevAda;
+  const f = state.vlInvFilter;
+  const list = all.filter(function(o){ return f==='ada' ? o.vl>0 : f==='tidak' ? (o.dev>0 && o.vl<=0) : true; });
+  const btn = function(k, label){ return '<button class="pv-btn'+(f===k?' on':'')+'" onclick="setVlInvFilter(\''+k+'\')">'+label+'</button>'; };
+  const body = list.map(function(o, i){
+    const ada = o.vl>0;
+    const st = ada ? (o.dev>0 ? '<span style="color:var(--green);font-weight:800;">&#10004; Ada</span>' : '<span style="color:var(--yellow);font-weight:800;">Vidio Lite saja (tanpa Device)</span>') : '<span style="color:var(--red);font-weight:800;">&#10008; Tidak ada</span>';
+    return '<tr><td>'+(i+1)+'</td><td style="text-align:left;">'+escapeHtml(o.no)+'</td><td>'+escapeHtml(String(o.date))+'</td><td style="text-align:left;">'+escapeHtml(Object.keys(o.sales).join(', ')||'-')+'</td><td>'+nf(o.dev)+'</td><td>'+(o.tab?nf(o.tab):'-')+'</td><td>'+(o.vl?nf(o.vl):'-')+'</td><td style="text-align:left;">'+st+'</td></tr>';
+  }).join('');
+  return '<div class="cat-ero-box" style="margin:8px 0 0 0;padding:6px 0 2px 0;">'
+    +'<div style="font-weight:800;margin:4px 0;">&#129534; Invoice Vidio Lite &ndash; '+escapeHtml(selStore.site_desc)+'</div>'
+    +'<div class="cat-hint x-note" style="margin:0 0 6px;"><b>'+nf(nDev)+'</b> invoice berisi Device (tanpa Tablet) &middot; <span style="color:var(--green);font-weight:800;">'+nf(nDevAda)+' ada Vidio Lite</span> &middot; <span style="color:var(--red);font-weight:800;">'+nf(nTidak)+' tidak ada</span>'+(nDev>0?' &middot; '+pf(nDevAda/nDev*100)+'% invoice Device ada Vidio Lite':'')+'</div>'
+    +'<div class="pv-ctl" style="margin:0 0 6px;">'+btn('all','Semua ('+nf(all.length)+')')+btn('ada','Ada Vidio Lite ('+nf(nAda)+')')+btn('tidak','Tidak ada Vidio Lite ('+nf(nTidak)+')')+'</div>'
+    +(list.length ? '<div class="pivot-wrap"><table class="pivot-tbl pv-hp"><thead><tr><th>#</th><th style="text-align:left;">No Invoice</th><th>Tanggal</th><th style="text-align:left;">Sales (ERO)</th><th>Device<br>(unit)</th><th>Tablet<br>(unit)</th><th>Vidio Lite<br>(qty)</th><th style="text-align:left;">Status</th></tr></thead><tbody>'+body+'</tbody></table></div>'
+      : '<div class="cat-hint">Tidak ada invoice untuk filter ini di rentang tanggal terpilih.</div>')
+    +'<div class="cat-hint x-note" style="margin-top:4px;">Hanya invoice yang berisi Device (Tablet tidak dihitung sebagai Device; unit Tablet ditampilkan terpisah). Vidio Lite = consent card Vidio Lite pada invoice yang sama.</div>'
+    +'</div>';
+}
+function setVlMode(m){ state.vlMode = (m==='adj') ? 'adj' : 'real'; render(); }
 function setOpSimSel(i){ state.opSimSel = (i===0||i===1||i===2) ? i : 1; render(); }
 // Simulasi Operator berbasis VALUE, per operator (Indosat / XL / Telkomsel) dengan kolom seperti tombol Racing Operator.
 // Target diambil otomatis dari Target Racing Operator (sheet Target Racing; isian manual target Operator tetap diutamakan, sama seperti tabel Racing Operator).
@@ -4419,6 +4470,11 @@ function computeDerived(){
       totals.rcQty += x.rcQty;
       totals.rc1Q = (totals.rc1Q||0) + (x.rc1Q||0); totals.rc2Q = (totals.rc2Q||0) + (x.rc2Q||0); totals.rc3Q = (totals.rc3Q||0) + (x.rc3Q||0);
     });
+    { // Invoice Device (tanpa Tablet): 1 invoice berisi berapa pun unit Device dihitung 1 (net qty > 0, agar invoice retur tidak ikut)
+      const _inv = {};
+      records.forEach(r=>{ if (!r[6] || r[2]!=='Device' || !r[11] || recIsTablet(r)) return; const k = r[1]+'\u0001'+r[11]; _inv[k] = (_inv[k]||0) + (r[4]||0); });
+      totals.devInvNT = Object.keys(_inv).filter(function(k){ return _inv[k]>0; }).length;
+    }
     totals.arAccDenom = totals.deviceQty + totals.ceQty;
     totals.arAcc = totals.deviceQty>0 ? (totals.accQty10k/totals.deviceQty)*100 : null;
     totals.arAccDev = totals.deviceQty>0 ? (totals.accQty10k/totals.deviceQty)*100 : null; // khusus slide PENCAPAIAN BY KATEGORI (Accessories)
@@ -5222,7 +5278,7 @@ function renderCategoryDetailStore(d){
     if (pivMode==='op'){
       const dq = x.deviceQty||0, dv = x.deviceVal||0, cq = (x.opQ3!==undefined ? x.opQ3 : ((x.catQty&&x.catQty.Operator)||0)), cv = (x.opP!==undefined ? x.opP : ((x.cat&&x.cat.Operator)||0)); // Value Operator = kolom price (sama dengan Racing)
       const o2 = opEroProv(x)['Vidio Lite']; // Vidio Lite (info tambahan, tidak mengubah Ar & SoB)
-      return {dq:dq, dv:dv, cq:cq, cv:cv, vlq:o2.q, vlv:o2.v, vlp: dq>0 ? o2.q/dq*100 : null, ar: dq>0 ? cq/dq*100 : null, sob: dv>0 ? cv/dv*100 : null}; // Ar = Qty Operator / Qty Device; SoB = Value Operator / Value Device
+      return {dq:dq, dv:dv, cq:cq, cv:cv, vlq:o2.q, vlv:o2.v, vlp: dq>0 ? o2.q/dq*100 : null, ivq: x.devInvNT||0, vlp2: (x.devInvNT||0)>0 ? o2.q/x.devInvNT*100 : null, ar: dq>0 ? cq/dq*100 : null, sob: dv>0 ? cv/dv*100 : null}; // Ar = Qty Operator / Qty Device; SoB = Value Operator / Value Device
     }
     if (pivMode==='rc'){
       return {dq:(x.deviceQty||0)+(x.ceQty||0), dv:x.deviceVal||0, cq:x.rcQty||0, cv:x.rcVal||0, y1:x.rc1Q||0, y2:x.rc2Q||0, y3:x.rc3Q||0, ar:x.arRC, sob:x.sobRC};
@@ -5245,8 +5301,10 @@ function renderCategoryDetailStore(d){
   function pivHead(firstLabel){
     const catLbl = pivMode==='op' ? 'Operator' : (pivMode==='rc' ? 'Repair Contract' : 'Accessories');
     return '<thead><tr><th rowspan="2" style="min-width:190px;">'+firstLabel+'</th><th colspan="2">'+((pivMode==='op'||pivMode==='acc')?'Device':'Device + CE')+'</th><th colspan="2">'+catLbl+'</th>'
-      +(pivMode==='acc'?'<th colspan="2" style="'+pivMh+'">Medpoin</th>':'')+(pivMode==='op'?'<th rowspan="2" style="background:#8e24aa;color:#fff;">Vidio Lite<br>(Qty)</th><th rowspan="2" style="background:#8e24aa;color:#fff;" title="Qty Vidio Lite dibagi Qty Device">Vidio Lite<br>% vs Device</th>':'')+(pivMode==='rc'?'<th colspan="3" style="'+pivMh+'" title="Mix Repair Contract per durasi proteksi (qty dan % dari Qty Repair Contract)">Mix RC</th>':'')+(pivMode==='rc'?'<th rowspan="2" title="Unit (Device + CE) terjual tanpa Repair Contract">Lost RC<br>(unit)</th>':'')+'<th rowspan="2">Ar</th><th rowspan="2">SoB</th></tr>'
-      +'<tr><th>Qty</th><th>Value</th><th>Qty</th><th>Value</th>'+(pivMode==='acc'?'<th style="'+pivMh+'">Qty</th><th style="'+pivMh+'">Value</th>':'')+(pivMode==='rc'?'<th style="'+pivMh+'">1 Thn</th><th style="'+pivMh+'">2 Thn</th><th style="'+pivMh+'">3 Thn</th>':'')+'</tr></thead>';
+      +(pivMode==='acc'?'<th colspan="2" style="'+pivMh+'">Medpoin</th>':'')+(pivMode==='op'?'<th colspan="'+(state.vlMode==='adj'?3:2)+'" style="background:#8e24aa;color:#fff;">Vidio Lite'+(state.vlMode==='adj'?' <span style="font-weight:600;font-size:.82em;">(tanpa Tablet, 1 invoice = 1)</span>':' <span style="font-weight:600;font-size:.82em;">(real)</span>')+'</th>':'')+(pivMode==='rc'?'<th colspan="3" style="'+pivMh+'" title="Mix Repair Contract per durasi proteksi (qty dan % dari Qty Repair Contract)">Mix RC</th>':'')+(pivMode==='rc'?'<th rowspan="2" title="Unit (Device + CE) terjual tanpa Repair Contract">Lost RC<br>(unit)</th>':'')+'<th rowspan="2">Ar</th><th rowspan="2">SoB</th></tr>'
+      +'<tr><th>Qty</th><th>Value</th><th>Qty</th><th>Value</th>'+(pivMode==='acc'?'<th style="'+pivMh+'">Qty</th><th style="'+pivMh+'">Value</th>':'')+(pivMode==='op'?(state.vlMode==='adj'
+        ? '<th style="background:#8e24aa;color:#fff;">Qty</th><th style="background:#6a1b9a;color:#fff;" title="Jumlah invoice yang berisi Device (tanpa Tablet). 1 invoice = 1, berapa pun unit Device di dalamnya">Invoice<br>Device</th><th style="background:#6a1b9a;color:#fff;" title="Qty Vidio Lite / Invoice Device (tanpa Tablet)">% vs<br>Invoice</th>'
+        : '<th style="background:#8e24aa;color:#fff;">Qty</th><th style="background:#8e24aa;color:#fff;" title="Qty Vidio Lite / Qty Device (semua unit, termasuk Tablet)">% vs<br>Qty Device</th>'):'')+(pivMode==='rc'?'<th style="'+pivMh+'">1 Thn</th><th style="'+pivMh+'">2 Thn</th><th style="'+pivMh+'">3 Thn</th>':'')+'</tr></thead>';
   }
   function pivCells(p, arScale, sobScale){
     function arTd(v){
@@ -5261,7 +5319,7 @@ function renderCategoryDetailStore(d){
     }
     return '<td>'+pivNum(p.dq)+'</td><td>'+pivNum(p.dv)+'</td><td>'+pivNum(p.cq)+'</td><td>'+pivVal(p.cv)+'</td>'
       +(pivMode==='acc' ? '<td>'+pivVal(p.mq)+'</td><td>'+pivVal(p.mv)+'</td>' : '')
-      +(pivMode==='op' ? '<td>'+pivNum(p.vlq)+'</td><td>'+((p.vlp===null||p.vlp===undefined||!isFinite(p.vlp)) ? '-' : pf(p.vlp)+'%')+'</td>' : '')
+      +(pivMode==='op' ? (function(){ const pc = function(v){ return (v===null||v===undefined||!isFinite(v)) ? '-' : pf(v)+'%'; }; return state.vlMode==='adj' ? '<td>'+pivNum(p.vlq)+'</td><td>'+pivNum(p.ivq)+'</td><td>'+pc(p.vlp2)+'</td>' : '<td>'+pivNum(p.vlq)+'</td><td>'+pc(p.vlp)+'</td>'; })() : '')
       +(pivMode==='rc' ? [p.y1,p.y2,p.y3].map(function(q){ q = q||0; return q>0 ? '<td>'+pivNum(q)+' <span style="color:var(--muted);font-size:.82em;">('+Math.round(q/(p.cq||1)*100)+'%)</span></td>' : '<td>-</td>'; }).join('') : '')
       +(pivMode==='rc' ? (function(){ const lost = Math.max(0, p.dq-p.cq); return '<td style="font-weight:'+(lost>0?'800':'700')+';'+(lost>0?'color:var(--red);':'')+'">'+(p.dq>0 ? pivNum(lost) : '-')+'</td>'; })() : '')
       +arTd(p.ar)+sobTd(p.sob);
@@ -5270,7 +5328,7 @@ function renderCategoryDetailStore(d){
     const ents = rows.map(function(r){ const a = (d.catAchvByStore||{})[r.achvKey]; return a ? {key:r.achvKey, name:r.name, p:pivPv(a), raw:a} : null; })
       .filter(Boolean).sort((a,b)=>String(a.name).localeCompare(String(b.name),'id'));
     if (!ents.length) return '<div class="cat-hint">Belum ada data di rentang tanggal terpilih.</div>';
-    const ncol = pivMode==='acc' ? 9 : (pivMode==='rc' ? 11 : (pivMode==='op' ? 9 : 7));
+    const ncol = pivMode==='acc' ? 9 : (pivMode==='rc' ? 11 : (pivMode==='op' ? (state.vlMode==='adj' ? 10 : 9) : 7));
     // Baris toko: klik nama toko -> rincian By ERO / By Tipe / Top 10 by Tipe tepat di bawah toko tsb.
     function storeRowHtml(e, indent){
       const isActive = e.key===state.catDetailStore;
@@ -5291,7 +5349,7 @@ function renderCategoryDetailStore(d){
         return pivPv(r);
       }
       if (pivMode==='op'){
-        const q = {deviceQty:0, deviceVal:0, opP:0, opQ3:0, vidioLiteQty:0, vidioLiteVal:0, vidioLiteValP:0};
+        const q = {deviceQty:0, deviceVal:0, opP:0, opQ3:0, vidioLiteQty:0, vidioLiteVal:0, vidioLiteValP:0, devInvNT:0};
         list.forEach(function(e){ Object.keys(q).forEach(function(k){ q[k] += (e.raw[k]||0); }); });
         return pivPv(q);
       }
@@ -5314,7 +5372,7 @@ function renderCategoryDetailStore(d){
     }
     const foot = d.catAchvTotal ? '<tfoot><tr class="pv-total"><td>Grand Total</td>'+pivCells(pivPv(d.catAchvTotal), null, null)+'</tr></tfoot>' : '';
     return '<div class="pivot-wrap"><table class="pivot-tbl pv-hp">'+pivHead(grp ? 'TSH / Store' : 'Row Labels')+'<tbody>'+body+'</tbody>'+foot+'</table></div>'
-      +'<div class="cat-hint x-note" style="margin-top:4px;">Baris berwarna = total per TSH (area). Klik nama toko untuk melihat rincian By ERO, By Tipe &amp; Top 10 by Tipe.'+(pivMode==='acc' ? arNote : '')+(pivMode==='rc' ? ' Mix RC = Qty Repair Contract per durasi proteksi 1 / 2 / 3 tahun (angka dalam kurung = % dari Qty Repair Contract). Durasi dibaca dari kode produk ADLD12 / ADLD24 / ADLD36 (ADLD24+EW12 dihitung 2 tahun, ADLD36+EW24 dihitung 3 tahun); produk yang kodenya tidak terbaca tidak masuk mix.' : '')+'</div>';
+      +'<div class="cat-hint x-note" style="margin-top:4px;">Baris berwarna = total per TSH (area). Klik nama toko untuk melihat rincian By ERO, By Tipe &amp; Top 10 by Tipe.'+(pivMode==='acc' ? arNote : '')+(pivMode==='op' ? (state.vlMode==='adj' ? ' Vidio Lite (tanpa Tablet, 1 invoice = 1): <b>Invoice Device</b> = jumlah invoice yang berisi Device tanpa Tablet (berapa pun unit dalam 1 invoice dihitung 1). <b>% vs Invoice</b> = Qty Vidio Lite &divide; Invoice Device.' : ' Vidio Lite (real): <b>% vs Qty Device</b> = Qty Vidio Lite &divide; Qty Device (semua unit Device, Tablet ikut terhitung).') : '')+(pivMode==='rc' ? ' Mix RC = Qty Repair Contract per durasi proteksi 1 / 2 / 3 tahun (angka dalam kurung = % dari Qty Repair Contract). Durasi dibaca dari kode produk ADLD12 / ADLD24 / ADLD36 (ADLD24+EW12 dihitung 2 tahun, ADLD36+EW24 dihitung 3 tahun); produk yang kodenya tidak terbaca tidak masuk mix.' : '')+'</div>';
   }
   // By ERO (Sales / SPG) toko yang diklik: kolom SAMA dengan tampilan by Store di atas.
   // Operator: kolom "Operator" diganti kolom per provider (Indosat | XL | Telkomsel | Vidio | Vidio Lite); Ar & SoB tetap dihitung dari total Operator.
@@ -5329,11 +5387,12 @@ function renderCategoryDetailStore(d){
     function arTd(v){ if (v===null||v===undefined||!isFinite(v)) return '<td>-</td>'; const bg = arBg('rc', v); return '<td style="'+(bg?'background:'+bg+';':'')+'color:'+arColor('rc', v)+';font-weight:800;">'+pf(v)+'%</td>'; }
     function sobTd(v){ return sobStdTd(v); }
     function totTd(v, dec){ return (v===null||v===undefined||!isFinite(v)) ? '<td>-</td>' : '<td>'+pf(v)+'%</td>'; }
-    const body = ents.map(function(e){ return eroRowWrap(e.name, '<tr class="pv-ero"><td style="text-align:left;">'+escapeHtml(e.name)+'</td><td>'+pivNum(e.dq)+'</td><td>'+pivNum(e.dv)+'</td>'+opEroCells(e.pr)+arTd(e.ar)+sobTd(e.sob)+'</tr>'); }).join('');
-    const foot = tot ? '<tfoot><tr class="pv-total"><td style="text-align:left;">'+escapeHtml(tot.name)+'</td><td>'+pivNum(tot.dq)+'</td><td>'+pivNum(tot.dv)+'</td>'+opEroCells(tot.pr)+arTd(tot.ar)+sobTd(tot.sob)+'</tr></tfoot>' : '';
-    return '<div class="pivot-wrap"><table class="pivot-tbl pv-hp"><thead><tr><th rowspan="2" style="min-width:170px;">Nama Sales (ERO)</th><th colspan="2">Device</th>'+opEroHeadTop()+'<th rowspan="2">Ar</th><th rowspan="2">SoB</th></tr>'
-      +'<tr><th>Qty</th><th>Value</th>'+opEroHeadSub()+'</tr></thead><tbody>'+body+'</tbody>'+foot+'</table></div>'
-      +'<div class="cat-hint x-note" style="margin-top:4px;">Ar = Qty Operator (hanya Indosat, XL, Telkomsel) &divide; Qty Device. SoB = Value Operator (hanya Indosat, XL, Telkomsel; kolom price) &divide; Value Device. Kolom Indosat, XL, Telkomsel, Vidio &amp; Vidio Lite adalah rincian per provider (Vidio = produk Vidio selain Lite, mis. Platinum) (Operator lain seperti PLN/Trend Micro tidak ditampilkan per kolom tetapi tetap dihitung di Ar &amp; SoB).</div>';
+    const body = ents.map(function(e){ return eroRowWrap(e.name, '<tr class="pv-ero"><td style="text-align:left;">'+escapeHtml(e.name)+'</td><td>'+pivNum(e.dq)+'</td><td>'+pivNum(e.dv)+'</td>'+opEroCells(e.pr,true)+arTd(e.ar)+sobTd(e.sob)+'</tr>'); }).join('');
+    const foot = tot ? '<tfoot><tr class="pv-total"><td style="text-align:left;">'+escapeHtml(tot.name)+'</td><td>'+pivNum(tot.dq)+'</td><td>'+pivNum(tot.dv)+'</td>'+opEroCells(tot.pr,true)+arTd(tot.ar)+sobTd(tot.sob)+'</tr></tfoot>' : '';
+    const vlBar = '<div class="pv-ctl cap-hide" style="margin:2px 0 6px;"><button class="pv-btn'+(state.vlInvOpen?' on':'')+'" onclick="toggleVlInv()" title="Lihat daftar invoice toko ini: mana yang ada Vidio Lite dan mana yang tidak">&#129534; Invoice Vidio Lite</button></div>';
+    return vlBar+'<div class="pivot-wrap"><table class="pivot-tbl pv-hp"><thead><tr><th rowspan="2" style="min-width:170px;">Nama Sales (ERO)</th><th colspan="2">Device</th>'+opEroHeadTop(true)+'<th rowspan="2">Ar</th><th rowspan="2">SoB</th></tr>'
+      +'<tr><th>Qty</th><th>Value</th>'+opEroHeadSub(true)+'</tr></thead><tbody>'+body+'</tbody>'+foot+'</table></div>'
+      +'<div class="cat-hint x-note" style="margin-top:4px;">Ar = Qty Operator (hanya Indosat, XL, Telkomsel) &divide; Qty Device. SoB = Value Operator (hanya Indosat, XL, Telkomsel; kolom price) &divide; Value Device. Kolom Indosat, XL, Telkomsel &amp; Vidio Lite adalah rincian per provider (Operator lain seperti PLN/Trend Micro/Vidio non-Lite tidak ditampilkan per kolom tetapi tetap dihitung di Ar &amp; SoB).</div>'+(state.vlInvOpen ? renderVlInvoices(d, selStore) : '');
   }
   function eroPivotHtml(){
     if (pivMode==='op') return eroPivotOpHtml();
@@ -5408,6 +5467,7 @@ function renderCategoryDetailStore(d){
     +((cat==='Accessories'||cat==='Operator') && state.catSimOn ? catSimHtml(d, cat, storeRows) : '')
     +((cat==='Repair Contract' && state.rcSimOn) || ((cat==='Accessories'||cat==='Operator') && state.catSimOn) ? '' : (function(){ return '<h4>🏬 BY STORE</h4>'
     +'<div class="pv-ctl">'
+      +(cat==='Operator' ? '<span style="font-size:11px;color:var(--muted);">Vidio Lite:</span><button class="pv-btn'+(state.vlMode!=='adj'?' on':'')+'" onclick="setVlMode(\'real\')" title="Qty Vidio Lite / Qty Device (semua unit Device, Tablet ikut)">Real</button><button class="pv-btn'+(state.vlMode==='adj'?' on':'')+'" onclick="setVlMode(\'adj\')" title="Tablet di-take out; 1 invoice berisi lebih dari 1 Device tetap dihitung 1">Tanpa Tablet &amp; 1 invoice = 1</button>' : '')
       +((state.locked || cat==='Accessories' || cat==='Operator' || cat==='Repair Contract') ? '' : '<button class="pv-btn'+(state.editing?' on':'')+'" onclick="toggleEditing()">'+(state.editing?'✓ Selesai Isi Target':'✎ Isi / Edit Target per Toko')+'</button>')
       +(!state.locked && cat!=='Accessories' && cat!=='Operator' && cat!=='Repair Contract' && state.editing && isMultiMonthRange() ? '<span style="font-size:10.5px;color:var(--yellow);">Target hanya bisa diedit saat rentang dalam 1 bulan</span>' : '')
       +(!state.locked && cat!=='Accessories' && cat!=='Operator' && cat!=='Repair Contract' && state.editing && !isMultiMonthRange() ? '<span style="font-size:10.5px;color:var(--muted);">Kosongkan kolom untuk kembali ke perkiraan otomatis</span>' : '')
