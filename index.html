@@ -1499,6 +1499,9 @@ let state = {
   racingSel: null, // site_code toko yang rincian Tipe Terjual-nya terbuka di popup racing brand
   racingKey: null, // key item racing yang popup-nya terbuka (oppo/vivo/vivo3jt/indosat/xl/telkomsel/boltech)
   racingFrom: null, // kategori asal popup racing (utk tombol Rincian), null bila dari kartu brand
+  samSchemeOpen: false, // popup Skema Insentif Samsung (Store + ERO) terbuka
+  samSchemeEro: false, // baris ERO disembunyikan secara default (tombol ERO untuk menampilkan)
+  samSumOpen: false, // popup Summit & A Series (tab Racing Samsung) terbuka
   samIncOpen: false, // popup Racing Samsung Tier terbuka
   samIncSel: null, // site_code toko yang rincian model-nya terbuka di popup Racing Samsung Incentive
   catMetric: 'val', // PENCAPAIAN BY KATEGORI: 'val' = by Value (target & pencapaian) | 'qty' = by Qty (porsi qty)
@@ -2842,7 +2845,7 @@ function captureCatPopup(){
   const padX = (parseFloat(cs.paddingLeft)||0) + (parseFloat(cs.paddingRight)||0) + 4;
   const w = Math.ceil(Math.max(natW ? natW + padX : 0, el.scrollWidth, el.clientWidth)), h = Math.ceil(el.scrollHeight + extraH + 8);
   const capScale = capImgScale(w, h);
-  const base = state.samIncOpen ? 'Racing_Samsung_Tier_by_Store' : state.catTopOpen ? 'Top10_Barang_Accessories' : state.racingKey ? 'Racing_'+state.racingKey+'_by_Store' : state.brandPivotKey ? 'Pivot_Store_ERO_Brand_'+String(state.brandPivotKey).replace(/[^A-Za-z0-9]+/g,'_') : state.brandStoreKey ? 'Pencapaian_Brand_'+String(state.brandStoreKey).replace(/[^A-Za-z0-9]+/g,'_')+'_by_Store' : state.catOpOpen ? 'Operator_Pencapaian_per_Store' : state.catPivotOpen
+  const base = state.samSchemeOpen ? 'Skema_Insentif_Samsung_Store_ERO' : state.samSumOpen ? 'Racing_Samsung_Summit_A_Series_by_Store' : state.samIncOpen ? 'Racing_Samsung_Tier_by_Store' : state.catTopOpen ? 'Top10_Barang_Accessories' : state.racingKey ? 'Racing_'+state.racingKey+'_by_Store' : state.brandPivotKey ? 'Pivot_Store_ERO_Brand_'+String(state.brandPivotKey).replace(/[^A-Za-z0-9]+/g,'_') : state.brandStoreKey ? 'Pencapaian_Brand_'+String(state.brandStoreKey).replace(/[^A-Za-z0-9]+/g,'_')+'_by_Store' : state.catOpOpen ? 'Operator_Pencapaian_per_Store' : state.catPivotOpen
     ? 'Pivot_Store_ERO_'+(state.catPivotMode==='gen' ? String(state.catPivotCat||'Kategori').replace(/[^A-Za-z0-9]+/g,'_') : state.catPivotMode==='acc'?'Aksesoris':'Boltech')
     : 'Pencapaian_'+String(state.catDetailKey||'Kategori').replace(/[^A-Za-z0-9]+/g,'_')+'_by_Store';
   const fname = base+'_'+(state.dateFrom||'')+'_sd_'+(state.dateTo||'')+'.png';
@@ -2986,7 +2989,7 @@ function renderRcBulkInvoices(d, selStore){
 }
 function setCatStoreSub(v){ state.catEroSel = null; state.catStoreSub = (v==='type') ? 'type' : (v==='top') ? 'top' : (v==='bulk') ? 'bulk' : 'ero'; state.catTypeQ = ''; render(); }
 function setCatStoreTopBy(k){ state.catStoreTopBy = (k==='val') ? 'val' : 'qty'; render(); }
-document.addEventListener('keydown', function(e){ if (e.key==='Escape'){ if (state.brandDetailKey) closeBrandDetail(); else if (state.storeHpOpen) closeStoreHp(); else if (state.brandVasOpen) closeBrandVas(); else if (state.samIncOpen) closeSamInc(); else if (state.racingKey) closeRacing(); else if (state.brandPivotKey) closeBrandPivot(); else if (state.brandStoreKey) toggleBrandStore(null); else if (state.catTopOpen) closeCatTop(); else if (state.catOpOpen) closeCatOperator(); else if (state.catPivotOpen) closeCatPivot(); else if (state.catDetailKey) toggleCategoryDetail(''); } });
+document.addEventListener('keydown', function(e){ if (e.key==='Escape'){ if (state.samSchemeOpen) closeSamScheme(); else if (state.samSumOpen) closeSamSum(); else if (state.brandDetailKey) closeBrandDetail(); else if (state.storeHpOpen) closeStoreHp(); else if (state.brandVasOpen) closeBrandVas(); else if (state.samIncOpen) closeSamInc(); else if (state.racingKey) closeRacing(); else if (state.brandPivotKey) closeBrandPivot(); else if (state.brandStoreKey) toggleBrandStore(null); else if (state.catTopOpen) closeCatTop(); else if (state.catOpOpen) closeCatOperator(); else if (state.catPivotOpen) closeCatPivot(); else if (state.catDetailKey) toggleCategoryDetail(''); } });
 function setStoreFilter(v){ state.storeFilter = v; scheduleRender(150); }
 // Filter toko GLOBAL: dipanggil saat nama toko diklik di mana pun (kartu Top 10 Toko, tabel
 // Performance Store, dropdown Toko di header, atau dropdown pada kartu Pencapaian per Sales).
@@ -4345,7 +4348,7 @@ function computeDerived(){
   filtered.forEach(r=>{
     if (r[2]!=='Device') return;
     const key = normalizeBrandKey(r[3]);
-    if (byBrand[key]) { byBrand[key].qty+=r[4]; byBrand[key].omzet+=r[5]; }
+    if (byBrand[key]) { byBrand[key].qty+=r[4]; byBrand[key].omzet+=r[5]; if (key==='SAMSUNG' && samAOf(r)) byBrand[key].qtyA=(byBrand[key].qtyA||0)+r[4]; }
   });
 
   // Rincian "Tipe Terjual" per brand (untuk detail yang muncul saat kartu brand diklik) -
@@ -6329,11 +6332,11 @@ function renderBrandStorePopup(d){
   const agg = {};
   const typeAgg = {}; // site_code -> {namaTipe: {qty, omzet}} untuk rincian "Tipe Terjual" saat toko diklik
   const eroAgg = {}; // site_code -> {namaSales: {qty, omzet}} untuk By ERO saat toko diklik
-  stores.forEach(s=>{ agg[s.site_code] = {omzet:0, qty:0}; typeAgg[s.site_code] = {}; eroAgg[s.site_code] = {}; });
+  stores.forEach(s=>{ agg[s.site_code] = {omzet:0, qty:0, qtyA:0}; typeAgg[s.site_code] = {}; eroAgg[s.site_code] = {}; });
   (d.filtered||[]).forEach(r=>{
     if (r[2]!=='Device' || normalizeBrandKey(r[3])!==bk) return;
     const s = byCode[r[1]]; if (!s) return;
-    agg[s.site_code].omzet += r[5]; agg[s.site_code].qty += r[4];
+    agg[s.site_code].omzet += r[5]; agg[s.site_code].qty += r[4]; if (bk==='SAMSUNG' && samAOf(r)) agg[s.site_code].qtyA += r[4];
     const tn = (r[7]||'').trim() || 'Tanpa Nama Tipe';
     const ta = typeAgg[s.site_code];
     if (!ta[tn]) ta[tn] = {pq:0, pv:0, pd:{}, nq:0, nv:0, nd:{}};
@@ -6387,6 +6390,8 @@ function renderBrandStorePopup(d){
     return '<div class="cat-ero-box" style="margin:4px 0 0 10px;padding:6px 0 2px 10px;border-left:3px solid var(--green);border-top:0;">'+tabs
       +(subType ? typeBoxHtml(code, storeName) : eroBoxHtml(code, storeName))+'</div>';
   }
+  const SM = (bk==='SAMSUNG' && samSummitOn());
+  const AS = (bk==='SAMSUNG' && samAOn()); // kolom tambahan Target Samsung A Series (unit) // kolom tambahan Target Samsung Summit (unit)
   const proj = isProjectionMode();
   const f = d.distinctDays>0 ? d.dim/d.distinctDays : 0;
   const rows = stores.map(s=>{
@@ -6396,7 +6401,9 @@ function renderBrandStorePopup(d){
     const monthly = hasOv ? (Number(catStoreT[ovKey])||0) : (tg.store[s.site_code]||0) * ratio;
     const pp = periodPct(monthly, a.omzet, d);
     return {code:s.site_code, name:s.site_desc, ovKey:ovKey, target:pp.target, monthlyT:monthly, hasTarget:pp.hasTarget, pct:pp.pct,
-      qty:a.qty, omzet:a.omzet, estQty: proj? Math.round(a.qty*f) : a.qty, estVal:pp.compareValue};
+      qty:a.qty, omzet:a.omzet, estQty: proj? Math.round(a.qty*f) : a.qty, estVal:pp.compareValue,
+      sT: SM ? samSummitStoreT(s) : 0, sPP: SM ? periodPct(samSummitStoreT(s), a.qty, d) : null,
+      aPP: AS ? periodPct(samAStoreT(s), a.qtyA||0, d) : null};
   }).sort((a,b)=>String(a.name).localeCompare(String(b.name),'id'));
   const sum = k => rows.reduce((x,r)=>x+(r[k]||0),0);
   const tT = sum('target'), tV = sum('estVal');
@@ -6404,9 +6411,32 @@ function renderBrandStorePopup(d){
   const lbl = periodCompareLabel();
   const lowStyle = 'background:rgba(255,122,92,.22);color:var(--red);';
   const head = '<thead><tr><th rowspan="2">SAP CODE</th><th rowspan="2" class="cat-nm">STORE NAME</th><th rowspan="2">TARGET</th>'
-    +'<th colspan="2">MTD</th><th colspan="2">'+lbl+'</th><th rowspan="2">GAP</th><th rowspan="2">%</th></tr>'
+    +'<th colspan="2">MTD</th><th colspan="2">'+lbl+'</th><th rowspan="2">GAP</th><th rowspan="2">%</th>'+(SM?'<th rowspan="2" title="Target Samsung Summit (unit)">TARGET<br>SUMMIT</th><th rowspan="2" title="Qty Samsung &divide; Target Summit">% SUMMIT</th>':'')+(AS?'<th rowspan="2" title="Target Samsung A Series (unit)">TARGET<br>A SERIES</th><th rowspan="2" title="Qty A Series &divide; Target A Series">% A SERIES</th>':'')+'</tr>'
     +'<tr><th>QTY</th><th>VALUE</th><th>QTY</th><th>VALUE</th></tr></thead>';
   const gapTxt = g => g<0 ? '('+fmt(-g)+')' : fmt(g);
+  // Kolom Target Summit (hanya brand Samsung): target unit (diprorata periode) & % = Qty Samsung / target
+  function smCells(pp){
+    if (!SM) return '';
+    if (!pp || !pp.hasTarget) return '<td>-</td><td>-</td>';
+    return '<td>'+fmt(pp.target)+'</td><td style="font-weight:800;'+(pp.pct<100?lowStyle:'')+'">'+fmtPct(pp.pct)+'</td>';
+  }
+  function smHdrCells(list){
+    if (!SM) return '';
+    let st = 0, sv = 0; list.forEach(function(r){ if (r.sPP){ st += r.sPP.target||0; sv += r.sPP.compareValue||0; } });
+    const B = ' style="font-weight:800;';
+    return '<td'+B+'">'+(st>0?fmt(st):'-')+'</td><td'+B+(st>0&&sv/st*100<100?lowStyle:'')+'">'+(st>0?fmtPct(sv/st*100):'-')+'</td>';
+  }
+  function aCells(pp){
+    if (!AS) return '';
+    if (!pp || !pp.hasTarget) return '<td>-</td><td>-</td>';
+    return '<td>'+fmt(pp.target)+'</td><td style="font-weight:800;'+(pp.pct<100?lowStyle:'')+'">'+fmtPct(pp.pct)+'</td>';
+  }
+  function aHdrCells(list){
+    if (!AS) return '';
+    let at = 0, av = 0; list.forEach(function(r){ if (r.aPP){ at += r.aPP.target||0; av += r.aPP.compareValue||0; } });
+    const B = ' style="font-weight:800;';
+    return '<td'+B+'">'+(at>0?fmt(at):'-')+'</td><td'+B+(at>0&&av/at*100<100?lowStyle:'')+'">'+(at>0?fmtPct(av/at*100):'-')+'</td>';
+  }
   let body = '';
   function storeRowHtml(r){
     let body = '';
@@ -6417,9 +6447,9 @@ function renderBrandStorePopup(d){
       +'<td>'+(canEditTargets() ? editableNum(r.monthlyT, true, 'catStore', r.ovKey) : (r.hasTarget?fmt(r.target):'-'))+'</td>'
       +'<td>'+fmt(r.qty)+'</td><td>'+fmt(r.omzet)+'</td><td>'+fmt(r.estQty)+'</td><td>'+fmt(r.estVal)+'</td>'
       +'<td>'+(r.hasTarget?gapTxt(gap):'-')+'</td>'
-      +'<td style="font-weight:800;'+(low?lowStyle:'')+'">'+(r.hasTarget?fmtPct(r.pct):'-')+'</td></tr>';
+      +'<td style="font-weight:800;'+(low?lowStyle:'')+'">'+(r.hasTarget?fmtPct(r.pct):'-')+'</td>'+smCells(r.sPP)+aCells(r.aPP)+'</tr>';
     if (isSel){
-      body += '<tr class="ero-expand-row"><td colspan="9" style="padding:0 0 8px 0;border-bottom:1px solid var(--border);">'+storeSubHtml(r.code, r.name)+'</td></tr>';
+      body += '<tr class="ero-expand-row"><td colspan="'+(9+(SM?2:0)+(AS?2:0))+'" style="padding:0 0 8px 0;border-bottom:1px solid var(--border);">'+storeSubHtml(r.code, r.name)+'</td></tr>';
     }
     return body;
   }
@@ -6433,7 +6463,7 @@ function renderBrandStorePopup(d){
     return '<tr class="area-hdr"><td></td><td class="cat-nm" style="text-align:left;">'+racingAreaLabel(g)+'</td>'
       +'<td'+B+'>'+(t.t>0?fmt(t.t):'-')+'</td><td'+B+'>'+fmt(t.q)+'</td><td'+B+'>'+fmt(t.v)+'</td><td'+B+'>'+fmt(t.eq)+'</td><td'+B+'>'+fmt(t.ev)+'</td>'
       +'<td'+B+'>'+(t.t>0?gapTxt(t.v-t.t):'-')+'</td>'
-      +'<td style="font-weight:800;'+(pct!==null&&pct<100?lowStyle:'')+'">'+(pct===null?'-':fmtPct(pct))+'</td></tr>';
+      +'<td style="font-weight:800;'+(pct!==null&&pct<100?lowStyle:'')+'">'+(pct===null?'-':fmtPct(pct))+'</td>'+smHdrCells(list)+aHdrCells(list)+'</tr>';
   }
   const areaGrp = racingGroupByArea(rows, function(r){ return r.name; });
   if (areaGrp){
@@ -6449,7 +6479,7 @@ function renderBrandStorePopup(d){
     +'<td style="font-weight:800;">'+fmt(sum('qty'))+'</td><td style="font-weight:800;">'+fmt(sum('omzet'))+'</td>'
     +'<td style="font-weight:800;">'+fmt(sum('estQty'))+'</td><td style="font-weight:800;">'+fmt(tV)+'</td>'
     +'<td style="font-weight:800;">'+(tT>0?gapTxt(sum('omzet')-tT):'-')+'</td>'
-    +'<td style="font-weight:800;'+(tPct!==null&&tPct<100?lowStyle:'')+'">'+fmtPct(tPct)+'</td></tr></tfoot>';
+    +'<td style="font-weight:800;'+(tPct!==null&&tPct<100?lowStyle:'')+'">'+fmtPct(tPct)+'</td>'+smHdrCells(rows)+aHdrCells(rows)+'</tr></tfoot>';
   return '<div class="cat-overlay" onclick="if(event.target===this)toggleBrandStore(null)">'
     +'<div class="cat-detail">'
     +'<div class="cat-detail-title"><span>Pencapaian '+escapeHtml(brand.label)+' &ndash; by Store</span><span style="display:flex;gap:6px;align-items:center;">'
@@ -6602,6 +6632,8 @@ function samModelLabel(r){
   let n = String(r[7]==null?'':r[7]).replace(/\s+\d+\s*\/\s*\d+.*$/,'').replace(/\s*\d+\s*GB.*$/i,'').trim();
   return n || '-';
 }
+// Target Tier 1 & 5 dari gambar laporan dicari lewat KODE SAP toko (bukan site_code internal)
+function samImgOf(s){ return SAM_IMG[sapCodeOf(s.site_desc)] || SAM_IMG[s.site_code] || null; }
 function samIncCompute(d){
   const raw = state.raw; if (!raw) return null;
   const rc = raw.racing || {};
@@ -6622,11 +6654,11 @@ function samIncCompute(d){
   const prevLbl = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][pS.getUTCMonth()];
   const tOf = function(s){
     const base = st[s.site_desc] || st[s.site_code] || st[canonStoreName(s.site_desc)] || null;
-    const im = SAM_IMG[s.site_code];
+    const im = samImgOf(s);
     if (im){ if (!(im[0]>0) && !(im[1]>0)) return [0,0,0,0,0]; const b = base || [0,0,0,0,0]; return [im[0], b[1]||0, b[2]||0, b[3]||0, im[1]]; } // toko di gambar: target gambar (T1 & T5), tanpa target = 0
     return base;
   };
-  const stores = (d.stores||[]).filter(function(s){ if (SAM_IMG[s.site_code]) return true; if (!racingStoreExcluded(s.site_desc)) return true; const t = tOf(s); return !!(t && t[0]>0); }); // Erablue/Operator/JB di-take out dari racing Samsung, KECUALI toko yang punya target Tier 1 (Participant Racing, mis. AGRES Mangga Dua Square & XLC Mal Puri Indah)
+  const stores = (d.stores||[]).filter(function(s){ if (samImgOf(s)) return true; if (!racingStoreExcluded(s.site_desc)) return true; const t = tOf(s); return !!(t && t[0]>0); }); // Erablue/Operator/JB di-take out dari racing Samsung, KECUALI toko yang punya target Tier 1 (Participant Racing, mis. AGRES Mangga Dua Square & XLC Mal Puri Indah)
   const byName = {}; const act = {}, prev = {}, det = {};
   stores.forEach(function(s){ byName[s.site_desc]=s; byName[s.site_code]=s; act[s.site_code]=0; prev[s.site_code]=0; det[s.site_code]={}; });
   (raw.records||[]).forEach(function(r){
@@ -6657,7 +6689,7 @@ function samIncCompute(d){
     o.code = code0; o.key = s.site_code; o.name = s.site_desc; o.det = det[s.site_code];
     o.part = tt[0]>0; o.area = racingAreaOf(s.site_desc);
     return o;
-  }).filter(function(o){ return !!SAM_IMG[o.key] || o.sales!==0 || o.t[0]>0; }).sort(function(a,b){ return String(a.code).localeCompare(String(b.code),'id',{numeric:true}) || String(a.name).localeCompare(String(b.name),'id'); });
+  }).filter(function(o){ return !!SAM_IMG[o.code] || o.sales!==0 || o.t[0]>0; }).sort(function(a,b){ return String(a.code).localeCompare(String(b.code),'id',{numeric:true}) || String(a.name).localeCompare(String(b.name),'id'); });
   const sum = function(list){
     return mk([0,1,2,3,4].map(function(i){ return list.reduce(function(a,r){ return a+r.t[i]; },0); }),
       list.reduce(function(a,r){ return a+r.sales; },0), list.reduce(function(a,r){ return a+r.oct; },0));
@@ -6673,7 +6705,7 @@ function samIncCompute(d){
   return {rows:rows, groups:groups, tot:tot, tierOk:tierOk, start:start, end:end, asOf:asOf, totalDays:totalDays, elapsed:elapsed, remain:remain, estDays:estDays, prevLbl:prevLbl, nPart:rows.filter(function(r){ return r.part; }).length};
 }
 function openSamInc(){
-  state.samIncOpen = true; state.samIncSel = null;
+  state.samIncOpen = true; state.samIncSel = null; state.samSumOpen = false; state.samSchemeOpen = false;
   state.racingKey = null; state.racingFrom = null; state.racingFromBrand = null; state.racingSel = null;
   state.catDetailKey = null; state.catDetailStore = null; state.brandStoreKey = null; state.brandPivotKey = null; state.catOpOpen = false; state.catPivotOpen = false; state.catTopOpen = false;
   render();
@@ -6772,13 +6804,195 @@ function renderSamIncPopup(d){
     +'<div class="cat-detail-title"><span>🏁 Racing Samsung Participant &ndash; Tier 1&ndash;5 by Store</span><span style="display:flex;gap:6px;align-items:center;">'
       +'<span class="x cap-hide" style="border:1px solid var(--border);" onclick="captureCatPopup()" title="Simpan semua data sebagai gambar">📸</span>'
       +'<span class="x cap-hide" onclick="closeSamInc()" title="Tutup (Esc)">✕ Tutup</span></span></div>'
-    +'<div class="pv-ctl cap-hide" style="margin:4px 0 8px;"><button class="pv-btn" onclick="openBrandRacing(\'SAMSUNG\')">🏁 Racing Samsung</button><button class="pv-btn on">🏆 Racing Tier Samsung</button></div>'
+    +'<div class="pv-ctl cap-hide" style="margin:4px 0 8px;"><button class="pv-btn" onclick="openBrandRacing(\'SAMSUNG\')">🏁 Target Summit</button><button class="pv-btn on">🏆 Racing S+Z</button><button class="pv-btn" onclick="openSamSum()">🎯 A Series</button><button class="pv-btn" onclick="openSamScheme()">💰 Skema Insentif</button></div>'
     +info+nodata+tiles
     +'<h4>🏬 BY AREA &middot; LOB '+escapeHtml(SAM_INC.lob)+' &middot; '+escapeHtml(SAM_INC.areaLabel)+'</h4>'
     +'<div class="achv-table-wrap"><table>'+head+'<tbody>'+body+'</tbody>'+foot+'</table></div>'
   +'</div></div>';
 }
 
+/* ============ RACING SAMSUNG: TARGET SUMMIT & A SERIES by Store ============
+   Tab ketiga di popup Racing Samsung. Target dari sheet Target Racing (kolom Target Samsung Summit & Target Samsung A Series),
+   diprorata mengikuti filter tanggal dashboard (periodPct). Qty Summit = Qty Samsung Device; Qty A Series = Samsung Device "GALAXY A..". */
+function openSamSum(){
+  state.samSumOpen = true; state.samIncOpen = false; state.samIncSel = null; state.samSchemeOpen = false;
+  state.racingKey = null; state.racingFrom = null; state.racingFromBrand = null; state.racingSel = null;
+  state.catDetailKey = null; state.catDetailStore = null; state.brandStoreKey = null; state.brandPivotKey = null; state.catOpOpen = false; state.catPivotOpen = false; state.catTopOpen = false;
+  render();
+}
+function closeSamSum(){ state.samSumOpen = false; render(); }
+function samSumTable(d, title, tOf, qMap){
+  const lowStyle = 'background:rgba(255,122,92,.22);color:var(--red);';
+  const gapTxt = function(g){ return g<0 ? '('+fmt(-g)+')' : fmt(g); };
+  const items = (d.stores||[]).map(function(s){ return {s:s, t:tOf(s), q:qMap[s.site_code]||0}; }).filter(function(x){ return x.t>0; })
+    .sort(function(a,b){ return String(a.s.site_desc).localeCompare(String(b.s.site_desc),'id'); });
+  if (!items.length) return '';
+  items.forEach(function(x){ const pp = periodPct(x.t, x.q, d); x.tg = pp.target||0; x.ev = pp.compareValue||0; });
+  const lbl = isProjectionMode() ? 'EST' : 'AKTUAL';
+  const cells = function(tg, q, ev, bold){
+    const b = bold ? 'font-weight:800;' : '', p = tg>0 ? ev/tg*100 : null;
+    return '<td style="'+b+'">'+fmt(tg)+'</td><td style="'+b+'">'+fmt(q)+'</td><td style="'+b+'">'+fmt(ev)+'</td><td style="'+b+'">'+(tg>0?gapTxt(q-tg):'-')+'</td><td style="font-weight:800;'+(p!==null&&p<100?lowStyle:'')+'">'+(p===null?'-':fmtPct(p))+'</td>';
+  };
+  const sum = function(list){ return list.reduce(function(a,x){ return {tg:a.tg+x.tg, q:a.q+x.q, ev:a.ev+x.ev}; }, {tg:0,q:0,ev:0}); };
+  const head = '<thead><tr><th>SAP CODE</th><th class="cat-nm">STORE NAME</th><th>TARGET</th><th>MTD QTY</th><th>'+lbl+' QTY</th><th>GAP</th><th>%</th></tr></thead>';
+  let body = '';
+  racingRowsWithAreas(items, function(x){ return x.s.site_desc; }).forEach(function(r){
+    if (r.__hdr){
+      const t = sum(r.__hdr.idx.map(function(i){ return items[i]; }));
+      body += '<tr class="area-hdr"><td></td><td class="cat-nm" style="font-weight:800;color:var(--text-strong);">'+racingAreaLabel(r.__hdr)+'</td>'+cells(t.tg,t.q,t.ev,true)+'</tr>';
+      return;
+    }
+    body += '<tr><td>'+escapeHtml(sapCodeOf(r.s.site_desc))+'</td><td class="cat-nm" style="font-weight:700;color:var(--text-strong);">'+escapeHtml(r.s.site_desc)+'</td>'+cells(r.tg,r.q,r.ev,false)+'</tr>';
+  });
+  const T = sum(items);
+  const foot = '<tfoot><tr><td></td><td class="cat-nm" style="font-weight:800;">TOTAL</td>'+cells(T.tg,T.q,T.ev,true)+'</tr></tfoot>';
+  return '<h4>'+title+'</h4><div class="achv-table-wrap"><table>'+head+'<tbody>'+body+'</tbody>'+foot+'</table></div>';
+}
+function samSumQty(d){
+  const qS = {}, qA = {};
+  (d.filtered||[]).forEach(function(r){
+    if (r[2]!=='Device' || normalizeBrandKey(r[3])!=='SAMSUNG') return;
+    qS[r[1]] = (qS[r[1]]||0) + r[4];
+    if (samAOf(r)) qA[r[1]] = (qA[r[1]]||0) + r[4];
+  });
+  return {qS:qS, qA:qA};
+}
+// Tabel TARGET SUMMIT (unit) by TSH — ditampilkan di tab "🏁 Target Summit" (popup Racing Samsung)
+function samSummitTableHtml(d){
+  const q = samSumQty(d);
+  return samSumTable(d, '🎯 TARGET SUMMIT (unit) &middot; BY TSH', samSummitStoreT, q.qS);
+}
+function renderSamSumPopup(d){
+  if (!state.samSumOpen) return '';
+  const qA = samSumQty(d).qA;
+  const t2 = samSumTable(d, '🅰️ TARGET A SERIES (unit) &middot; BY TSH', samAStoreT, qA);
+  const hint = '<div class="cat-hint">Target bulanan diprorata mengikuti filter tanggal dashboard. Qty A Series = Samsung Device seri A (Galaxy A.., Tab tidak ikut). GAP = MTD &minus; Target; % = '+(isProjectionMode()?'EST':'aktual')+' &divide; Target.</div>';
+  return '<div class="cat-overlay" onclick="if(event.target===this)closeSamSum()">'
+    +'<div class="cat-detail" style="max-width:min(1300px,98vw);">'
+    +'<div class="cat-detail-title"><span>🎯 A Series &ndash; Racing Samsung by Store</span><span style="display:flex;gap:6px;align-items:center;">'
+      +'<span class="x cap-hide" style="border:1px solid var(--border);" onclick="captureCatPopup()" title="Simpan semua data sebagai gambar">📸</span>'
+      +'<span class="x cap-hide" onclick="closeSamSum()" title="Tutup (Esc)">✕ Tutup</span></span></div>'
+    +'<div class="pv-ctl cap-hide" style="margin:4px 0 8px;"><button class="pv-btn" onclick="openBrandRacing(\'SAMSUNG\')">🏁 Target Summit</button><button class="pv-btn" onclick="openSamInc()">🏆 Racing S+Z</button><button class="pv-btn on">🎯 A Series</button><button class="pv-btn" onclick="openSamScheme()">💰 Skema Insentif</button></div>'
+    +hint+(t2 ? t2 : '<div class="cat-hint">Belum ada target A Series di sheet Target Racing.</div>')
+  +'</div></div>';
+}
+
+/* ============ SKEMA INSENTIF SAMSUNG (Channel Multibrand: Erafone + Urban Republic) — Store + ERO ============
+   Sumber: gambar "INCENTIVE SAMSUNG UNTUK FL ERAJAYA DI CHANNEL MULTIBRAND" (periode 1–30 Nov 2026).
+   Insentif per unit untuk SL/JSL, TSH, LOB. Syarat: qty sell out per TIPE per STORE >= minimal qty tipe tsb selama periode;
+   bila tercapai, SEMUA unit tipe itu di store itu mendapat insentif (contoh gambar: ach 8 unit x Rp25.000 = Rp200.000); bila tidak tercapai = Rp0.
+   Aktual = Master Data brand Samsung pada periode (tidak terpengaruh filter tanggal dashboard), net retur. Baris ERO = rincian kontribusi qty per ERO. */
+const SAM_SCHEME = {
+  start:'2026-11-01', end:'2026-11-30',
+  types:[
+    {k:'a57',  label:'Galaxy A57 5G',      re:/GALAXY\s*A57/,            sl:25000, tsh:10000, lob:5000, min:5},
+    {k:'a37',  label:'Galaxy A37 5G',      re:/GALAXY\s*A37/,            sl:25000, tsh:5000,  lob:5000, min:3},
+    {k:'a27',  label:'Galaxy A27 5G',      re:/GALAXY\s*A27/,            sl:25000, tsh:5000,  lob:5000, min:3},
+    {k:'a08',  label:'Galaxy A08',         re:/GALAXY\s*A08/,            sl:25000, tsh:5000,  lob:5000, min:3},
+    {k:'a11p', label:'Galaxy Tab A11+',    re:/TAB\s*A11\s*[+P]/,        sl:20000, tsh:5000,  lob:5000, min:3},
+    {k:'a11',  label:'Galaxy Tab A11',     re:/TAB\s*A11(?!\s*[+P])/,    sl:20000, tsh:5000,  lob:5000, min:3},
+    {k:'ult2', label:'Galaxy Watch Ultra2',re:/WATCH\s*ULTRA\s*2/,       sl:25000, tsh:5000,  lob:5000, min:2},
+    {k:'w944', label:'Galaxy Watch9 44mm', re:/WATCH\s*9\s*44\s*MM/,     sl:25000, tsh:5000,  lob:5000, min:2},
+    {k:'w940', label:'Galaxy Watch9 40mm', re:/WATCH\s*9\s*40\s*MM/,     sl:25000, tsh:5000,  lob:5000, min:2},
+    {k:'bud4p',label:'Galaxy Buds4 Pro',   re:/BUDS\s*4\s*PRO/,          sl:25000, tsh:5000,  lob:5000, min:3}
+  ]
+};
+function samSchemeTypeOf(r){
+  if (normalizeBrandKey(r[3])!=='SAMSUNG') return null;
+  const n = String(r[7]==null?'':r[7]).toUpperCase();
+  for (let i=0;i<SAM_SCHEME.types.length;i++){ if (SAM_SCHEME.types[i].re.test(n)) return SAM_SCHEME.types[i]; }
+  return null;
+}
+function openSamScheme(){
+  state.samSchemeOpen = true; state.samSumOpen = false; state.samIncOpen = false; state.samIncSel = null;
+  state.racingKey = null; state.racingFrom = null; state.racingFromBrand = null; state.racingSel = null;
+  state.catDetailKey = null; state.catDetailStore = null; state.brandStoreKey = null; state.brandPivotKey = null; state.catOpOpen = false; state.catPivotOpen = false; state.catTopOpen = false;
+  render();
+}
+function closeSamScheme(){ state.samSchemeOpen = false; render(); }
+function toggleSamSchemeEro(){ state.samSchemeEro = !state.samSchemeEro; render(); }
+function samSchemeCompute(d){
+  const raw = state.raw; if (!raw) return null;
+  const per = ((raw.racing||{}).periods||{}).b_SAMSUNG || {};
+  const start = SAM_SCHEME.start, end = SAM_SCHEME.end; // periode skema insentif (sesuai gambar)
+  const T = SAM_SCHEME.types;
+  const byName = {}; (d.stores||[]).forEach(function(s){ byName[s.site_code] = s; });
+  const q = {}, e = {};
+  (raw.records||[]).forEach(function(r){
+    if (r[0]<start || r[0]>end) return;
+    const t = samSchemeTypeOf(r); if (!t) return;
+    if (!byName[r[1]]) return;
+    const o = q[r[1]] = q[r[1]] || {};
+    o[t.k] = (o[t.k]||0) + r[4];
+    const en = String(r[6]==null?'':r[6]).trim() || '-';
+    const m = e[r[1]] = e[r[1]] || {}; const eo = m[en] = m[en] || {};
+    eo[t.k] = (eo[t.k]||0) + r[4];
+  });
+  const calc = function(qm){
+    const inc = {sl:0, tsh:0, lob:0}, ok = {};
+    T.forEach(function(t){ const n = qm[t.k]||0; ok[t.k] = n>=t.min && n>0; if (ok[t.k]){ inc.sl += n*t.sl; inc.tsh += n*t.tsh; inc.lob += n*t.lob; } });
+    return {q:qm, inc:inc, ok:ok};
+  };
+  const rows = Object.keys(q).map(function(code){
+    const s = byName[code]; const c = calc(q[code]);
+    c.code = sapCodeOf(s.site_desc); c.name = s.site_desc; c.area = racingAreaOf(s.site_desc);
+    c.eros = Object.keys(e[code]||{}).map(function(n){ return {name:n, q:e[code][n]}; }).sort(function(a,b){
+      const sa = T.reduce(function(x,t){ return x+(a.q[t.k]||0); },0), sb = T.reduce(function(x,t){ return x+(b.q[t.k]||0); },0); return sb-sa; });
+    return c;
+  }).filter(function(c){ return T.some(function(t){ return (c.q[t.k]||0)!==0; }); })
+    .sort(function(a,b){ return String(a.name).localeCompare(String(b.name),'id'); });
+  const sum = function(list){
+    const qm = {}, inc = {sl:0,tsh:0,lob:0};
+    list.forEach(function(c){ T.forEach(function(t){ qm[t.k] = (qm[t.k]||0)+(c.q[t.k]||0); }); inc.sl+=c.inc.sl; inc.tsh+=c.inc.tsh; inc.lob+=c.inc.lob; });
+    return {q:qm, inc:inc, ok:{}};
+  };
+  return {rows:rows, tot:sum(rows), sum:sum, start:start, end:end};
+}
+function renderSamSchemePopup(d){
+  if (!state.samSchemeOpen) return '';
+  const c = samSchemeCompute(d); if (!c) return '';
+  const T = SAM_SCHEME.types, showEro = !!state.samSchemeEro;
+  const rp = function(n){ return n ? fmt(n) : '-'; };
+  const okBg = 'background:rgba(74,222,156,.18);color:var(--green);font-weight:800;';
+  const lowBg = 'background:rgba(255,122,92,.16);color:var(--red);font-weight:800;';
+  const qCells = function(r, kind){ // kind: 'store' (warna syarat min) | 'ero' | 'sum'
+    return T.map(function(t){
+      const n = r.q[t.k]||0;
+      if (!n) return '<td style="color:var(--muted);">-</td>';
+      if (kind==='store') return '<td style="'+(n>=t.min?okBg:lowBg)+'" title="'+(n>=t.min?'Tercapai (min '+t.min+')':'Belum tercapai (min '+t.min+')')+'">'+fmt(n)+'</td>';
+      return '<td'+(kind==='sum'?' style="font-weight:800;"':'')+'>'+fmt(n)+'</td>';
+    }).join('');
+  };
+  const incCells = function(r, bold){ const st = bold?' style="font-weight:800;"':''; return '<td'+st+'>'+rp(r.inc.sl)+'</td><td'+st+'>'+rp(r.inc.tsh)+'</td><td'+st+'>'+rp(r.inc.lob)+'</td>'; };
+  const noInc = '<td></td><td></td><td></td>';
+  let body = '';
+  racingRowsWithAreas(c.rows, function(r){ return r.name; }).forEach(function(r){
+    if (r.__hdr){
+      const sm = c.sum(r.__hdr.idx.map(function(i){ return c.rows[i]; }));
+      body += '<tr class="area-hdr"><td></td><td class="cat-nm" style="font-weight:800;text-align:left;">'+racingAreaLabel(r.__hdr)+'</td>'+qCells(sm,'sum')+incCells(sm,true)+'</tr>';
+      return;
+    }
+    body += '<tr class="pv-store"><td>'+escapeHtml(r.code)+'</td><td class="cat-nm" style="text-align:left;">'+escapeHtml(String(r.name).toUpperCase())+'</td>'+qCells(r,'store')+incCells(r,false)+'</tr>';
+    if (showEro) r.eros.forEach(function(x){ body += '<tr class="pv-ero"><td></td><td style="text-align:left;padding-left:18px;">'+escapeHtml(x.name)+'</td>'+qCells(x,'ero')+noInc+'</tr>'; });
+  });
+  const foot = '<tfoot><tr class="pv-total"><td></td><td style="text-align:left;">Grand Total</td>'+qCells(c.tot,'sum')+incCells(c.tot,true)+'</tr></tfoot>';
+  const head = '<thead><tr><th rowspan="2">SAP CODE</th><th rowspan="2" style="min-width:210px;">STORE NAME</th><th colspan="'+T.length+'">QTY SELL OUT (min qty per store)</th><th colspan="3">INSENTIF (Rp)</th></tr>'
+    +'<tr>'+T.map(function(t){ return '<th style="font-size:10.5px;">'+escapeHtml(t.label)+'<br><span style="font-weight:600;opacity:.8;">min '+t.min+'</span></th>'; }).join('')+'<th>SL/JSL</th><th>TSH</th><th>LOB</th></tr></thead>';
+  const table = c.rows.length ? '<div class="pivot-wrap"><table class="pivot-tbl">'+head+'<tbody>'+body+'</tbody>'+foot+'</table></div>'
+    : '<div class="cat-hint">Belum ada penjualan tipe skema insentif Samsung pada periode ini.</div>';
+  const scheme = '<h4 style="margin-top:14px;">📋 Nominal Insentif / unit</h4><div class="pivot-wrap"><table class="pivot-tbl"><thead><tr><th style="text-align:left;">Type</th><th>untuk SL/JSL</th><th>untuk TSH</th><th>untuk LOB</th><th>Minimal Qty SO per store</th></tr></thead><tbody>'
+    +T.map(function(t){ return '<tr><td style="text-align:left;">'+escapeHtml(t.label)+'</td><td>'+fmt(t.sl)+'</td><td>'+fmt(t.tsh)+'</td><td>'+fmt(t.lob)+'</td><td>'+t.min+' unit</td></tr>'; }).join('')
+    +'</tbody></table></div>';
+  const tabs = '<div class="pv-ctl cap-hide" style="margin:4px 0 8px;"><button class="pv-btn" onclick="openBrandRacing(\'SAMSUNG\')">🏁 Target Summit</button><button class="pv-btn" onclick="openSamInc()">🏆 Racing S+Z</button><button class="pv-btn" onclick="openSamSum()">🎯 A Series</button><button class="pv-btn on">💰 Skema Insentif</button></div>';
+  const ctl = '<div class="pv-ctl"><span class="lbl">ERO:</span><button class="pv-btn'+(showEro?' on':'')+'" onclick="toggleSamSchemeEro()">'+(showEro?'Tampil':'Sembunyi')+'</button>'
+    +'<span class="pv-chip" style="margin-left:10px;font-size:11px;font-weight:800;color:var(--green);">Periode: '+fmtDMY(c.start)+' &ndash; '+fmtDMY(c.end)+'</span></div>';
+  const note = '*Insentif Samsung untuk FL Erajaya di Channel Multibrand (Erafone + Urban Republic), periode 1&ndash;30 November 2026. Insentif didapat dari penjualan regular offline store. Syarat: qty sell out per <b>tipe</b> per <b>store</b> &ge; minimal qty tipe tsb selama periode (sel hijau = tercapai, merah = belum). Bila tercapai, seluruh unit tipe itu di store tsb &times; nominal per unit (contoh: 8 unit A57 &times; Rp25.000 = Rp200.000); bila tidak = Rp0. Insentif dihitung per store lalu dijumlahkan per area/TSH dan Grand Total (LOB). Baris ERO hanya rincian kontribusi qty. Wajib open box &amp; aktivasi EULA FOTA (tidak bisa dicek dari Master Data). Aktual dihitung dari Master Data pada periode di atas, tidak terpengaruh filter tanggal dashboard.';
+  return '<div class="cat-overlay" onclick="if(event.target===this)closeSamScheme()">'
+    +'<div class="cat-detail" style="max-width:min(1400px,98vw);">'
+    +'<div class="cat-detail-title"><span>💰 Skema Insentif Samsung &ndash; Store'+(showEro?' + ERO':'')+'</span><span style="display:flex;gap:6px;align-items:center;"><span class="x cap-hide" style="border:1px solid var(--border);" onclick="captureCatPopup()" title="Simpan semua data sebagai gambar">📸</span><span class="x cap-hide" onclick="closeSamScheme()" title="Tutup (Esc)">✕ Tutup</span></span></div>'
+    +tabs+ctl+table+scheme+'<div class="cat-note">'+note+'</div>'
+  +'</div></div>';
+}
 /* ============ RACING (Oppo, Vivo, Indosat, XL, Telkomsel, Boltech) ============
    Dibaca dari sheet "Target Racing" di file Master Data (periode racing + target VALUE & QTY per toko).
    Tidak ada slide baru: tombol "Racing" ada di kartu brand (OMZET PER BRAND), dan di popup rincian
@@ -6879,7 +7093,7 @@ function racingMatch(item, r){ // r = [tanggal, toko, kategori, brand, qty, omze
 // Parse sheet "Target Racing": blok PERIODE RACING + blok TARGET RACING PER TOKO (VALUE & QTY).
 function parseRacingSheet(trows){
   for (let i=RACING_ITEMS.length-1;i>=0;i--){ if (RACING_ITEMS[i].auto) RACING_ITEMS.splice(i,1); } // item model otomatis dibangun ulang dari sheet setiap kali file di-upload
-  const out = {periods:{}, area:{}, stores:{}, samTier:{stores:{}, estDays:null}};
+  const out = {periods:{}, area:{}, stores:{}, samTier:{stores:{}, estDays:null}, samSummit:{stores:{}, area:0}, samA:{stores:{}, area:0}};
   const norm = v => String(v==null?'':v).trim().toUpperCase();
   let pIdx=-1, tIdx=-1;
   trows.forEach((row,i)=>{
@@ -6903,8 +7117,12 @@ function parseRacingSheet(trows){
     const cols = [];
     let cur = null;
     const maxC = Math.max(hdr.length, sub.length);
+    const aCols = []; // Target Samsung A Series (unit per toko): header/sub-header memuat "A SERIES"
+    const summitCols = []; // Target Samsung Summit (unit per toko): kolom yang header/sub-headernya memuat kata SUMMIT
     const tierCols = []; // Racing Samsung: target per Tier 1-5 (QTY unit)
     for (let c=1;c<maxC;c++){
+      if (/\bA\s*SERIES\b/.test(norm(hdr[c])) || /\bA\s*SERIES\b/.test(norm(sub[c]))){ aCols.push(c); cur = null; continue; }
+      if (/SUMMIT/.test(norm(hdr[c])) || /SUMMIT/.test(norm(sub[c]))){ summitCols.push(c); cur = null; continue; } // Target Samsung Summit bukan target brand Value/Qty biasa
       if (hdr[c]!=null && String(hdr[c]).trim()!=='') cur = racingKeyFromName(hdr[c]);
       const tm = /^TIER\s*([1-5])$/.exec(norm(sub[c]));
       if (tm){ tierCols.push({c:c, i:Number(tm[1])-1}); continue; }
@@ -6922,6 +7140,14 @@ function parseRacingSheet(trows){
       const label = norm(row[0]);
       if (label==='GRAND TOTAL') break;
       const isArea = label.indexOf('TARGET AREA')===0;
+      if (summitCols.length){ // Target Samsung Summit per toko (unit)
+        let sn = 0; summitCols.forEach(function(c){ const n = Number(row[c]); if (isFinite(n)) sn += n; });
+        if (sn>0){ if (isArea) out.samSummit.area = sn; else out.samSummit.stores[canonStoreName(String(row[0]).trim())] = sn; }
+      }
+      if (aCols.length){ // Target Samsung A Series per toko (unit)
+        let an = 0; aCols.forEach(function(c){ const n = Number(row[c]); if (isFinite(n)) an += n; });
+        if (an>0){ if (isArea) out.samA.area = an; else out.samA.stores[canonStoreName(String(row[0]).trim())] = an; }
+      }
       if (!isArea && tierCols.length && tierCols.some(m=>row[m.c]!=null && row[m.c]!=='')){
         const arr = [0,0,0,0,0];
         tierCols.forEach(m=>{ const n = Number(row[m.c]); if (isFinite(n)) arr[m.i] = n; });
@@ -6945,6 +7171,61 @@ function parseRacingSheet(trows){
     if (row && norm(row[0]).indexOf('HARI ESTIMASI')===0){ const n = Number(row[1]); if (isFinite(n) && n>0) out.samTier.estDays = n; }
   });
   return out;
+}
+/* ============ TARGET SAMSUNG SUMMIT (unit per toko) ============
+   Sumber: sheet "Target Racing" kolom bertajuk "Target Samsung Summit" (sub-header "Summit Dev Target"), satu angka unit per toko.
+   Pencapaian = Qty Samsung (Device) terjual pada filter tanggal/toko dashboard; target bulanan diprorata mengikuti periode (periodPct). */
+function samSummitMap(){ const rc = state.raw && state.raw.racing; return (rc && rc.samSummit && rc.samSummit.stores) || null; }
+function samSummitOn(){ const m = samSummitMap(); return !!m && Object.keys(m).length>0; }
+function samSummitStoreT(s){
+  const m = samSummitMap(); if (!m || !s) return 0;
+  const cn = canonStoreName(s.site_desc);
+  const v = m[s.site_desc]!=null ? m[s.site_desc] : (m[cn]!=null ? m[cn] : m[s.site_code]);
+  return Number(v)||0;
+}
+function samSummitMonthly(d){ return (d.stores||[]).reduce(function(a,s){ return a+samSummitStoreT(s); },0); } // total target bulanan toko yang sedang ditampilkan
+function samSummitCardRows(row, d){
+  if (!samSummitOn()) return '';
+  const pp = periodPct(samSummitMonthly(d), (row&&row.qty)||0, d);
+  if (!pp.hasTarget) return '';
+  return '<div class="mini-row" title="Target Samsung Summit (unit) dibandingkan dengan Qty Samsung terjual"><span class="k">Target Summit</span><span class="v hl">'+fmt(pp.target)+' unit</span></div>'
+    +'<div class="mini-row" title="Qty Samsung '+(isProjectionMode()?'(estimasi)':'(aktual)')+' &divide; Target Summit"><span class="k">% Summit</span><span class="v" style="font-weight:800;color:'+(pp.pct>=100?'var(--green)':'var(--red)')+';">'+fmtPct(pp.pct)+'</span></div>';
+}
+function samSummitTableRow(d, sisa, pill, gapCell, dsCell){
+  if (!samSummitOn()) return '';
+  const r0 = (d.byBrand && d.byBrand['SAMSUNG']) || {qty:0};
+  const pp = periodPct(samSummitMonthly(d), r0.qty||0, d);
+  if (!pp.hasTarget) return '';
+  const gap = (r0.qty||0) - pp.target;
+  return '<tr><td class="nm" style="font-style:normal;text-transform:none;">&nbsp;&nbsp;&#8627; Samsung Summit (unit)</td><td>'+fmt(pp.target)+'</td><td>'+fmt(r0.qty||0)+'</td><td>-</td><td>'+fmt(pp.compareValue)+'</td><td>'+pill(pp.pct)+'</td><td>'+gapCell(gap, true)+'</td><td>'+dsCell(sisa>0?gap/sisa:null, true)+'</td></tr>';
+}
+/* ============ TARGET SAMSUNG A SERIES (unit per toko) ============
+   Sumber: sheet "Target Racing" kolom "Target Samsung A Series". Pencapaian = Qty Samsung Device seri A (nama barang "GALAXY A..", Tab tidak ikut)
+   pada filter tanggal/toko dashboard; target bulanan diprorata mengikuti periode (periodPct). */
+function samAMap(){ const rc = state.raw && state.raw.racing; return (rc && rc.samA && rc.samA.stores) || null; }
+function samAOn(){ const m = samAMap(); return !!m && Object.keys(m).length>0; }
+function samAOf(r){ return r[2]==='Device' && normalizeBrandKey(r[3])==='SAMSUNG' && /GALAXY\s*A\d{2}/i.test(String(r[7]==null?'':r[7])); }
+function samAStoreT(s){
+  const m = samAMap(); if (!m || !s) return 0;
+  const cn = canonStoreName(s.site_desc);
+  const v = m[s.site_desc]!=null ? m[s.site_desc] : (m[cn]!=null ? m[cn] : m[s.site_code]);
+  return Number(v)||0;
+}
+function samAMonthly(d){ return (d.stores||[]).reduce(function(a,s){ return a+samAStoreT(s); },0); }
+function samACardRows(row, d){
+  if (!samAOn()) return '';
+  const q = (row&&row.qtyA)||0, pp = periodPct(samAMonthly(d), q, d);
+  if (!pp.hasTarget) return '';
+  return '<div class="mini-row" title="Target Samsung A Series (unit) dibandingkan dengan Qty A Series terjual"><span class="k">Target A Series</span><span class="v hl">'+fmt(pp.target)+' unit</span></div>'
+    +'<div class="mini-row" title="Qty A Series '+(isProjectionMode()?'(estimasi)':'(aktual)')+' &divide; Target A Series"><span class="k">% A Series</span><span class="v" style="font-weight:800;color:'+(pp.pct>=100?'var(--green)':'var(--red)')+';">'+fmtPct(pp.pct)+'</span></div>';
+}
+function samATableRow(d, sisa, pill, gapCell, dsCell){
+  if (!samAOn()) return '';
+  const r0 = (d.byBrand && d.byBrand['SAMSUNG']) || {qty:0}, q = r0.qtyA||0;
+  const pp = periodPct(samAMonthly(d), q, d);
+  if (!pp.hasTarget) return '';
+  const gap = q - pp.target;
+  return '<tr><td class="nm" style="font-style:normal;text-transform:none;">&nbsp;&nbsp;&#8627; Samsung A Series (unit)</td><td>'+fmt(pp.target)+'</td><td>'+fmt(q)+'</td><td>-</td><td>'+fmt(pp.compareValue)+'</td><td>'+pill(pp.pct)+'</td><td>'+gapCell(gap, true)+'</td><td>'+dsCell(sisa>0?gap/sisa:null, true)+'</td></tr>';
 }
 function racingCompute(key, d){
   const raw = state.raw, rc = raw && (raw.racing || {periods:{}, area:{}, stores:{}});
@@ -7152,7 +7433,7 @@ function racingBrandTable(d, c){
     +'<div class="achv-table-wrap"><table>'+head+'<tbody>'+body+'</tbody>'+foot+'</table></div>';
 }
 function openBrandRacing(bk){
-  state.racingKey = racingBrandKey(bk); state.racingFrom = null; state.racingFromBrand = bk; state.racingSel = null; state.samIncOpen = false; state.samIncSel = null;
+  state.racingKey = racingBrandKey(bk); state.racingFrom = null; state.racingFromBrand = bk; state.racingSel = null; state.samIncOpen = false; state.samIncSel = null; state.samSumOpen = false; state.samSchemeOpen = false; state.samSchemeOpen = false;
   state.brandStoreKey = null; state.brandStoreSel = null; state.brandPivotKey = null; render();
 }
 
@@ -7384,7 +7665,7 @@ function renderRacingPopup(d, optKey, opts){
   const item = c.item;
   const tabs = item.dynamic ? [] : RACING_ITEMS.filter(x=>x.group===item.group && (item.group!=='brand' || x.brand===item.brand)); // tab racing brand hanya yang sesuai brand-nya (Oppo: Oppo + Oppo A7 Pro; Vivo: Vivo + Vivo 3Juta+)
   let samUnits = ''; if (item.key==='b_SAMSUNG'){ try { const sc = samIncCompute(d); if (sc) samUnits = ' &middot; '+fmt(sc.tot.sales)+' unit'; } catch(e){} }
-  const samTabs = item.key==='b_SAMSUNG' ? '<div class="pv-ctl cap-hide" style="margin:4px 0 8px;"><button class="pv-btn on">🏁 Racing Samsung</button><button class="pv-btn" onclick="openSamInc()">🏆 Racing Tier Samsung'+samUnits+'</button></div>' : '';
+  const samTabs = item.key==='b_SAMSUNG' ? '<div class="pv-ctl cap-hide" style="margin:4px 0 8px;"><button class="pv-btn on">🏁 Target Summit</button><button class="pv-btn" onclick="openSamInc()">🏆 Racing S+Z</button><button class="pv-btn" onclick="openSamSum()">🎯 A Series</button><button class="pv-btn" onclick="openSamScheme()">💰 Skema Insentif</button></div>' : '';
   const tabsHtml = samTabs + (tabs.length>1 ? '<div class="pv-ctl" style="margin:4px 0 8px;">'+tabs.map(t=>'<button class="pv-btn'+(t.key===key?' on':'')+'" onclick="'+(opts.tabFn||'setRacingTab')+'(\''+t.key+'\')">'+escapeHtml(t.label)+'</button>').join('')+'</div>' : '');
   const chip = (txt, color) => '<span style="font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:999px;border:1px solid var(--border);color:'+(color||'var(--green)')+';">'+txt+'</span>';
   const periodTxt = c.hasPeriod ? (fmtDMY(c.start)+' &ndash; '+fmtDMY(c.end)) : ('belum diisi &rarr; memakai rentang dashboard ('+fmtDMY(c.start)+' &ndash; '+fmtDMY(c.end)+')');
@@ -7453,9 +7734,10 @@ function renderRacingPopup(d, optKey, opts){
   const noteBrand = (c.byPeriod ? '*Aktual (MTD) dihitung dari Master Data pada <b>periode racing</b> sheet Target Racing ('+fmtDMY(c.start)+' &ndash; '+fmtDMY(c.end)+', data sampai '+fmtDMY(c.asOf)+'; tidak terpengaruh filter tanggal dashboard), hanya penjualan Device brand ' : '*Aktual (MTD & EST) dihitung SAMA dengan popup Pencapaian by Store: mengikuti filter tanggal dashboard, hanya penjualan Device brand ')+escapeHtml(item.label)+(item.minVal?' dengan value transaksi di atas '+fmt(item.minVal)+' (Rp 3.000.000 ke atas)':'')+'. Value = <b>total_nett_amount_exc_tax</b> (tanpa pajak). Target diambil dari sheet <b>Target Racing</b>. '+(c.hasPeriod?(c.byPeriod?'EST = aktual &divide; hari berjalan &times; total hari periode racing. ':'EST = aktual &divide; hari berjalan &times; jumlah hari dalam bulan. '):'')+(c.showQ && !c.showV ? 'GAP QTY = MTD Qty &minus; Target Qty; % QTY = '+(c.hasPeriod?'EST':'Aktual')+' Qty &divide; Target Qty. TARGET QTY total = jumlah target toko; bila kosong dipakai TARGET AREA (TOTAL). Sel % merah = belum mencapai 100%.' : 'GAP = MTD Value &minus; Target (tanda kurung = masih kurang).'+(c.hasPeriod?' % = EST &divide; Target.':'')+' TARGET total = jumlah target toko; bila kosong dipakai TARGET AREA (TOTAL). Bila target QTY diisi, kolom TARGET QTY / GAP QTY / % QTY ikut tampil. Sel % merah = belum mencapai 100%.');
   const noteBolt = '*Periode & target racing diambil dari sheet <b>Target Racing</b>; MTD = aktual seluruh kategori Repair Contract (Boltech) pada periode racing (tidak terpengaruh filter tanggal dashboard). '+(c.hasPeriod?'EST = proyeksi akhir periode (aktual &divide; hari berjalan &times; total hari periode). ':'')+'GAP = MTD Value &minus; Target (tanda kurung = masih kurang). TARGET total = jumlah target toko; bila kosong dipakai TARGET AREA (TOTAL). AR Boltech = Qty Repair Contract (semua transaksi) &divide; (Qty Device + Qty CE) pada periode racing; warna: hijau &ge;25%, kuning &ge;20%, merah &lt;20%. Bila target QTY diisi, kolom TARGET QTY / GAP QTY / % QTY ikut tampil. Sel % merah = belum mencapai 100%.';
   const qtyHint = (item.group==='brand' && c.showQ && !c.showV) ? '<div class="cat-hint">ℹ Target racing '+escapeHtml(item.label)+' dihitung berdasarkan <b>QTY (unit)</b>: TARGET QTY, GAP QTY, dan % QTY memakai jumlah unit terjual'+(c.hasPeriod?' (GAP = MTD qty &minus; target; % memakai EST qty)':'')+'. '+(state.racingNetRetur?'Retur (qty minus) ikut mengurangi capaian.':'Retur (qty minus) tidak mengurangi capaian (ubah lewat tombol Retur di bawah).')+'</div>' : '';
-  const inner = tabsHtml+info+hint+qtyHint
-    +(item.group==='brand' ? racingBrandTable(d, c) : (item.group==='boltech' ? racingBoltechTable(d, c) : '<div class="achv-table-wrap"><table>'+head+'<tbody>'+body+'</tbody>'+foot+'</table></div>'))
-;
+  let samSummitHtml = ''; if (item.key==='b_SAMSUNG'){ try { samSummitHtml = samSummitTableHtml(d); } catch(e){} }
+  const samOnly = item.key==='b_SAMSUNG'; // tab Target Summit Samsung: hanya tabel TARGET SUMMIT (unit) BY TSH
+  const inner = samOnly ? (tabsHtml+samSummitHtml) : tabsHtml+info+hint+qtyHint
+    +(item.group==='brand' ? racingBrandTable(d, c) : (item.group==='boltech' ? racingBoltechTable(d, c) : '<div class="achv-table-wrap"><table>'+head+'<tbody>'+body+'</tbody>'+foot+'</table></div>'));
   if (opts.embed) return inner;
   return '<div class="cat-overlay" onclick="if(event.target===this)closeRacing()">'
     +'<div class="cat-detail" style="max-width:min(1300px,98vw);">'
@@ -7463,7 +7745,7 @@ function renderRacingPopup(d, optKey, opts){
       +'<span class="x cap-hide" style="border:1px solid var(--border);" onclick="captureCatPopup()" title="Simpan semua data sebagai gambar">📸</span>'
       +back
       +'<span class="x cap-hide" onclick="closeRacing()" title="Tutup (Esc)">✕ Tutup</span></span></div>'
-    +'<h4>🏬 BY STORE</h4>'
+    +(samOnly ? '' : '<h4>🏬 BY STORE</h4>')
     +inner
   +'</div></div>';
 }
@@ -7502,7 +7784,7 @@ function renderBrandStoreTable(d, inPopup){
     const has = r.qty!==0 || r.val!==0;
     const nm = '<td class="nm'+(has?' clk':'')+'"'+(has?' onclick="toggleBrandDetail(\''+r.key+'\')" title="Klik untuk lihat rincian tipe terjual"':'')+'>'+escapeHtml(r.label)+(has?'<span class="arr">&#9654;</span>':'')+'</td>';
     const open = state.brandDetailKey===r.key && has;
-    const extra = ''; // rincian tipe terjual kini tampil sebagai popup (renderBrandTypePopup)
+    const extra = (r.key==='SAMSUNG') ? samSummitTableRow(d, sisa, pill, gapCell, dsCell)+samATableRow(d, sisa, pill, gapCell, dsCell) : ''; // + baris Target Samsung Summit (unit); rincian tipe terjual tampil sebagai popup (renderBrandTypePopup)
     return '<tr'+(open?' style="background:var(--sub);"':'')+'>'+nm
       +'<td>'+(r.hasT? fmt(r.target)+',00' : '0,00')+'</td>'
       +'<td>'+(has?fmt(r.qty):'-')+'</td>'
@@ -7520,7 +7802,7 @@ function renderBrandStoreTable(d, inPopup){
     +'<div class="bst-scroll"><table class="bst-table"><thead><tr><th class="nm">Nama</th><th>Target</th><th>Pencapaian<br>Qty</th><th>Pencapaian<br>Value</th><th>'+lbl+'</th><th>%</th><th>Gap</th><th>Daily Sales</th></tr></thead>'
     +'<tbody>'+body+'</tbody>'
     +'<tfoot><tr><td class="nm" style="font-style:normal;text-transform:none;">Grand Total</td><td>'+fmt(T)+'</td><td>'+fmt(Q)+'</td><td>'+fmt(V)+'</td><td>'+fmt(E)+'</td><td>'+pill(T>0?V/T*100:null)+'</td><td>'+gapCell(G, T>0)+'</td><td>'+dsCell(DS, T>0)+'</td></tr></tfoot></table></div>'
-    +'<div class="bst-foot">Klik nama brand untuk melihat tipe yang terjual &middot; Dibuat otomatis dari Dashboard Pencapaian Sales &middot; % = Pencapaian Value &divide; Target &middot; Gap = Value &minus; Target &middot; Daily Sales = Gap &divide; Sisa Hari ('+sisa+' hari)</div>'
+    +'<div class="bst-foot">Klik nama brand untuk melihat tipe yang terjual &middot; Dibuat otomatis dari Dashboard Pencapaian Sales &middot; % = Pencapaian Value &divide; Target &middot; Gap = Value &minus; Target &middot; Daily Sales = Gap &divide; Sisa Hari ('+sisa+' hari)'+(samSummitOn()?' &middot; Baris &#8627; Samsung Summit memakai satuan unit (Qty Samsung &divide; Target Summit)':'')+'</div>'
   +'</div>';
 }
 
@@ -7787,6 +8069,7 @@ function renderBrandRow(d){
         +'<div class="mini-row"><span class="k">MTD</span><span class="v">'+fmt(row.omzet)+'</span></div>'
         +'<div class="mini-row"><span class="k">'+periodCompareLabel()+'</span><span class="v">'+fmt(compareValue)+'</span></div>'
         +'<div class="mini-row"><span class="k">Target</span><span class="v hl">'+editableNum(t, canEditTargets(), 'brand', b.key)+'</span></div>'
+        
         +'<div class="mini-row"><span class="k">Qty</span><span class="v">'+fmt(row.qty)+'</span></div>'
         +'<div class="mini-row" title="Pertumbuhan / penurunan Value dibanding bulan lalu"><span class="k">vs Bln Lalu</span><span class="v">'+trendPctSpan(growthCalc(d, row, d.growth&&d.growth.brand[b.key]).val)+'</span></div>'
       +'</div>'
@@ -8118,7 +8401,7 @@ function buildAppHTML(){
     + renderSalesAchievementCard(d)
     + renderStockCard(d)
     + renderRacingPopup(d)
-    + renderSamIncPopup(d);
+    + renderSamIncPopup(d) + renderSamSumPopup(d) + renderSamSchemePopup(d);
 }
 
 /* ============ DOWNLOAD SLIDE SEBAGAI GAMBAR (PNG) ============ */
