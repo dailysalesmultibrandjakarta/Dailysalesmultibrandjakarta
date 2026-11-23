@@ -5221,7 +5221,8 @@ function renderCategoryDetailStore(d){
   function pivPv(x){
     if (pivMode==='op'){
       const dq = x.deviceQty||0, dv = x.deviceVal||0, cq = (x.opQ3!==undefined ? x.opQ3 : ((x.catQty&&x.catQty.Operator)||0)), cv = (x.opP!==undefined ? x.opP : ((x.cat&&x.cat.Operator)||0)); // Value Operator = kolom price (sama dengan Racing)
-      return {dq:dq, dv:dv, cq:cq, cv:cv, ar: dq>0 ? cq/dq*100 : null, sob: dv>0 ? cv/dv*100 : null}; // Ar = Qty Operator / Qty Device; SoB = Value Operator / Value Device
+      const o2 = opEroProv(x)['Vidio Lite']; // Vidio Lite (info tambahan, tidak mengubah Ar & SoB)
+      return {dq:dq, dv:dv, cq:cq, cv:cv, vlq:o2.q, vlv:o2.v, vlp: dq>0 ? o2.q/dq*100 : null, ar: dq>0 ? cq/dq*100 : null, sob: dv>0 ? cv/dv*100 : null}; // Ar = Qty Operator / Qty Device; SoB = Value Operator / Value Device
     }
     if (pivMode==='rc'){
       return {dq:(x.deviceQty||0)+(x.ceQty||0), dv:x.deviceVal||0, cq:x.rcQty||0, cv:x.rcVal||0, y1:x.rc1Q||0, y2:x.rc2Q||0, y3:x.rc3Q||0, ar:x.arRC, sob:x.sobRC};
@@ -5244,7 +5245,7 @@ function renderCategoryDetailStore(d){
   function pivHead(firstLabel){
     const catLbl = pivMode==='op' ? 'Operator' : (pivMode==='rc' ? 'Repair Contract' : 'Accessories');
     return '<thead><tr><th rowspan="2" style="min-width:190px;">'+firstLabel+'</th><th colspan="2">'+((pivMode==='op'||pivMode==='acc')?'Device':'Device + CE')+'</th><th colspan="2">'+catLbl+'</th>'
-      +(pivMode==='acc'?'<th colspan="2" style="'+pivMh+'">Medpoin</th>':'')+(pivMode==='rc'?'<th colspan="3" style="'+pivMh+'" title="Mix Repair Contract per durasi proteksi (qty dan % dari Qty Repair Contract)">Mix RC</th>':'')+(pivMode==='rc'?'<th rowspan="2" title="Unit (Device + CE) terjual tanpa Repair Contract">Lost RC<br>(unit)</th>':'')+'<th rowspan="2">Ar</th><th rowspan="2">SoB</th></tr>'
+      +(pivMode==='acc'?'<th colspan="2" style="'+pivMh+'">Medpoin</th>':'')+(pivMode==='op'?'<th rowspan="2" style="background:#8e24aa;color:#fff;">Vidio Lite<br>(Qty)</th><th rowspan="2" style="background:#8e24aa;color:#fff;" title="Qty Vidio Lite dibagi Qty Device">Vidio Lite<br>% vs Device</th>':'')+(pivMode==='rc'?'<th colspan="3" style="'+pivMh+'" title="Mix Repair Contract per durasi proteksi (qty dan % dari Qty Repair Contract)">Mix RC</th>':'')+(pivMode==='rc'?'<th rowspan="2" title="Unit (Device + CE) terjual tanpa Repair Contract">Lost RC<br>(unit)</th>':'')+'<th rowspan="2">Ar</th><th rowspan="2">SoB</th></tr>'
       +'<tr><th>Qty</th><th>Value</th><th>Qty</th><th>Value</th>'+(pivMode==='acc'?'<th style="'+pivMh+'">Qty</th><th style="'+pivMh+'">Value</th>':'')+(pivMode==='rc'?'<th style="'+pivMh+'">1 Thn</th><th style="'+pivMh+'">2 Thn</th><th style="'+pivMh+'">3 Thn</th>':'')+'</tr></thead>';
   }
   function pivCells(p, arScale, sobScale){
@@ -5260,6 +5261,7 @@ function renderCategoryDetailStore(d){
     }
     return '<td>'+pivNum(p.dq)+'</td><td>'+pivNum(p.dv)+'</td><td>'+pivNum(p.cq)+'</td><td>'+pivVal(p.cv)+'</td>'
       +(pivMode==='acc' ? '<td>'+pivVal(p.mq)+'</td><td>'+pivVal(p.mv)+'</td>' : '')
+      +(pivMode==='op' ? '<td>'+pivNum(p.vlq)+'</td><td>'+((p.vlp===null||p.vlp===undefined||!isFinite(p.vlp)) ? '-' : pf(p.vlp)+'%')+'</td>' : '')
       +(pivMode==='rc' ? [p.y1,p.y2,p.y3].map(function(q){ q = q||0; return q>0 ? '<td>'+pivNum(q)+' <span style="color:var(--muted);font-size:.82em;">('+Math.round(q/(p.cq||1)*100)+'%)</span></td>' : '<td>-</td>'; }).join('') : '')
       +(pivMode==='rc' ? (function(){ const lost = Math.max(0, p.dq-p.cq); return '<td style="font-weight:'+(lost>0?'800':'700')+';'+(lost>0?'color:var(--red);':'')+'">'+(p.dq>0 ? pivNum(lost) : '-')+'</td>'; })() : '')
       +arTd(p.ar)+sobTd(p.sob);
@@ -5268,7 +5270,7 @@ function renderCategoryDetailStore(d){
     const ents = rows.map(function(r){ const a = (d.catAchvByStore||{})[r.achvKey]; return a ? {key:r.achvKey, name:r.name, p:pivPv(a), raw:a} : null; })
       .filter(Boolean).sort((a,b)=>String(a.name).localeCompare(String(b.name),'id'));
     if (!ents.length) return '<div class="cat-hint">Belum ada data di rentang tanggal terpilih.</div>';
-    const ncol = pivMode==='acc' ? 9 : (pivMode==='rc' ? 11 : 7);
+    const ncol = pivMode==='acc' ? 9 : (pivMode==='rc' ? 11 : (pivMode==='op' ? 9 : 7));
     // Baris toko: klik nama toko -> rincian By ERO / By Tipe / Top 10 by Tipe tepat di bawah toko tsb.
     function storeRowHtml(e, indent){
       const isActive = e.key===state.catDetailStore;
@@ -5289,7 +5291,7 @@ function renderCategoryDetailStore(d){
         return pivPv(r);
       }
       if (pivMode==='op'){
-        const q = {deviceQty:0, deviceVal:0, opP:0, opQ3:0};
+        const q = {deviceQty:0, deviceVal:0, opP:0, opQ3:0, vidioLiteQty:0, vidioLiteVal:0, vidioLiteValP:0};
         list.forEach(function(e){ Object.keys(q).forEach(function(k){ q[k] += (e.raw[k]||0); }); });
         return pivPv(q);
       }
