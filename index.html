@@ -1500,6 +1500,7 @@ let state = {
   racingKey: null, // key item racing yang popup-nya terbuka (oppo/vivo/vivo3jt/indosat/xl/telkomsel/boltech)
   racingFrom: null, // kategori asal popup racing (utk tombol Rincian), null bila dari kartu brand
   samSchemeOpen: false, // popup Skema Insentif Samsung (Store + ERO) terbuka
+  samSchemeSl: true, // rekap per SL/JSL tampil (tombol − / +)
   samSchemeEro: false, // baris ERO disembunyikan secara default (tombol ERO untuk menampilkan)
   samSumOpen: false, // popup Summit & A Series (tab Racing Samsung) terbuka
   samIncOpen: false, // popup Racing Samsung Tier terbuka
@@ -6899,6 +6900,9 @@ const SAM_SCHEME = {
 };
 // Peserta skema: channel Multibrand = Erafone (termasuk Megastore Central Park/Petamburan & PDA.COM by Erafone) + Urban Republic. XLC/Galeri ISAT (Operator), Erablue, JB/Lottemart dll tidak ikut.
 function samSchemeStoreOk(name){ return chainOfStore(name)==='ERAFONE' || /URBAN\s*REPUBLIC/i.test(String(name||'')); }
+// SL / JSL (Nama KTP) per kode SAP toko — sumber: file STO_Update.xlsx (sheet "Nama sl handle toko", semua status Aktif)
+const SAM_SL_MAP = {"E396":"Syafri","E096":"Achmad Fauzan","Q248":"Achmad Fauzan","E037":"Adi Hasan Ashari","E216":"Cahyo Suhendro","E281":"Panji Arsy Arya Dillah","E678":"Dyah Laras Safitri","F073":"Bagus Purbantoro","G493":"Cahyo Suhendro","E113":"Erwin Ilyas","Q104":"Erwin Ilyas","E047":"Firman Saputra","E038":"Khoirul Amirudin","G258":"Rizky Setyadi","E137":"Rizky Setyadi","E408":"Ari Ardiansyah","E414":"Edy Putra Riansyah","E663":"Citra Lusiana","E732":"Roby Hidayat","M212":"Adityo A Putra","F080":"Rizki Maulana Sidiq","E898":"Danang Setyawan","E027":"Feri Tri Prabowo","E215":"Mohamad Roy Rojiani","M068":"Alija Kalifa Akbar","E233":"Yasir","E312":"Della Putri Fauza","E381":"Jenal Aripin","E453":"Bagas Ajiyanto","E960":"Habibie Al Ghazali","E992":"Asep Mulyana","G437":"Jenal Aripin","G435":"Bagas Ajiyanto","G586":"Habibie Al Ghazali","E875":"Hamid Sanusi","E465":"Ananda Aulia Rohman","E028":"Mukromin","F284":"Mukromin","E029":"Arif Budiyanto","Q022":"Riki Novianto","E322":"Adit Sukma Anggara","Q108":"Arif Budiyanto","E514":"Fernaldhy Julian Sanusi","E679":"Theodorus Eltara I R","E582":"Andro Noca Jaya Pratama","E942":"Calisan","E616":"Mohamad Rizky Setiawan","G417":"Mohamad Rizky Setiawan","M219":"Riki Novianto","G532":"Ananda Aulia Rohman","E172":"Damar Prayoga","E593":"Mohamad Iqbal","E508":"Ma'Ruf Wijaya","E164":"Huda Pratama","Q008":"Damardika","M091":"Damardika","E158":"Ridwan Rifaldo","E991":"Rudi Noviansyah","E986":"Sigit Dwi Anggoro","G519":"Dyna Fitria","G714":"Heri Putra","F134":"Levia Suci Hardiyanti","E413":"Agung Kurniawan","E923":"Dyna Fitria","E943":"Heri Putra"};
+function samSlOf(code){ return SAM_SL_MAP[code] || ''; }
 function samSchemeTypeOf(r){
   if (normalizeBrandKey(r[3])!=='SAMSUNG') return null;
   const n = String(r[7]==null?'':r[7]).toUpperCase();
@@ -6912,6 +6916,7 @@ function openSamScheme(){
   render();
 }
 function closeSamScheme(){ state.samSchemeOpen = false; render(); }
+function toggleSamSchemeSl(){ state.samSchemeSl = !state.samSchemeSl; render(); }
 function toggleSamSchemeEro(){ state.samSchemeEro = !state.samSchemeEro; render(); }
 function samSchemeCompute(d){
   const raw = state.raw; if (!raw) return null;
@@ -6937,7 +6942,7 @@ function samSchemeCompute(d){
   };
   const rows = Object.keys(q).map(function(code){
     const s = byName[code]; const c = calc(q[code]);
-    c.code = sapCodeOf(s.site_desc); c.name = s.site_desc; c.area = racingAreaOf(s.site_desc);
+    c.code = sapCodeOf(s.site_desc); c.name = s.site_desc; c.area = racingAreaOf(s.site_desc); c.sl = samSlOf(c.code);
     c.eros = Object.keys(e[code]||{}).map(function(n){ return {name:n, q:e[code][n]}; }).sort(function(a,b){
       const sa = T.reduce(function(x,t){ return x+(a.q[t.k]||0); },0), sb = T.reduce(function(x,t){ return x+(b.q[t.k]||0); },0); return sb-sa; });
     return c;
@@ -6948,7 +6953,10 @@ function samSchemeCompute(d){
     list.forEach(function(c){ T.forEach(function(t){ qm[t.k] = (qm[t.k]||0)+(c.q[t.k]||0); }); inc.sl+=c.inc.sl; inc.tsh+=c.inc.tsh; inc.lob+=c.inc.lob; });
     return {q:qm, inc:inc, ok:{}};
   };
-  return {rows:rows, tot:sum(rows), sum:sum, start:start, end:end};
+  const slm = {};
+  rows.forEach(function(r){ const n = r.sl || '(Belum ada SL di list)'; (slm[n] = slm[n] || {name:n, rows:[]}).rows.push(r); });
+  const sls = Object.keys(slm).map(function(k){ const g = slm[k]; g.tot = sum(g.rows); return g; }).sort(function(a,b){ return b.tot.inc.sl-a.tot.inc.sl || String(a.name).localeCompare(String(b.name),'id'); });
+  return {rows:rows, tot:sum(rows), sum:sum, sls:sls, start:start, end:end};
 }
 function renderSamSchemePopup(d){
   if (!state.samSchemeOpen) return '';
@@ -6982,17 +6990,27 @@ function renderSamSchemePopup(d){
     +'<tr>'+T.map(function(t){ return '<th style="font-size:10.5px;">'+escapeHtml(t.label)+'<br><span style="font-weight:600;opacity:.8;">min '+t.min+'</span></th>'; }).join('')+'<th>SL/JSL</th><th>TSH</th><th>LOB</th></tr></thead>';
   const table = c.rows.length ? '<div class="pivot-wrap"><table class="pivot-tbl">'+head+'<tbody>'+body+'</tbody>'+foot+'</table></div>'
     : '<div class="cat-hint">Belum ada penjualan tipe skema insentif Samsung pada periode ini.</div>';
+  const slHead = '<thead><tr><th style="text-align:left;">SL / JSL</th><th>Jml Toko</th><th style="text-align:left;">Toko yang mencapai minimal (tipe tercapai)</th><th>Insentif SL/JSL (Rp)</th></tr></thead>';
+  const slBody = c.sls.map(function(g){
+    const det = g.rows.filter(function(r){ return r.inc.sl>0; }).map(function(r){
+      const ach = T.filter(function(t){ return r.ok[t.k]; }).map(function(t){ return t.label.replace('Galaxy ','')+' '+r.q[t.k]; }).join(', ');
+      return escapeHtml(r.code+' '+r.name)+' <span style="color:var(--muted);">('+escapeHtml(ach)+')</span> = '+fmt(r.inc.sl);
+    }).join('<br>');
+    return '<tr><td style="text-align:left;font-weight:700;white-space:nowrap;vertical-align:top;">'+escapeHtml(g.name)+'</td><td style="vertical-align:top;">'+g.rows.length+'</td><td style="text-align:left;font-size:11px;">'+(det||'<span style="color:var(--muted);">Belum ada toko yang mencapai minimal</span>')+'</td><td style="font-weight:800;vertical-align:top;">'+rp(g.tot.inc.sl)+'</td></tr>';
+  }).join('');
+  const slOpen = state.samSchemeSl!==false;
+  const slTbl = '<h4 style="margin-top:14px;display:flex;align-items:center;gap:8px;">👤 Rekap Insentif per SL / JSL <button class="pv-btn cap-hide" style="min-width:28px;font-weight:900;" onclick="toggleSamSchemeSl()" title="'+(slOpen?'Sembunyikan':'Tampilkan')+' rekap SL/JSL">'+(slOpen?'&minus;':'+')+'</button></h4>'+(!slOpen ? '' : '<div class="pivot-wrap"><table class="pivot-tbl">'+slHead+'<tbody>'+slBody+'</tbody><tfoot><tr class="pv-total"><td style="text-align:left;">Total</td><td>'+c.rows.length+'</td><td></td><td>'+rp(c.tot.inc.sl)+'</td></tr></tfoot></table></div>');
   const scheme = '<h4 style="margin-top:14px;">📋 Nominal Insentif / unit</h4><div class="pivot-wrap"><table class="pivot-tbl"><thead><tr><th style="text-align:left;">Type</th><th>untuk SL/JSL</th><th>untuk TSH</th><th>untuk LOB</th><th>Minimal Qty SO per store</th></tr></thead><tbody>'
     +T.map(function(t){ return '<tr><td style="text-align:left;">'+escapeHtml(t.label)+'</td><td>'+fmt(t.sl)+'</td><td>'+fmt(t.tsh)+'</td><td>'+fmt(t.lob)+'</td><td>'+t.min+' unit</td></tr>'; }).join('')
     +'</tbody></table></div>';
   const tabs = '<div class="pv-ctl cap-hide" style="margin:4px 0 8px;"><button class="pv-btn" onclick="openBrandRacing(\'SAMSUNG\')">🏁 Target Summit</button><button class="pv-btn" onclick="openSamInc()">🏆 Racing S+Z</button><button class="pv-btn" onclick="openSamSum()">🎯 A Series</button><button class="pv-btn on">💰 Skema Insentif</button></div>';
   const ctl = '<div class="pv-ctl"><span class="lbl">ERO:</span><button class="pv-btn'+(showEro?' on':'')+'" onclick="toggleSamSchemeEro()">'+(showEro?'Tampil':'Sembunyi')+'</button>'
     +'<span class="pv-chip" style="margin-left:10px;font-size:11px;font-weight:800;color:var(--green);">Periode: '+fmtDMY(c.start)+' &ndash; '+fmtDMY(c.end)+'</span></div>';
-  const note = '*Insentif Samsung untuk FL Erajaya di Channel Multibrand (Erafone + Urban Republic), periode 1&ndash;30 November 2026. Peserta: toko Erafone + Urban Republic saja (XLC/Galeri ISAT, Erablue, JB/Lottemart tidak ikut). Insentif didapat dari penjualan regular offline store (transaksi POS Store). Syarat: qty sell out per <b>tipe</b> per <b>store</b> &ge; minimal qty tipe tsb selama periode (sel hijau = tercapai, merah = belum). Bila tercapai, seluruh unit tipe itu di store tsb &times; nominal per unit (contoh: 8 unit A57 &times; Rp25.000 = Rp200.000); bila tidak = Rp0. Insentif dihitung per store lalu dijumlahkan per area/TSH dan Grand Total (LOB). Baris ERO hanya rincian kontribusi qty. Wajib open box &amp; aktivasi EULA FOTA (tidak bisa dicek dari Master Data). Aktual dihitung dari Master Data pada periode di atas, tidak terpengaruh filter tanggal dashboard.';
+  const note = '*Insentif Samsung untuk FL Erajaya di Channel Multibrand (Erafone + Urban Republic), periode 1&ndash;30 November 2026. Peserta: toko Erafone + Urban Republic saja (XLC/Galeri ISAT, Erablue, JB/Lottemart tidak ikut). Insentif didapat dari penjualan regular offline store (transaksi POS Store). Syarat: qty sell out per <b>tipe</b> per <b>store</b> &ge; minimal qty tipe tsb selama periode (sel hijau = tercapai, merah = belum). Bila tercapai, seluruh unit tipe itu di store tsb &times; nominal per unit (contoh: 8 unit A57 &times; Rp25.000 = Rp200.000); bila tidak = Rp0. Insentif dihitung per store lalu dijumlahkan per area/TSH dan Grand Total (LOB); untuk SL/JSL dijumlahkan per nama SL yang memegang toko tsb (daftar SL dari file STO Update), tiap toko tetap dinilai sendiri-sendiri. Baris ERO hanya rincian kontribusi qty. Wajib open box &amp; aktivasi EULA FOTA (tidak bisa dicek dari Master Data). Aktual dihitung dari Master Data pada periode di atas, tidak terpengaruh filter tanggal dashboard.';
   return '<div class="cat-overlay" onclick="if(event.target===this)closeSamScheme()">'
     +'<div class="cat-detail" style="max-width:min(1400px,98vw);">'
     +'<div class="cat-detail-title"><span>💰 Skema Insentif Samsung &ndash; Store'+(showEro?' + ERO':'')+'</span><span style="display:flex;gap:6px;align-items:center;"><span class="x cap-hide" style="border:1px solid var(--border);" onclick="captureCatPopup()" title="Simpan semua data sebagai gambar">📸</span><span class="x cap-hide" onclick="closeSamScheme()" title="Tutup (Esc)">✕ Tutup</span></span></div>'
-    +tabs+ctl+table+scheme+'<div class="cat-note">'+note+'</div>'
+    +tabs+ctl+table+slTbl+scheme+'<div class="cat-note">'+note+'</div>'
   +'</div></div>';
 }
 /* ============ RACING (Oppo, Vivo, Indosat, XL, Telkomsel, Boltech) ============
