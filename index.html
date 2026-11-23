@@ -6897,6 +6897,8 @@ const SAM_SCHEME = {
     {k:'bud4p',label:'Galaxy Buds4 Pro',   re:/BUDS\s*4\s*PRO/,          sl:25000, tsh:5000,  lob:5000, min:3}
   ]
 };
+// Peserta skema: channel Multibrand = Erafone (termasuk Megastore Central Park/Petamburan & PDA.COM by Erafone) + Urban Republic. XLC/Galeri ISAT (Operator), Erablue, JB/Lottemart dll tidak ikut.
+function samSchemeStoreOk(name){ return chainOfStore(name)==='ERAFONE' || /URBAN\s*REPUBLIC/i.test(String(name||'')); }
 function samSchemeTypeOf(r){
   if (normalizeBrandKey(r[3])!=='SAMSUNG') return null;
   const n = String(r[7]==null?'':r[7]).toUpperCase();
@@ -6916,7 +6918,7 @@ function samSchemeCompute(d){
   const per = ((raw.racing||{}).periods||{}).b_SAMSUNG || {};
   const start = SAM_SCHEME.start, end = SAM_SCHEME.end; // periode skema insentif (sesuai gambar)
   const T = SAM_SCHEME.types;
-  const byName = {}; (d.stores||[]).forEach(function(s){ byName[s.site_code] = s; });
+  const byName = {}; (d.stores||[]).forEach(function(s){ if (samSchemeStoreOk(s.site_desc)) byName[s.site_code] = s; });
   const q = {}, e = {};
   (raw.records||[]).forEach(function(r){
     if (r[0]<start || r[0]>end) return;
@@ -6986,7 +6988,7 @@ function renderSamSchemePopup(d){
   const tabs = '<div class="pv-ctl cap-hide" style="margin:4px 0 8px;"><button class="pv-btn" onclick="openBrandRacing(\'SAMSUNG\')">🏁 Target Summit</button><button class="pv-btn" onclick="openSamInc()">🏆 Racing S+Z</button><button class="pv-btn" onclick="openSamSum()">🎯 A Series</button><button class="pv-btn on">💰 Skema Insentif</button></div>';
   const ctl = '<div class="pv-ctl"><span class="lbl">ERO:</span><button class="pv-btn'+(showEro?' on':'')+'" onclick="toggleSamSchemeEro()">'+(showEro?'Tampil':'Sembunyi')+'</button>'
     +'<span class="pv-chip" style="margin-left:10px;font-size:11px;font-weight:800;color:var(--green);">Periode: '+fmtDMY(c.start)+' &ndash; '+fmtDMY(c.end)+'</span></div>';
-  const note = '*Insentif Samsung untuk FL Erajaya di Channel Multibrand (Erafone + Urban Republic), periode 1&ndash;30 November 2026. Insentif didapat dari penjualan regular offline store. Syarat: qty sell out per <b>tipe</b> per <b>store</b> &ge; minimal qty tipe tsb selama periode (sel hijau = tercapai, merah = belum). Bila tercapai, seluruh unit tipe itu di store tsb &times; nominal per unit (contoh: 8 unit A57 &times; Rp25.000 = Rp200.000); bila tidak = Rp0. Insentif dihitung per store lalu dijumlahkan per area/TSH dan Grand Total (LOB). Baris ERO hanya rincian kontribusi qty. Wajib open box &amp; aktivasi EULA FOTA (tidak bisa dicek dari Master Data). Aktual dihitung dari Master Data pada periode di atas, tidak terpengaruh filter tanggal dashboard.';
+  const note = '*Insentif Samsung untuk FL Erajaya di Channel Multibrand (Erafone + Urban Republic), periode 1&ndash;30 November 2026. Peserta: toko Erafone + Urban Republic saja (XLC/Galeri ISAT, Erablue, JB/Lottemart tidak ikut). Insentif didapat dari penjualan regular offline store (transaksi POS Store). Syarat: qty sell out per <b>tipe</b> per <b>store</b> &ge; minimal qty tipe tsb selama periode (sel hijau = tercapai, merah = belum). Bila tercapai, seluruh unit tipe itu di store tsb &times; nominal per unit (contoh: 8 unit A57 &times; Rp25.000 = Rp200.000); bila tidak = Rp0. Insentif dihitung per store lalu dijumlahkan per area/TSH dan Grand Total (LOB). Baris ERO hanya rincian kontribusi qty. Wajib open box &amp; aktivasi EULA FOTA (tidak bisa dicek dari Master Data). Aktual dihitung dari Master Data pada periode di atas, tidak terpengaruh filter tanggal dashboard.';
   return '<div class="cat-overlay" onclick="if(event.target===this)closeSamScheme()">'
     +'<div class="cat-detail" style="max-width:min(1400px,98vw);">'
     +'<div class="cat-detail-title"><span>💰 Skema Insentif Samsung &ndash; Store'+(showEro?' + ERO':'')+'</span><span style="display:flex;gap:6px;align-items:center;"><span class="x cap-hide" style="border:1px solid var(--border);" onclick="captureCatPopup()" title="Simpan semua data sebagai gambar">📸</span><span class="x cap-hide" onclick="closeSamScheme()" title="Tutup (Esc)">✕ Tutup</span></span></div>'
