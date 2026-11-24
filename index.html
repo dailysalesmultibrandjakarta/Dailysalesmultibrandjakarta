@@ -1637,7 +1637,7 @@ function findHeaderRowIndex(rows, markerFirstCell, maxScan){
 // tergantung sumber data POS, jadi dicoba beberapa alias umum; kalau tidak ada satupun yang cocok,
 // rincian per tipe cukup ditampilkan sebagai "kolom tipe barang belum ada di Master Data".
 // STOCK MONITORING hanya tampil di dashboard asli (dibuka dari file lokal / localhost). Saat di-upload ke GitHub Pages (https), slide & data Stock disembunyikan/tidak dibaca.
-const STOCK_ALLOWED = (location.protocol==='file:' || /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname));
+const STOCK_ALLOWED = true;
 const ITEM_NAME_ALIASES = ['item_name','item_desc','item_description','article_description','article_desc','article_name','nama_barang','nama_item','tipe','type_name','type','nama_tipe','nama_model','model','model_name','product_name','item_type','deskripsi','description','material_desc','material_description'];
 const INVOICE_ALIASES = ['pos_number','pos number','invoice_no','invoice no','invoice','invoice_number','no_invoice','no invoice','no_nota','no nota','nota','nomor_nota','bill_no','bill no','billing_no','bill_number','receipt_no','receipt no','receipt','trx_no','trx no','transaction_no','transaction_id','transaction no','order_no','order no','order_number','order_id','so_no','so no','sales_order','sales_order_no','doc_no','doc no','document_no','document_number','no_transaksi','no transaksi','nomor_transaksi','pos_no'];
 // Alias nama toko: beberapa nama di data/Target dianggap SATU toko yang sama.
@@ -2319,7 +2319,7 @@ async function autoLoadMaster(){
   }catch(err){ console.warn('Auto-load gagal:', err); }
 }
 /* Auto-load dimatikan supaya dashboard mulai dari 0 data. Ubah ke true bila ingin file master di folder yang sama dibaca otomatis lagi. */
-const AUTO_LOAD_MASTER = false;
+const AUTO_LOAD_MASTER = true;
 if (AUTO_LOAD_MASTER) window.addEventListener('load', autoLoadMaster);
 /* ============ TEMPLATE EXCEL MASTER DATA ============
    File .xlsx asli (Master_Data_Jakpus_All_Mounth2_2026.xlsx) disimpan dalam bentuk base64
