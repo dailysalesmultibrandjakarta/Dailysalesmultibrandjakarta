@@ -164,7 +164,10 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
   .ero-tidy-wrap.achv-table-wrap table thead th.grp{color:var(--text-strong);letter-spacing:.5px;}
   .ero-tidy-wrap thead tr.ero-h2 th{border-bottom:1.5px solid var(--divider);}
   .ero-tidy-wrap thead tr.ero-h1 th[rowspan]{border-bottom:1.5px solid var(--divider);}
-  .ero-tidy-wrap .gs{border-left:1px solid var(--border);}
+  .ero-tidy-wrap .gs{border-left:1px solid var(--divider);}
+  .ero-tidy-wrap.achv-table-wrap table th,.ero-tidy-wrap.achv-table-wrap table td{border-right:1px solid var(--divider) !important;border-bottom:1px solid var(--divider) !important;}
+  .ero-tidy-wrap.achv-table-wrap table tr>*:last-child{border-right:0 !important;}
+  .ero-tidy-wrap.achv-table-wrap table tfoot td{border-top:2px solid var(--green) !important;}
   .ero-tidy-wrap.achv-table-wrap table tbody td,.ero-tidy-wrap.achv-table-wrap table tfoot td{padding:var(--ep-y,7px) var(--ep-x,7px) !important;text-align:center !important;vertical-align:middle;border-bottom:1px solid var(--border);}
   .ero-tidy-wrap tbody tr:nth-child(even) td{background-color:var(--sub);}
   .ero-tidy-wrap tbody tr:hover td{background-color:var(--border);}
@@ -838,10 +841,47 @@ body.theme-soft .cat-detail table.pivot-tbl.pv-hp tbody td,body.theme-soft .cat-
 .stk-chip.on{background:var(--green);border-color:var(--green);color:var(--card);}
 .stk-chip.on i{background:var(--card);color:var(--green);}
 </style>
+<style id="pay-css">
+.pay-note{font-size:11px;color:var(--muted);margin:8px 0 2px;line-height:1.45;}
+.pay-note b{color:var(--text-strong);}
+.pay-chip{display:inline-flex;align-items:center;gap:6px;background:var(--sub);border:1px solid var(--green);border-radius:999px;padding:3px 10px;font-size:11.5px;color:var(--text-strong);}
+.pay-chip a{color:var(--red);text-decoration:none;font-weight:900;}
+.pay-stack{display:flex;height:22px;border-radius:7px;overflow:hidden;background:var(--track);margin:6px 0 10px;}
+.pay-stack span{display:block;height:100%;min-width:1px;}
+.pay-dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px;flex:none;}
+.pay-days{display:flex;gap:3px;align-items:stretch;height:150px;overflow-x:auto;padding-bottom:2px;}
+.pay-day{flex:1 0 16px;display:flex;flex-direction:column;align-items:center;height:100%;}
+.pay-plot{flex:1;width:100%;min-height:0;display:flex;align-items:flex-end;}
+.pay-col{flex:none;width:100%;display:flex;flex-direction:column-reverse;border-radius:4px 4px 0 0;overflow:hidden;background:var(--track);}
+.pay-col i{display:block;width:100%;}
+.pay-day b{font-size:9.5px;color:var(--muted);margin-top:3px;}
+.pay-bar{display:inline-block;height:6px;border-radius:3px;vertical-align:middle;margin-left:6px;min-width:1px;}
+.pay-tbl td small{color:var(--muted-2);font-size:10px;margin-left:3px;}
+.pay-tbl tr.pay-tot td{background:var(--sub);border-bottom:1.5px solid var(--divider);}
+.pay-tbl tr.pay-click{cursor:pointer;}
+.pay-tbl tr.pay-click:hover td{background:var(--sub);}
+.pay-h{font-size:11px;letter-spacing:.4px;color:var(--green);margin:12px 0 4px;}
+.pay-grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:10px;}
+.pay-pvwrap{overflow:auto;max-height:640px;border:1px solid var(--border);border-radius:10px;}
+.pay-pv{width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;color:var(--text);}
+.pay-pv th{position:sticky;top:0;z-index:2;background:var(--sub);color:var(--text-strong);border:1px solid rgba(150,150,150,.55);text-align:center;padding:5px 8px;white-space:nowrap;}
+.pay-pv thead tr:nth-child(2) th{top:29px;}
+.pay-pv td{border:1px solid rgba(150,150,150,.35);padding:3px 8px;text-align:center;white-space:nowrap;}
+.pay-pv td:first-child{text-align:left;}
+.pay-pv tr.pv-st td:first-child{padding-left:18px;}
+.pay-pv tr.pv-st:hover td{background:var(--sub);}
+.pay-pv tr.pv-grp td,.pay-tbl tr.pay-grp td{background:rgba(245,158,11,.30);border-top:2px solid rgba(245,158,11,.85);border-bottom:2px solid rgba(245,158,11,.85);color:var(--text-strong);font-weight:900;}
+.pay-pv tr.pv-grp td:first-child,.pay-tbl tr.pay-grp td:first-child{text-transform:uppercase;letter-spacing:.3px;border-left:4px solid #f59e0b;text-align:left;}
+.pay-pv tr.pv-st td,.pay-tbl tr.pay-st td{font-weight:800;color:var(--text-strong);border:1px solid rgba(150,150,150,.5);}
+.pay-pv tr.pv-st td:first-child,.pay-tbl tr.pay-st td:first-child{text-align:left;padding-left:18px;}
+.pay-pv td,.pay-pv th{font-size:12px;}
+.pay-pv tfoot td{position:sticky;bottom:0;background:var(--sub);border-top:1.5px solid rgba(150,150,150,.9);color:var(--text-strong);}
+</style>
 </head>
 <body>
 <div id="app"></div>
 <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFileUpload(event)">
+<input type="file" id="payFileInput" accept=".xlsx,.xls" onchange="payUpload(event)" style="display:none">
 
 
 <script id="h2c-embedded">
@@ -871,6 +911,59 @@ body.theme-soft .cat-detail table.pivot-tbl.pv-hp tbody td,body.theme-soft .cat-
 window.__SRC_HTML__ = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
 /* ============ KUALITAS GAMBAR (HP tajam, tidak pecah) ============
    Skala capture mengikuti kerapatan layar (HP dpr 3 -> skala 4) dan dibatasi total piksel agar tidak melewati batas canvas HP. */
+/* Perbaiki header ZIP64 pada .xlsx: beberapa aplikasi menulis ukuran 0xFFFFFFFF di header lokal (ukuran asli ada di
+   direktori pusat + extra field ZIP64). SheetJS membaca header lokal, lalu mencoba mengalokasikan ~4 GB dan gagal. */
+function fixZip64Local(u8){
+  try{
+    var n = u8.length, dv = new DataView(u8.buffer, u8.byteOffset, n), e = -1, i;
+    for (i = n - 22; i >= Math.max(0, n - 65557); i--){ if (dv.getUint32(i, true) === 0x06054b50){ e = i; break; } }
+    if (e < 0) return u8;
+    var cnt = dv.getUint16(e + 10, true), off = dv.getUint32(e + 16, true);
+    if (off === 0xFFFFFFFF || cnt === 0xFFFF) return u8; // ZIP64 end-of-directory: tidak ditangani
+    var p = off, fixed = 0;
+    for (var k = 0; k < cnt && p + 46 <= n && dv.getUint32(p, true) === 0x02014b50; k++){
+      var csz = dv.getUint32(p + 20, true), usz = dv.getUint32(p + 24, true);
+      var nl = dv.getUint16(p + 28, true), el = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true);
+      var lho = dv.getUint32(p + 42, true);
+      if (csz === 0xFFFFFFFF || usz === 0xFFFFFFFF || lho === 0xFFFFFFFF){ // ukuran/offset asli ada di extra field ZIP64 (id 0x0001)
+        var q = p + 46 + nl, qe = q + el;
+        while (q + 4 <= qe){
+          var id = dv.getUint16(q, true), sz = dv.getUint16(q + 2, true), r = q + 4;
+          if (id === 0x0001){
+            if (usz === 0xFFFFFFFF){ usz = dv.getUint32(r, true) + dv.getUint32(r + 4, true) * 4294967296; r += 8; }
+            if (csz === 0xFFFFFFFF){ csz = dv.getUint32(r, true) + dv.getUint32(r + 4, true) * 4294967296; r += 8; }
+            if (lho === 0xFFFFFFFF){ lho = dv.getUint32(r, true) + dv.getUint32(r + 4, true) * 4294967296; }
+            break;
+          }
+          q += 4 + sz;
+        }
+      }
+      if (lho + 30 <= n && dv.getUint32(lho, true) === 0x04034b50 && csz < 0xFFFFFFFF && usz < 0xFFFFFFFF){
+        if (dv.getUint32(lho + 18, true) === 0xFFFFFFFF || dv.getUint32(lho + 22, true) === 0xFFFFFFFF){
+          dv.setUint32(lho + 18, csz, true); dv.setUint32(lho + 22, usz, true); fixed++;
+        }
+      }
+      p += 46 + nl + el + cl;
+    }
+  }catch(err){}
+  return u8;
+}
+
+/* Layar "memproses" supaya halaman tidak terlihat macet saat file master besar dibaca (puluhan MB bisa 10-30 detik) */
+function busyShow(msg){
+  var o = document.getElementById('busyOv');
+  if (!o){
+    o = document.createElement('div'); o.id = 'busyOv';
+    o.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(11,13,18,.78);display:flex;align-items:center;justify-content:center;padding:24px;';
+    o.innerHTML = '<div style="background:#161a22;color:#fff;border:1px solid #2b3240;border-radius:14px;padding:22px 26px;max-width:340px;text-align:center;font:600 14px/1.5 system-ui,sans-serif;">'
+      + '<div style="font-size:28px;margin-bottom:8px;">&#9203;</div><div id="busyMsg"></div>'
+      + '<div style="font-weight:400;font-size:12px;color:#9aa4b2;margin-top:8px;">Jangan tutup halaman ini.</div></div>';
+    document.body.appendChild(o);
+  }
+  document.getElementById('busyMsg').textContent = msg || 'Memproses...';
+  o.style.display = 'flex';
+}
+function busyHide(){ var o = document.getElementById('busyOv'); if (o) o.style.display = 'none'; }
 function capImgScale(w, h){
   const dpr = window.devicePixelRatio || 1;
   const mobile = /Android|iP(hone|ad|od)|Mobile/i.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
@@ -1346,7 +1439,8 @@ function loadTargetsFromStorage(){
       store: parsed.store && typeof parsed.store==='object' ? parsed.store : {},
       leader: parsed.leader && typeof parsed.leader==='object' ? parsed.leader : {},
       opStore: parsed.opStore && typeof parsed.opStore==='object' ? parsed.opStore : {},
-      catStore: parsed.catStore && typeof parsed.catStore==='object' ? parsed.catStore : {}
+      catStore: parsed.catStore && typeof parsed.catStore==='object' ? parsed.catStore : {},
+      storeBrand: parsed.storeBrand && typeof parsed.storeBrand==='object' ? parsed.storeBrand : {}
     };
   }catch(e){ return emptyTargets(); }
 }
@@ -1405,6 +1499,9 @@ function setTheme(theme){
 const BAKED_RAW = null;
 const BAKED_TARGETS = emptyTargets();
 /*BAKED_END*/
+/*PAY_START*/
+const BAKED_PAY = null;
+/*PAY_END*/
 
 // Bulan yang aktif ditampilkan saat baru dibuka: bulan terakhir yang ada transaksinya (bulan
 // berjalan), supaya target & pencapaian yang tampil pertama kali otomatis sesuai bulan itu.
@@ -1440,6 +1537,7 @@ let state = {
   salesAchvMenuOpen: false, // panel "Filter & Tampilan" pada slide Pencapaian per Sales (SPG)
   salesAchvLayout: 'detail', // 'simple' = tampilan ringkas by ERO (baris per ERO + bar komposisi, klik utk rincian) | 'detail' = tabel lebar semua kolom kategori
   salesAchvTop10: false, // true = tabel hanya menampilkan 10 ERO teratas; peringkat mengikuti kolom yang diklik (Total/AR/SOB/kategori)
+  salesAchvBlocks: [], // blok detail yang dipilih (Target/MTD/GAP/Daily): all, dev, acc, rc, op-in, op-xl, op-tsel, op-vl, op-ar, ce, lap. Kosong = tabel lengkap seperti biasa
   salesAchvOpen: {}, // baris ERO yang sedang dibuka rinciannya (tampilan ringkas)
   salesAchvView: 'all', // 'all' = gabungan (satu tabel) | 'store' = tabel terpisah untuk tiap toko (saat filter "Semua Toko")
   salesAchvTopMode: null, // null | 'ar-acc' | 'ar-rc' | 'sob-acc' | 'sob-rc' - saat aktif, tabel "Pencapaian Semua Kategori per Sales (SPG)" hanya menampilkan 10 sales teratas berdasarkan kategori terpilih: AR Aksesoris, AR Boltech, SOB Aksesoris, atau SOB Boltech
@@ -2048,7 +2146,7 @@ function parseWorkbook(wb, fileName){
   // pemetaan ('By Area ...': Nama Toko | Site Code | AREA); sisanya ditebak dari leader yang sama.
   // Sheet pemetaan toko-AREA: 'By Area ...' diprioritaskan, lalu sheet lain (mis. 'Sheet1') selama kolom C berisi nama area sah.
   const areaSheetNames = sheetNames.filter(n => /by\s*area/i.test(n))
-    .concat(sheetNames.filter(n => !/by\s*area/i.test(n) && n!==dataSheetName && n!==racingSheetName && n!==historySheetName && n!==stockSheetName && targetSheetNames.indexOf(n)===-1));
+    .concat(sheetNames.filter(n => !/by\s*area/i.test(n) && n!==dataSheetName && n!==racingSheetName && n!==historySheetName && n!==stockSheetName && !/payment/i.test(n) && targetSheetNames.indexOf(n)===-1));
   areaSheetNames.forEach(function(areaSheetName){
     const arows = XLSX.utils.sheet_to_json(wb.Sheets[areaSheetName], {header:1, defval:null, raw:true});
     arows.forEach(function(row){
@@ -2152,11 +2250,14 @@ function handleFileUpload(evt){
   if (!file) return;
   const reader = new FileReader();
   reader.onload = function(e){
+    busyShow('Membaca master data... file besar bisa memakan 10-30 detik.');
+    setTimeout(function(){
     try{
       const data = new Uint8Array(e.target.result);
       // No cellDates:true here on purpose - keep dates as raw Excel serial numbers so
       // excelDateToISO() can decode them with XLSX.SSF.parse_date_code (timezone-safe).
-      const wb = XLSX.read(data, {type:'array'});
+      const wb = XLSX.read(fixZip64Local(data), {type:'array'});
+      try{ payTryWb(wb, file.name, true); }catch(e){}
       const parsed = parseWorkbook(wb, file.name);
       state.rawFull = parsed;
       state.selectedArea = '';
@@ -2180,8 +2281,10 @@ function handleFileUpload(evt){
       alert('Gagal membaca file: ' + err.message);
     }
     evt.target.value = '';
+    busyHide();
+    }, 80);
   };
-  reader.onerror = function(){ alert('Gagal membaca file.'); evt.target.value=''; };
+  reader.onerror = function(){ alert('Gagal membaca file.'); evt.target.value=''; busyHide(); };
   reader.readAsArrayBuffer(file);
 }
 function triggerUpload(){ document.getElementById('fileInput').click(); }
@@ -2192,7 +2295,8 @@ async function autoLoadMaster(){
     const resp = await fetch(AUTO_MASTER_FILE + '?v=' + Date.now(), {cache:'no-store'});
     if (!resp.ok) return;               // file tidak ada -> tetap bisa upload manual
     const buf = await resp.arrayBuffer();
-    const wb = XLSX.read(new Uint8Array(buf), {type:'array'});
+    const wb = XLSX.read(fixZip64Local(new Uint8Array(buf)), {type:'array'});
+    try{ payTryWb(wb, AUTO_MASTER_FILE, true); }catch(e){}
     const parsed = parseWorkbook(wb, AUTO_MASTER_FILE);
     state.rawFull = parsed;
     state.selectedArea = '';
@@ -2214,7 +2318,9 @@ async function autoLoadMaster(){
     render();
   }catch(err){ console.warn('Auto-load gagal:', err); }
 }
-window.addEventListener('load', autoLoadMaster);
+/* Auto-load dimatikan supaya dashboard mulai dari 0 data. Ubah ke true bila ingin file master di folder yang sama dibaca otomatis lagi. */
+const AUTO_LOAD_MASTER = false;
+if (AUTO_LOAD_MASTER) window.addEventListener('load', autoLoadMaster);
 /* ============ TEMPLATE EXCEL MASTER DATA ============
    File .xlsx asli (Master_Data_Jakpus_All_Mounth2_2026.xlsx) disimpan dalam bentuk base64
    di bawah ini, lalu didekode & diunduh apa adanya saat tombol 'Unduh Template Excel' diklik,
@@ -2370,6 +2476,7 @@ function shareFile(){
   const newBaked = 'const BAKED_RAW = '+safeJson(state.rawFull||state.raw)+';\nconst BAKED_TARGETS = '+safeJson(state.targets)+';';
   // replacer berupa fungsi: karakter "$" pada data (mis. "$&") tidak ditafsirkan sebagai pola replace
   html = html.replace(/\/\*BAKED_START\*\/[\s\S]*?\/\*BAKED_END\*\//, function(){ return '/*BAKED_START*/\n'+newBaked+'\n/*BAKED_END*/'; });
+  if (typeof payS!=='undefined' && payS.raw) html = html.replace(/\/\*PAY_START\*\/[\s\S]*?\/\*PAY_END\*\//, function(){ return '/*PAY_START*/\nconst BAKED_PAY = '+safeJson(payS.raw)+';\n/*PAY_END*/'; });
   downloadOrShare(html, 'Dashboard_Daily_Sales.html');
 }
 function toggleSection(key){
@@ -3179,6 +3286,8 @@ document.addEventListener('click', function(e){
 });
 function setSalesAchvView(v){ state.salesAchvView = (v==='store') ? 'store' : 'all'; state.salesAchvAutoFit = true; _salesAchvAutoFitAttempts = 0; render(); } // Per Toko -> tabel otomatis pas layar
 function setSalesAchvLayout(v){ state.salesAchvLayout = (v==='detail') ? 'detail' : 'simple'; state.salesAchvAutoFit = true; _salesAchvAutoFitAttempts = 0; render(); }
+function toggleAchvBlock(k){ var a = (state.salesAchvBlocks||[]).slice(), i = a.indexOf(k); if (i>=0) a.splice(i,1); else a.push(k); state.salesAchvBlocks = a; state.salesAchvAutoFit = true; _salesAchvAutoFitAttempts = 0; render(); }
+function clearAchvBlocks(){ state.salesAchvBlocks = []; state.salesAchvAutoFit = true; _salesAchvAutoFitAttempts = 0; render(); }
 function toggleAchvEro(k){ k = decodeURIComponent(k); state.salesAchvOpen = state.salesAchvOpen || {}; if (state.salesAchvOpen[k]) delete state.salesAchvOpen[k]; else state.salesAchvOpen[k] = 1; render(); }
 function toggleAchvEroAll(open, keys){ state.salesAchvOpen = {}; if (open) decodeURIComponent(keys).split('\u0001').forEach(function(k){ if (k) state.salesAchvOpen[k]=1; }); render(); }
 function toggleAchvTop10(){
@@ -3216,6 +3325,12 @@ function setSalesAchvZoom(delta){
 // yang terukur di sini SUDAH mengikuti zoom yang sedang aktif sekarang, bukan ukuran "asli" 100%.
 // Makanya lebar hasil ukur dinormalisasi balik ke 100% (dibagi currentZoom) sebelum dipakai hitung rasio -
 // kalau tidak, hasilnya jadi salah dan berubah-ubah terus setiap render (dashboard "gerak sendiri" tanpa henti).
+// Batas bawah zoom auto-fit: 82% => fz(11.5) = 11.5px, sama dengan ukuran tulisan tabel di slide lain.
+// Sebelumnya auto-fit boleh turun sampai 40% (font ~5px) supaya semua kolom muat; sekarang tulisan tidak
+// dikecilkan lagi di bawah ukuran ini - kolom yang tidak muat bisa digeser ke samping (kolom # & ERO tetap menempel).
+// Hanya berlaku saat salah satu tombol blok (All Bisnis, Handphone, Accessories, dst.) dipilih.
+// Bila belum ada tombol dipilih (tabel lengkap), auto-fit tetap seperti semula (boleh turun sampai 40%).
+function achvMinFitZoom(){ return (state.salesAchvBlocks && state.salesAchvBlocks.length) ? 82 : 40; }
 function computeSalesAchvFitZoom(){
   const wraps = document.querySelectorAll('.salesAchvTableWrap');
   if (!wraps.length) return null;
@@ -3230,7 +3345,7 @@ function computeSalesAchvFitZoom(){
   });
   if (!containerW || !widestAt100) return null;
   let newZoom = Math.floor((containerW / widestAt100) * 100) - 1;
-  newZoom = Math.max(40, Math.min(100, newZoom));
+  newZoom = Math.max(achvMinFitZoom(), Math.min(100, newZoom));
   return newZoom;
 }
 // Dipanggil otomatis setelah setiap render supaya tabel "Pencapaian Semua Kategori per Sales"
@@ -3247,9 +3362,9 @@ function autoFitSalesAchvZoom(){
   // bila tabel masih lebih lebar dari kontainer, paksa turunkan zoom sampai benar-benar muat.
   let stillOverflow = false;
   document.querySelectorAll('.salesAchvTableWrap').forEach(function(w){ const t=w.querySelector('table'); if (t && t.scrollWidth > w.clientWidth+1) stillOverflow = true; });
-  if (stillOverflow && newZoom >= current && current > 40){
+  if (stillOverflow && newZoom >= current && current > achvMinFitZoom()){
     _salesAchvAutoFitting = true; _salesAchvAutoFitAttempts++;
-    state.salesAchvZoom = Math.max(40, current-3);
+    state.salesAchvZoom = Math.max(achvMinFitZoom(), current-3);
     render();
     _salesAchvAutoFitting = false;
     return;
@@ -3992,11 +4107,11 @@ function renderSalesAchievementCard(d){
   // menghitung ulang setiap ukuran font secara langsung (fz helper di bawah) - browser jadi
   // melakukan reflow normal di setiap level zoom, tanpa bug tumpang tindih.
   const achvZoom = (state.salesAchvZoom||100)/100;
-  const fz = px => Math.round(px*achvZoom*100)/100 + 'px';
+  const fz = px => Math.round(Math.max(px,11.5)*1.22*achvZoom*100)/100 + 'px'; // semua tulisan tabel (judul, pcs, keterangan) minimal sebesar ukuran angka persentase (11.5 x 1.22)
   // ---- Kontrol slide ini dirangkum dalam SATU tombol "Filter & Tampilan" (panel dropdown) ----
   const TOP_MODE_LABEL = {'ar-acc':'🎧 Top 10 AR Aksesoris','ar-rc':'🛡️ Top 10 AR Boltech','sob-acc':'🎧 Top 10 SOB Aksesoris','sob-rc':'🛡️ Top 10 SOB Boltech'};
   function sortColLabel(col){
-    const fixed = {name:'Nama Sales', total:'Total', arAcc:'AR Aksesoris', arRC:'Boltech', sobAcc:'SOB Aksesoris', sobRC:'SOB Boltech'};
+    const fixed = {name:'Nama Sales', total:'Total', arAcc:'AR Aksesoris', arRC:'Boltech', sobAcc:'SOB Aksesoris', sobRC:'SOB Boltech', arOp:'AR Operator', sobOp:'SOB Operator'};
     if (fixed[col]) return fixed[col];
     if (col.indexOf('cat:')===0) return CATEGORY_LABEL[col.slice(4)] || col.slice(4);
     if (col.indexOf('op:')===0) return opBrandDisp(col.slice(3));
@@ -4069,6 +4184,8 @@ function renderSalesAchievementCard(d){
     if (colKey==='arRC') return s.arRC===null||s.arRC===undefined? -Infinity : s.arRC;
     if (colKey==='sobAcc') return s.sobAcc===null||s.sobAcc===undefined? -Infinity : s.sobAcc;
     if (colKey==='sobRC') return s.sobRC===null||s.sobRC===undefined? -Infinity : s.sobRC;
+    if (colKey==='arOp') return s.deviceQty>0 ? (s.opQ3||0)/s.deviceQty*100 : -Infinity;
+    if (colKey==='sobOp') return s.deviceVal>0 ? (s.opP||0)/s.deviceVal*100 : -Infinity;
     if (colKey.indexOf('cat:')===0) return (s.cat[colKey.slice(4)])||0;
     if (colKey.indexOf('op:')===0) return (s.opBrand[colKey.slice(3)])||0;
     return s.total||0;
@@ -4083,6 +4200,16 @@ function renderSalesAchievementCard(d){
     const active = state.salesAchvSort && state.salesAchvSort.col===colKey;
     return '<th style="cursor:pointer;user-select:none;font-size:'+fz(11)+';white-space:nowrap;'+(active?'color:var(--blue);':'')+'" onclick="setSalesAchvSort(\''+colKey+'\')" title="Klik untuk urutkan berdasarkan '+escapeHtml(label.replace(/<[^>]+>/g,''))+' (terbesar/terkecil)">'+label+sortArrow(colKey)+(extraHtml||'')+'</th>';
   }
+  // Tombol pilihan blok detail (Target / MTD / GAP / Daily). Tidak ada yang dipilih = tabel lengkap seperti biasa.
+  const BLOCK_BTNS = [['all','🌐 All Bisnis'],['dev','📱 Handphone'],['acc','🎧 Accessories (AR & SOB)'],['rc','🛡️ Repair Contract (AR & SOB)'],['op-in','📡 Indosat'],['op-xl','📡 XL'],['op-tsel','📡 Telkomsel'],['op-vl','🎬 Vidio Lite'],['op-ar','📊 AR & SOB Operator'],['ce','🖥️ CE'],['lap','💻 Laptop']];
+  const _bsel = state.salesAchvBlocks || [];
+  const blockBarHtml = (state.raw && d.salesAchvRows.length)
+    ? '<div class="ero-blockbar" style="display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin:0 0 8px;">'
+      +'<span style="font-size:10.5px;font-weight:800;color:var(--muted);margin-right:2px;">Detail Target &middot; MTD &middot; GAP &middot; Daily:</span>'
+      +BLOCK_BTNS.map(function(b){ return '<button class="pv-btn'+(_bsel.indexOf(b[0])>=0?' on':'')+'" onclick="toggleAchvBlock(\''+b[0]+'\')">'+b[1].replace(/&/g,'&amp;')+'</button>'; }).join('')
+      +(_bsel.length ? '<button class="pv-btn" onclick="clearAchvBlocks()" title="Kembali ke tabel lengkap">✕ Tabel Lengkap</button>' : '')
+      +'</div>'
+    : '';
   let body;
   if (!state.raw){
     const cols = ['#','Nama Sales'].concat(d.categories.map(cat=>(CATEGORY_ICON[cat]||'📦')+' '+(CATEGORY_LABEL[cat]||cat))).concat(['Total']).concat(sobCols);
@@ -4101,20 +4228,43 @@ function renderSalesAchievementCard(d){
     // Header 2 baris: baris atas = grup (kategori / Operator / Attach Rate & SOB), baris bawah = kolom rinci.
     // Satuan Rp / pcs cukup dijelaskan sekali di keterangan atas tabel, tidak diulang di tiap kolom.
     function _th(html, attrs){ return html.replace('<th ', '<th '+attrs+' '); }
-    let head1 = '<tr class=\"ero-h1\">'+_th('<th style=\"font-size:'+fz(11)+';\">#</th>','rowspan=\"2\" class=\"c-rank\"')+_th(thSort('ERO','name'),'rowspan=\"2\" class=\"c-name\"');
-    let head2 = '<tr class=\"ero-h2\">';
+    function opArPct(x){ return x.deviceQty>0 ? (x.opQ3||0)/x.deviceQty*100 : null; } // AR Operator = Qty Operator (Indosat, XL, Telkomsel) / Qty Device
+    function opSobPct(x){ return x.deviceVal>0 ? (x.opP||0)/x.deviceVal*100 : null; } // SOB Operator = Value Operator / Value Device
+    function arSobExtra(cat, x, bgOn){ // sel AR & SOB yang langsung di samping kategorinya
+      if (cat==='Accessories') return arCell(x.arAcc, x.accQty10k, x.deviceQty, bgOn, 'acc') + sobCell(x.sobAcc, x.accValAll, bgOn?sobTint(x.sobAcc,'acc'):'', 'acc');
+      if (cat==='Repair Contract') return arCell(x.arRC, x.rcQty, x.arAccDenom, bgOn, 'rc') + sobCell(x.sobRC, x.rcVal, bgOn?sobTint(x.sobRC):'');
+      if (cat==='Operator') return arCell(opArPct(x), x.opQ3||0, x.deviceQty, bgOn, 'rc') + sobStdTd(opSobPct(x));
+      return '';
+    }
+    const OPT = ['Indosat','XL Axiata','Telkomsel']; // provider dengan kolom Target di sebelah MTD
+    function th2(label, attrs){ return '<th '+attrs+' style="font-size:'+fz(11)+';white-space:nowrap;">'+label+'</th>'; }
+    let head1 = '<tr class="ero-h1">'+_th('<th style="font-size:'+fz(11)+';">#</th>','rowspan="3" class="c-rank"')+_th(thSort('ERO','name'),'rowspan="3" class="c-name"')
+      + _th(thSort('🌐 All Bisnis', 'total'),'colspan="2" rowspan="2" class="gs"');
+    let head2 = '<tr class="ero-h2">';
+    let head3 = '<tr class="ero-h3">' + th2('Target','class="gs"') + th2('MTD','');
     d.categories.forEach(cat=>{
       if (cat==='Operator'){
-        head1 += '<th colspan=\"'+OPERATOR_BRANDS.length+'\" class=\"gs grp\" style=\"font-size:'+fz(11)+';\">📡 OPERATOR</th>';
-        OPERATOR_BRANDS.forEach((ob,k)=>{ head2 += _th(thSort(escapeHtml(opBrandDisp(ob)), 'op:'+ob), k===0?'class=\"gs\"':''); });
+        head1 += '<th colspan="'+(OPT.length*2+(OPERATOR_BRANDS.length-OPT.length)+2)+'" class="gs grp" style="font-size:'+fz(11)+';">📡 OPERATOR</th>';
+        OPERATOR_BRANDS.forEach(function(ob){
+          if (OPT.indexOf(ob)>=0){
+            head2 += _th(thSort(escapeHtml(opBrandDisp(ob)), 'op:'+ob),'colspan="2" class="gs"');
+            head3 += th2('Target','class="gs"') + th2('MTD','');
+          } else {
+            head2 += _th(thSort(escapeHtml(opBrandDisp(ob)), 'op:'+ob),'rowspan="2"');
+          }
+        });
+        head2 += _th(thSort('📡 AR OPERATOR','arOp'),'rowspan="2" class="gs"') + _th(thSort('📡 SOB OPERATOR','sobOp'),'rowspan="2"');
         return;
       }
-      head1 += _th(thSort((CATEGORY_ICON[cat]||'📦')+' '+escapeHtml(CATEGORY_LABEL[cat]||cat), 'cat:'+cat),'rowspan=\"2\" class=\"gs\"');
+      head1 += _th(thSort((CATEGORY_ICON[cat]||'📦')+' '+escapeHtml(CATEGORY_LABEL[cat]||cat), 'cat:'+cat),'colspan="'+((cat==='Accessories'||cat==='Repair Contract')?4:2)+'" rowspan="2" class="gs"');
+      head3 += th2('Target','class="gs"') + th2('MTD','');
+      if (cat==='Accessories') head3 += _th(thSort('🎧 AR AKSESORIS','arAcc'),'') + _th(thSort('🎧 SOB AKSESORIS','sobAcc'),'');
+      if (cat==='Repair Contract') head3 += _th(thSort('🛡️ AR BOLTECH','arRC'),'') + _th(thSort('🛡️ SOB BOLTECH','sobRC'),'');
     });
-    head1 += _th(thSort('Total', 'total'),'rowspan=\"2\" class=\"gs\"')
-      + '<th colspan=\"4\" class=\"gs grp\" style=\"font-size:'+fz(11)+';\">🎯 ATTACH RATE &amp; SOB</th></tr>';
-    head2 += _th(thSort('🎧 AR AKSESORIS','arAcc'),'class=\"gs\"') + thSort('🛡️ AR BOLTECH','arRC') + thSort('🎧 SOB AKSESORIS','sobAcc') + thSort('🛡️ SOB BOLTECH','sobRC') + '</tr>';
-    const head = head1 + head2;
+    head1 += '</tr>';
+    head3 += '</tr>';
+    head2 += '</tr>';
+    const head = head1 + head2 + head3;
     function footCell(v, q, gs){
       const gc = gs ? ' class="gs"' : '';
       return (v>0||q>0)
@@ -4221,6 +4371,12 @@ function renderSalesAchievementCard(d){
         +'<td>'+pctPill(t.sobAcc,'sobacc','')+'</td><td>'+pctPill(t.sobRC,'sob','')+'</td></tr>';
       return legend+'<div class="achv-table-wrap salesAchvTableWrap ero-simple'+(compact?' spg-compact':'')+'"><table style="font-size:'+fz(12)+';"><thead>'+head+'</thead><tbody>'+rows+'</tbody><tfoot>'+foot+'</tfoot></table></div>';
     }
+    // Sel Target (di sebelah MTD): satu angka target (Rp) per kolom; "-" bila belum ada target.
+    function tgtOnly(v, gs, bold){
+      const gc = gs ? ' class="gs"' : '';
+      if (!(v>0)) return '<td'+gc+' style="color:var(--muted-2);">-</td>';
+      return '<td'+gc+' style="color:var(--blue);font-weight:'+(bold?800:700)+';">'+fmt(v)+'</td>';
+    }
     function buildTable(rowsIn, t, compact, ctx){
       if (SIMPLE) return buildSimple(rowsIn, t, compact, ctx||'all');
       let rows = '';
@@ -4228,7 +4384,7 @@ function renderSalesAchievementCard(d){
         arAcc: spgScale(rowsIn.map(r=>r.arAcc)), arRC: spgScale(rowsIn.map(r=>r.arRC)),
         sobAcc: spgScale(rowsIn.map(r=>r.sobAcc)), sobRC: spgScale(rowsIn.map(r=>r.sobRC))
       } : null;
-      const colCount = 2 + d.categories.reduce((a,cat)=>a+(cat==='Operator'?OPERATOR_BRANDS.length:1),0) + 1 + 4;
+      let colCount = 2 + d.categories.reduce((a,cat)=>a+(cat==='Operator'?(OPT.length*2+(OPERATOR_BRANDS.length-OPT.length)+2):((cat==='Accessories'||cat==='Repair Contract')?4:2)),0) + 2;
       function eroTypesRow(x){
         const groups = d.categories.map(function(cat,ci){
           const list = Object.values(x.types||{}).filter(tv=>tv.cat===cat).sort((a,b)=>b.val-a.val||b.qty-a.qty);
@@ -4258,43 +4414,117 @@ function renderSalesAchievementCard(d){
         const body = groups.length ? cols.filter(c=>c.html).map(c=>'<div class="ety-col">'+c.html+'</div>').join('') : '<div class="ety-empty">Tidak ada rincian tipe untuk ERO ini.</div>';
         return '<tr class="ero-expand"><td colspan="'+colCount+'"><div class="ety-in" style="width:min(100%,calc(100vw - 110px));width:calc(100cqw - 20px);"><div class="ety-title">📋 Tipe yang dijual '+escapeHtml(x.name)+'</div><div class="ety-grid">'+body+'</div></div></td></tr>';
       }
-      orderRows(rowsIn).forEach((s,i)=>{
-        const _k = (ctx||'all')+'|'+s.name, _open = !!(state.salesAchvOpen && state.salesAchvOpen[_k]);
-        rows += '<tr><td class="c-rank" style="text-align:left;color:var(--muted);">'+(i+1)+'</td><td class="c-name ero-clk'+(_open?' open':'')+'" onclick="toggleAchvEro(\''+encodeURIComponent(_k).replace(/'/g,'%27')+'\')" title="Klik untuk '+(_open?'tutup':'lihat')+' tipe yang dijual" style="text-align:left;color:var(--text-strong);font-weight:800;"><span class="ero-caret">'+(_open?'▾':'▸')+'</span>'+escapeHtml(s.name)+'</td>';
-        d.categories.forEach(cat=>{
-          if (cat==='Operator'){
-            OPERATOR_BRANDS.forEach((ob,k)=>{ rows += catCell(s.opBrand[ob]||0, s.opBrandQty[ob]||0, k===0); });
+      // ===== Tampilan detail terpilih: Target | MTD | GAP | % | Daily per blok yang dipilih lewat tombol di atas tabel =====
+      const _BK = state.salesAchvBlocks || [];
+      if (_BK.length){
+        const BORD = ['all','dev','acc','rc','op-in','op-xl','op-tsel','op-vl','op-ar','ce','lap'];
+        const sel = BORD.filter(function(k){ return _BK.indexOf(k)>=0; });
+        const sisaHari = Math.max((isProjectionMode() ? d.dim : d.periodCalDays) - (d.distinctDays||0), 0); // sisa hari dalam periode
+        const catM = function(cat, qk){ return function(x){ return {t: x.tgt ? (x.tgt.cat[cat]||0) : 0, v: (x.cat&&x.cat[cat])||0, q: qk ? (x[qk]||0) : ((x.catQty&&x.catQty[cat])||0)}; }; };
+        const opM = function(ob, noT){ return function(x){ return {t: (!noT && x.tgt) ? ((x.tgt.op&&x.tgt.op[ob])||0) : 0, v: (x.opBrand&&x.opBrand[ob])||0, q: (x.opBrandQty&&x.opBrandQty[ob])||0, noT: !!noT}; }; };
+        const arOpPct = function(x){ return x.deviceQty>0 ? (x.opQ3||0)/x.deviceQty*100 : null; };
+        const sobOpPct = function(x){ return x.deviceVal>0 ? (x.opP||0)/x.deviceVal*100 : null; };
+        const BDEF = {
+          'all':    {label:'🌐 ALL BISNIS', n:5, m:function(x){ return {t: x.tgt ? x.tgt.all : 0, v: x.total||0, q: x.totalQty||0}; }},
+          'dev':    {label:'📱 HANDPHONE', n:5, m:catM('Device')},
+          'acc':    {label:'🎧 ACCESSORIES', n:7, m:catM('Accessories','accQty10k'), x:['AR Aksesoris','SOB Aksesoris'], xf:function(x){ return arCell(x.arAcc, x.accQty10k, x.deviceQty, 'T', 'acc') + sobCell(x.sobAcc, x.accValAll, sobTint(x.sobAcc,'acc'), 'acc'); }},
+          'rc':     {label:'🛡️ REPAIR CONTRACT', n:7, m:catM('Repair Contract'), x:['AR Boltech','SOB Boltech'], xf:function(x){ return arCell(x.arRC, x.rcQty, x.arAccDenom, 'T', 'rc') + sobCell(x.sobRC, x.rcVal, sobTint(x.sobRC)); }},
+          'op-in':  {label:'📡 INDOSAT', n:4, m:opM('Indosat'), noPct:true},
+          'op-xl':  {label:'📡 XL AXIATA', n:4, m:opM('XL Axiata'), noPct:true},
+          'op-tsel':{label:'📡 TELKOMSEL', n:4, m:opM('Telkomsel'), noPct:true},
+          'op-vl':  {label:'🎬 VIDIO LITE', n:1, m:opM('Operator Lainnya', true)},
+          'op-ar':  {label:'📡 AR &amp; SOB OPERATOR', n:2, onlyX:true, x:['AR Operator','SOB Operator'], xf:function(x){ return arCell(arOpPct(x), x.opQ3||0, x.deviceQty, 'T', 'rc') + sobStdTd(sobOpPct(x)); }},
+          'ce':     {label:'🖥️ CE', n:5, m:catM('CE')},
+          'lap':    {label:'💻 LAPTOP', n:5, m:catM('Laptop')}
+        };
+        const SUBH = ['Target','MTD','GAP','%','Daily'];
+        const tot = sel.reduce(function(a,k){ return a + BDEF[k].n; }, 0);
+        colCount = 2 + tot;
+        // Header 3 baris, sama seperti tabel utama: grup kategori (Operator digabung jadi satu grup) > nama provider > kolom rinci.
+        const OPK = ['op-in','op-xl','op-tsel','op-vl','op-ar'];
+        const OPSUB = {'op-in':'Indosat','op-xl':'XL Axiata','op-tsel':'Telkomsel','op-vl':'Vidio Lite'};
+        const opSel = sel.filter(function(k){ return OPK.indexOf(k)>=0; });
+        const opCols = opSel.reduce(function(a,k){ return a + BDEF[k].n; }, 0);
+        let h1 = '<tr class="ero-h1">'+_th('<th style="font-size:'+fz(11)+';">#</th>','rowspan="3" class="c-rank"')+_th(thSort('ERO','name'),'rowspan="3" class="c-name"');
+        let h2 = '<tr class="ero-h2">', h3 = '<tr class="ero-h3">';
+        let opDone = false;
+        sel.forEach(function(k){
+          const b = BDEF[k];
+          if (OPK.indexOf(k)>=0){
+            if (!opDone){ opDone = true; h1 += '<th colspan="'+opCols+'" class="gs grp" style="font-size:'+fz(11)+';white-space:nowrap;">📡 OPERATOR</th>'; }
+            if (b.onlyX){ h2 += _th(th2(b.x[0],''),'rowspan="2" class="gs"') + _th(th2(b.x[1],''),'rowspan="2"'); return; }
+            h2 += _th(th2(OPSUB[k],''),'colspan="'+b.n+'" class="gs"');
+            if (b.m({}).noT){ h3 += th2('MTD','class="gs"'); }
+            else { h3 += th2('Target','class="gs"') + th2('MTD','') + th2('GAP','') + (b.noPct ? '' : th2('%','')) + th2('Daily',''); }
             return;
           }
-          rows += catCell(s.cat[cat]||0, (cat==='Accessories' ? (s.accQty10k||0) : (s.catQty[cat]||0)), true); // qty Accessories disamakan dgn qty AR Aksesoris (value > Rp10.000)
+          h1 += '<th colspan="'+b.n+'" rowspan="2" class="gs grp" style="font-size:'+fz(11)+';white-space:nowrap;">'+b.label+'</th>';
+          h3 += th2('Target','class="gs"') + th2('MTD','') + th2('GAP','') + th2('%','') + th2('Daily','');
+          if (b.x) h3 += th2(b.x[0],'') + th2(b.x[1],'');
         });
-        rows += '<td class="gs" style="color:var(--green);font-weight:800;"><div>'+fmt(s.total)+'</div>'
-          +'<div style="font-size:'+fz(11)+';color:var(--muted);margin-top:2px;">'+fmt(s.totalQty)+' pcs</div></td>'
-          + arCell(s.arAcc, s.accQty10k, s.deviceQty, sc?sc.arAcc(s.arAcc):'T', 'acc').replace('<td','<td class="gs"')
-          + arCell(s.arRC, s.rcQty, s.arAccDenom, sc?sc.arRC(s.arRC):'T', 'rc')
-          + sobCell(s.sobAcc, s.accValAll, sc?sc.sobAcc(s.sobAcc):sobTint(s.sobAcc,'acc'), 'acc')
-          + sobCell(s.sobRC, s.rcVal, sc?sc.sobRC(s.sobRC):sobTint(s.sobRC)) + '</tr>';
+        h1 += '</tr>'; h2 += '</tr>'; h3 += '</tr>';
+        function pctCol(p){ return p>=100 ? 'var(--green)' : p>=80 ? 'var(--yellow)' : 'var(--red)'; }
+        function dCells(b, x, foot){
+          const m = b.m(x);
+          const mtd = foot ? footCell(m.v, m.q, !!m.noT) : catCell(m.v, m.q, !!m.noT);
+          if (m.noT) return mtd; // Vidio Lite: belum ada target, jadi tidak ada Daily
+          // Daily = sisa target (Target - MTD, minimal 0) dibagi sisa hari
+          const dly = (m.t>0 && sisaHari>0) ? Math.max(m.t - m.v, 0)/sisaHari : null;
+          const dTd = '<td style="color:var(--text'+(foot?'-strong':'')+');font-weight:800;">'+(dly===null?'-':fmt(dly))+'</td>';
+          const has = m.t>0, gap = m.v - m.t, pct = has ? m.v/m.t*100 : null;
+          return tgtOnly(m.t, true, foot) + mtd
+            + (has ? '<td style="color:'+(gap<0?'var(--red)':'var(--green)')+';font-weight:800;">'+(gap<0?'('+fmt(-gap)+')':fmt(gap))+'</td>' : '<td style="color:var(--muted-2);">-</td>')
+            + (b.noPct ? '' : (has ? '<td style="color:'+pctCol(pct)+';font-weight:800;">'+pf(pct)+'%</td>' : '<td style="color:var(--muted-2);">-</td>'))
+            + dTd;
+        }
+        function rowCells(x, foot){
+          return sel.map(function(k){
+            const b = BDEF[k];
+            if (b.onlyX) return b.xf(x).replace('<td','<td class="gs"');
+            return dCells(b, x, foot) + (b.xf ? b.xf(x) : '');
+          }).join('');
+        }
+        let rowsD = '';
+        orderRows(rowsIn).forEach(function(s,i){
+          const _k = (ctx||'all')+'|'+s.name, _open = !!(state.salesAchvOpen && state.salesAchvOpen[_k]);
+          rowsD += '<tr><td class="c-rank" style="text-align:left;color:var(--muted);">'+(i+1)+'</td><td class="c-name ero-clk'+(_open?' open':'')+'" onclick="toggleAchvEro(\''+encodeURIComponent(_k).replace(/'/g,'%27')+'\')" title="Klik untuk '+(_open?'tutup':'lihat')+' tipe yang dijual" style="text-align:left;color:var(--text-strong);font-weight:800;"><span class="ero-caret">'+(_open?'▾':'▸')+'</span>'+escapeHtml(s.name)+'</td>'+rowCells(s, false)+'</tr>';
+          if (_open) rowsD += eroTypesRow(s);
+        });
+        const footD = '<tr class="achv-total-row"><td class="c-rank"></td><td class="c-name" style="text-align:left;color:var(--text-strong);font-weight:800;">'+(state.salesAchvTop10?'TOTAL SEMUA ERO':'TOTAL')+'</td>'+rowCells(t, true)+'</tr>';
+        const hintD = compact ? '' : '<div class="ero-hint">GAP = MTD &minus; Target (tanda kurung = masih kurang) &middot; % = MTD &divide; Target &middot; Daily = sisa target (Target &minus; MTD) &divide; sisa hari &middot; klik nama ERO untuk melihat tipe yang dijual</div>';
+        return hintD+'<div class="achv-table-wrap salesAchvTableWrap'+(compact?' spg-compact':'')+' ero-tidy-wrap" style="--ep-y:'+(Math.round(6*achvZoom*10)/10)+'px;--ep-x:'+(Math.round(4.5*achvZoom*10)/10)+'px;--ep-k:'+achvZoom+'"><table style="font-size:'+fz(11.5)+';"><thead>'+h1+h2+h3+'</thead><tbody>'+rowsD+'</tbody><tfoot>'+footD+'</tfoot></table></div>';
+      }
+      orderRows(rowsIn).forEach((s,i)=>{
+        const _k = (ctx||'all')+'|'+s.name, _open = !!(state.salesAchvOpen && state.salesAchvOpen[_k]);
+        rows += '<tr><td class="c-rank" style="text-align:left;color:var(--muted);">'+(i+1)+'</td><td class="c-name ero-clk'+(_open?' open':'')+'" onclick="toggleAchvEro(\''+encodeURIComponent(_k).replace(/'/g,'%27')+'\')" title="Klik untuk '+(_open?'tutup':'lihat')+' tipe yang dijual" style="text-align:left;color:var(--text-strong);font-weight:800;"><span class="ero-caret">'+(_open?'▾':'▸')+'</span>'+escapeHtml(s.name)+'</td>'
+          + tgtOnly(s.tgt ? s.tgt.all : 0, true) + '<td style="color:var(--green);font-weight:800;"><div>'+fmt(s.total)+'</div><div style="font-size:'+fz(11)+';color:var(--muted);margin-top:2px;">'+fmt(s.totalQty)+' pcs</div></td>';
+        d.categories.forEach(cat=>{
+          if (cat==='Operator'){
+            OPERATOR_BRANDS.forEach((ob,k)=>{ rows += (OPT.indexOf(ob)>=0 ? tgtOnly(s.tgt ? (s.tgt.op[ob]||0) : 0, true) : '') + catCell(s.opBrand[ob]||0, s.opBrandQty[ob]||0, false); });
+            rows += arSobExtra('Operator', s, 'T');
+            return;
+          }
+          rows += tgtOnly(s.tgt ? (s.tgt.cat[cat]||0) : 0, true) + catCell(s.cat[cat]||0, (cat==='Accessories' ? (s.accQty10k||0) : (s.catQty[cat]||0)), false) + (sc ? ((cat==='Accessories') ? arCell(s.arAcc, s.accQty10k, s.deviceQty, sc.arAcc(s.arAcc), 'acc') + sobCell(s.sobAcc, s.accValAll, sc.sobAcc(s.sobAcc), 'acc') : (cat==='Repair Contract') ? arCell(s.arRC, s.rcQty, s.arAccDenom, sc.arRC(s.arRC), 'rc') + sobCell(s.sobRC, s.rcVal, sc.sobRC(s.sobRC)) : '') : arSobExtra(cat, s, 'T')); // qty Accessories disamakan dgn qty AR Aksesoris (value > Rp10.000)
+        });
+        rows += '</tr>';
         if (_open) rows += eroTypesRow(s);
       });
       // Baris footer: total/pencapaian keseluruhan toko (gabungan semua sales pada tabel ini).
-      let foot = '<tr class="achv-total-row"><td class="c-rank"></td><td class="c-name" style="text-align:left;color:var(--text-strong);font-weight:800;">'+(state.salesAchvTop10?'TOTAL SEMUA ERO':'TOTAL')+'</td>';
+      let foot = '<tr class="achv-total-row"><td class="c-rank"></td><td class="c-name" style="text-align:left;color:var(--text-strong);font-weight:800;">'+(state.salesAchvTop10?'TOTAL SEMUA ERO':'TOTAL')+'</td>'
+        + tgtOnly(t.tgt ? t.tgt.all : 0, true, true) + '<td style="color:var(--green);font-weight:800;"><div>'+fmt(t.total)+'</div><div style="font-size:'+fz(11)+';color:var(--muted);margin-top:2px;">'+fmt(t.totalQty)+' pcs</div></td>';
       d.categories.forEach(cat=>{
         if (cat==='Operator'){
-          OPERATOR_BRANDS.forEach((ob,k)=>{ foot += footCell(t.opBrand[ob]||0, t.opBrandQty[ob]||0, k===0); });
+          OPERATOR_BRANDS.forEach((ob,k)=>{ foot += (OPT.indexOf(ob)>=0 ? tgtOnly(t.tgt ? (t.tgt.op[ob]||0) : 0, true, true) : '') + footCell(t.opBrand[ob]||0, t.opBrandQty[ob]||0, false); });
+          foot += arSobExtra('Operator', t, 'T');
           return;
         }
-        foot += footCell((t.cat[cat])||0, (cat==='Accessories' ? (t.accQty10k||0) : ((t.catQty[cat])||0)), true); // qty Accessories disamakan dgn qty AR Aksesoris
+        foot += tgtOnly(t.tgt ? (t.tgt.cat[cat]||0) : 0, true, true) + footCell((t.cat[cat])||0, (cat==='Accessories' ? (t.accQty10k||0) : ((t.catQty[cat])||0)), false) + arSobExtra(cat, t, spgPivot?'':'T'); // qty Accessories disamakan dgn qty AR Aksesoris
       });
-      foot += '<td class="gs" style="color:var(--green);font-weight:800;"><div>'+fmt(t.total)+'</div>'
-        +'<div style="font-size:'+fz(11)+';color:var(--muted);margin-top:2px;">'+fmt(t.totalQty)+' pcs</div></td>'
-        + arCell(t.arAcc, t.accQty10k, t.deviceQty, spgPivot?'':'T', 'acc').replace('<td','<td class="gs"')
-        + arCell(t.arRC, t.rcQty, t.arAccDenom, spgPivot?'':'T', 'rc')
-        + sobCell(t.sobAcc, t.accValAll, spgPivot?'':sobTint(t.sobAcc,'acc'), 'acc')
-        + sobCell(t.sobRC, t.rcVal, spgPivot?'':sobTint(t.sobRC)) + '</tr>';
+      foot += '</tr>';
       const hint = (spgPivot||compact) ? '' : '<div class="ero-hint">Tiap kolom kategori: <b>Rp</b> di baris atas, <b>pcs</b> di baris bawah &middot; klik judul kolom untuk mengurutkan</div>';
-      return hint+'<div class="achv-table-wrap salesAchvTableWrap'+(compact?' spg-compact':'')+(spgPivot?' spg-pivot':' ero-tidy-wrap')+'"'+(spgPivot?'':' style="--ep-y:'+(Math.round(7*achvZoom*10)/10)+'px;--ep-x:'+(Math.round(7*achvZoom*10)/10)+'px;--ep-k:'+achvZoom+'"')+'><table'+(spgPivot?' class="pivot-tbl"':'')+' style="font-size:'+fz(11.5)+';"><thead>'+head+'</thead><tbody>'+rows+'</tbody><tfoot>'+foot+'</tfoot></table></div>';
+      return hint+'<div class="achv-table-wrap salesAchvTableWrap'+(compact?' spg-compact':'')+(spgPivot?' spg-pivot':' ero-tidy-wrap')+'"'+(spgPivot?'':' style="--ep-y:'+(Math.round(6*achvZoom*10)/10)+'px;--ep-x:'+(Math.round(4.5*achvZoom*10)/10)+'px;--ep-k:'+achvZoom+'"')+'><table'+(spgPivot?' class="pivot-tbl"':'')+' style="font-size:'+fz(11.5)+';"><thead>'+head+'</thead><tbody>'+rows+'</tbody><tfoot>'+foot+'</tfoot></table></div>';
     }
-    const noteHtml = '<div class="empty-note x-note">Menampilkan omzet (Rp) dan qty (pcs) per kategori tiap sales (belum ada target individual per sales di file Master Data). AR Aksesoris = Qty Accessories (hanya transaksi dengan value &gt; Rp10.000) &divide; Qty Device. Boltech = Qty Repair Contract (semua transaksi) &divide; (Qty Device + Qty CE). SOB Aksesoris = value Accessories (semua transaksi) &divide; value Device (hijau &ge;6% = target tercapai, merah &lt;6%). SOB Boltech = value Repair Contract &divide; value Device. Baris paling bawah adalah pencapaian gabungan seluruh sales (toko keseluruhan, mengikuti filter toko yang aktif).</div>';
+    const noteHtml = '<div class="empty-note x-note">Menampilkan omzet (Rp) dan qty (pcs) per kategori tiap sales (belum ada target individual per sales di file Master Data). Kolom <b>Target</b> di sebelah tiap MTD: target ERO = target toko dari Master Data dibagi rata ke ERO yang bertransaksi di toko itu (Handphone = target brand toko; Accessories, CE &amp; Laptop = Target Rofo kategori; Repair Contract = Target Racing Boltech, atau Target Rofo bila kosong; Indosat / XL / Telkomsel = Target Racing Operator; Total = target All Bisnis toko). Vidio Lite belum punya target. AR Aksesoris = Qty Accessories (hanya transaksi dengan value &gt; Rp10.000) &divide; Qty Device. Boltech = Qty Repair Contract (semua transaksi) &divide; (Qty Device + Qty CE). SOB Aksesoris = value Accessories (semua transaksi) &divide; value Device (hijau &ge;6% = target tercapai, merah &lt;6%). SOB Boltech = value Repair Contract &divide; value Device. Baris paling bawah adalah pencapaian gabungan seluruh sales (toko keseluruhan, mengikuti filter toko yang aktif).</div>';
     if (state.salesAchvView==='store' && !state.salesStoreFilter){
       body = d.salesAchvByStore.map(function(g){
         return '<div class="spg-store-block"><div class="spg-store-head pv"><span>🏬 '+escapeHtml(g.store)+'</span>'
@@ -4308,7 +4538,7 @@ function renderSalesAchievementCard(d){
 
   return '<div class="card'+(collapsed?' collapsed':'')+'" style="margin-bottom:10px;">'
     +sectionTitleWithToggle(key, '🎯 PENCAPAIAN ALL KATEGORI ERO', filterHtml)
-    +collapsibleBody(key, chipsHtml+body)
+    +collapsibleBody(key, chipsHtml+blockBarHtml+body)
   +'</div>';
 }
 
@@ -4519,6 +4749,65 @@ function computeDerived(){
   const salesAchvRows = _achvAll.rows;
   const salesAchvTotals = _achvAll.totals;
 
+  // ===== TARGET ERO (sebelah MTD) =====
+  // Master Data belum punya target individual per ERO -> target toko dibagi rata ke ERO yang bertransaksi di toko itu.
+  const OPT_T = ['Indosat','XL Axiata','Telkomsel']; // provider yang punya target (sheet Target Racing)
+  function storeCatTargets(base, st){
+    const storeAll = Number((base.store||{})[st])||0;
+    const cs = base.catStore || {}, ov = Number(base.overall)||0, bc = base.category || {};
+    const out = {op:{}}; let others = 0;
+    ['Accessories','Operator','Repair Contract','CE','Laptop'].forEach(function(cat){
+      const key = st+'|'+cat;
+      const v = Object.prototype.hasOwnProperty.call(cs, key) ? (Number(cs[key])||0) : (ov>0 ? storeAll*(Number(bc[cat])||0)/ov : 0);
+      out[cat] = v; others += v;
+    });
+    const sb = (base.storeBrand||{})[st];
+    const brandSum = sb ? Object.keys(sb).reduce(function(a,k){ return a+(Number(sb[k])||0); }, 0) : 0;
+    out['Device'] = brandSum>0 ? brandSum : Math.max(0, storeAll-others);
+    // Repair Contract (Boltech): Target Racing Boltech toko dulu, bila kosong pakai Target Rofo kategori (sama dgn slide Boltech)
+    const rcs = state.raw && state.raw.racing && state.raw.racing.stores;
+    const rcb = rcs && rcs[st] && rcs[st].boltech;
+    if (rcb && Number(rcb.v)>0) out['Repair Contract'] = Number(rcb.v);
+    // Operator per provider: isian manual dulu, bila kosong dari sheet Target Racing (sama dgn tabel Racing Operator)
+    OPT_T.forEach(function(ob){
+      const man = Number((base.opStore||{})[st+'|'+ob])||0;
+      out.op[ob] = man>0 ? man : opRacingSheetTarget(st, ob);
+    });
+    return out;
+  }
+  function eroTargetMap(records){
+    const base = _getEffectiveTargetsBase() || emptyTargets();
+    const byStore = {};
+    records.forEach(function(r){ const n = r[6]; if (!n) return; (byStore[r[1]] = byStore[r[1]] || {})[n] = 1; });
+    const out = {};
+    Object.keys(byStore).forEach(function(st){
+      const names = Object.keys(byStore[st]), n = names.length;
+      const storeAll = Number((base.store||{})[st])||0;
+      if (!n || storeAll<=0) return;
+      const tc = storeCatTargets(base, st);
+      names.forEach(function(nm){
+        const o = out[nm] || (out[nm] = {all:0, cat:{}, op:{}});
+        o.all += storeAll/n;
+        categories.forEach(function(c){ o.cat[c] = (o.cat[c]||0) + (tc[c]||0)/n; });
+        OPT_T.forEach(function(ob){ o.op[ob] = (o.op[ob]||0) + (tc.op[ob]||0)/n; });
+      });
+    });
+    return out;
+  }
+  function attachEroTargets(rows, totals, records){
+    const m = eroTargetMap(records), tt = {all:0, cat:{}, op:{}};
+    rows.forEach(function(x){
+      const t = m[x.name]; x.tgt = t || null;
+      if (t){
+        tt.all += t.all;
+        categories.forEach(function(c){ tt.cat[c] = (tt.cat[c]||0) + (t.cat[c]||0); });
+        OPT_T.forEach(function(ob){ tt.op[ob] = (tt.op[ob]||0) + (t.op[ob]||0); });
+      }
+    });
+    totals.tgt = tt.all>0 ? tt : null;
+  }
+  attachEroTargets(salesAchvRows, salesAchvTotals, salesFilteredRecords);
+
   // Mode "Per Toko": satu tabel terpisah untuk tiap toko (hanya toko yang punya transaksi di rentang tanggal terpilih),
   // diurutkan dari omzet toko terbesar.
   const salesAchvByStore = [];
@@ -4527,6 +4816,7 @@ function computeDerived(){
     filtered.forEach(r=>{ (recsByStore[r[1]] = recsByStore[r[1]] || []).push(r); });
     Object.keys(recsByStore).forEach(function(storeName){
       const g = buildSalesAchv(recsByStore[storeName]);
+      attachEroTargets(g.rows, g.totals, recsByStore[storeName]);
       if (g.rows.length) salesAchvByStore.push({store: storeName, rows: g.rows, totals: g.totals});
     });
     salesAchvByStore.sort((a,b)=>b.totals.total-a.totals.total);
@@ -8419,6 +8709,7 @@ function buildAppHTML(){
     + renderStoreSection(d)
     + '<div class="row-top">' + renderTopStoreCard(d) + renderTopSalesCard(d) + '</div>'
     + renderSalesAchievementCard(d)
+    + renderPaymentCard(d)
     + renderStockCard(d)
     + renderRacingPopup(d)
     + renderSamIncPopup(d) + renderSamSumPopup(d) + renderSamSchemePopup(d);
@@ -8503,7 +8794,7 @@ function capCardCanvas(card){
           cw.forEach(function(wrap){
             wrap.style.overflow = 'visible'; wrap.style.maxWidth = 'none';
             if (k !== 1){
-              if (wrap.style.getPropertyValue('--ep-y')){ wrap.style.setProperty('--ep-y','7px'); wrap.style.setProperty('--ep-x','7px'); wrap.style.setProperty('--ep-k','1'); }
+              if (wrap.style.getPropertyValue('--ep-y')){ wrap.style.setProperty('--ep-y','6px'); wrap.style.setProperty('--ep-x','4.5px'); wrap.style.setProperty('--ep-k','1'); }
               wrap.querySelectorAll('[style*="font-size"]').forEach(function(n){
                 const f = n.style.fontSize; if (f && /px$/.test(f)) n.style.fontSize = (parseFloat(f)*k).toFixed(2)+'px';
               });
@@ -8786,6 +9077,541 @@ function renderStockCard(d){
       +'<div class="empty-note x-note">Stok per '+formatDateLabelShort(D.S.date||D.end)+(D.S.date?'':' (mengikuti transaksi terakhir)')+' · penjualan '+formatDateLabelShort(D.start)+' – '+formatDateLabelShort(D.end)+' ('+D.days+' hari) · DOS = stok ÷ rata-rata jual per hari · ikut filter Area/Channel/Toko di atas.</div>';
   }
   return '<div class="card'+(state.collapsed[key]?' collapsed':'')+'">'+sectionTitleWithToggle(key,'📦 STOCK MONITORING')+collapsibleBody(key, body)+'</div>';
+}
+
+/* ============ ANALISIS PAYMENT (By Payment All Store) ============
+   Sumber: Excel "By Payment" (Site | Site Desc. | POS Number / Order Number | Transaction Date | Main Issuer Desc. | Amount main Issuer).
+   Dimuat dari: (1) file By_payment_all_store.xlsx di folder yang sama (auto), (2) tombol Upload Payment (mode admin),
+   (3) sheet "By Payment" di dalam Master Data (SUMBER UTAMA: update harian cukup di Excel Master Data), (4) cadangan yang ditanam di file ini (BAKED_PAY).
+   Filter Area / Channel / Toko di header dashboard ikut berlaku; rentang tanggal payment diatur di kartu ini sendiri. */
+const PAY_FILE = 'By_payment_all_store.xlsx';
+const PAY_GROUPS = [
+  {k:'qris',   s:'QRIS',            t:'QRIS',                                c:'#38BDF8'},
+  {k:'debit',  s:'Debit',           t:'Kartu Debit',                         c:'#818CF8'},
+  {k:'kk',     s:'KK Reguler',      t:'Kartu Kredit Reguler',                c:'#A78BFA'},
+  {k:'cicil',  s:'Cicilan 0%',      t:'Cicilan 0% Kartu Kredit',             c:'#FBBF24'},
+  {k:'fin',    s:'Paylater/Kredit', t:'Paylater & Kredit (Kredivo, Indodana, dll)', c:'#F472B6'},
+  {k:'cash',   s:'Tunai',           t:'Tunai',                               c:'#34D399'},
+  {k:'voucher',s:'Voucher/Poin',    t:'Voucher & Poin MyEraspace/Giftcard',  c:'#FB923C'},
+  {k:'cnp',    s:'Click&Pickup',    t:'Click & Pickup (Online)',             c:'#2DD4BF'},
+  {k:'tradein',s:'Trade-In',        t:'Trade-In',                            c:'#A3E635'},
+  {k:'return', s:'Return Replc.',   t:'Return Replacement',                  c:'#94A3B8'},
+  {k:'other',  s:'JB/Lainnya',      t:'JB, Payment Link & Lainnya',          c:'#64748B'}
+];
+const PAY_G = {}; PAY_GROUPS.forEach(function(g){ PAY_G[g.k] = g; });
+const payS = {
+  raw: (typeof BAKED_PAY!=='undefined' && BAKED_PAY && BAKED_PAY.rows) ? BAKED_PAY : null,
+  view:'sum', mode:'pct', store:'', q:'', from:'', to:'', noOther:false, sort:null, prep:null, memo:null
+};
+function payNK(s){ return String(s==null?'':s).toUpperCase().replace(/\s+/g,' ').trim(); }
+function payN(o){ return Object.keys(o).length; }
+function payEsc(s){ return escapeHtml(s); }
+function payRp(n){
+  n = n||0; const a = Math.abs(n);
+  if (a>=1e9) return (n/1e9).toFixed(2).replace('.',',')+' M';
+  if (a>=1e6) return (n/1e6).toFixed(1).replace('.',',')+' jt';
+  return fmt(n);
+}
+function payJt(n){ return n ? fmt(n/1e6) : '–'; }
+function payTint(hex, a){ return hex+Math.round(Math.max(0,Math.min(1,a))*255).toString(16).padStart(2,'0'); }
+
+/* Normalisasi "Main Issuer Desc." -> jenis pembayaran. Kode toko di depan (mis. "E164 - BCA - QRIS") dibuang
+   supaya metode yang sama dari toko berbeda tergabung. */
+function payClassify(raw){
+  let s = payNK(raw).replace(/^[A-Z]\d{3}\s*-\s*/,'').replace(/BLNN/g,'BLN').replace(/0\s*%/g,'0%');
+  const tm = s.match(/(\d+)\s*BLN/), tenor = tm ? +tm[1] : 0;
+  const am = s.match(/^(BCA|MANDIRI|BNI|BRI|CIMB)\b/), acq = am ? am[1] : '';
+  let g, prov = '', sub = '';
+  if (/^FIN\s*-/.test(s) || s==='SHOPEE PAY'){
+    g = 'fin';
+    const r = s.replace(/^FIN\s*-\s*/,'');
+    prov = /KREDIVO/.test(r) ? 'KREDIVO' : /SAMSUNG FINANCE/.test(r) ? 'SAMSUNG FINANCE (HCI)' : /HOME CREDIT/.test(r) ? 'HOME CREDIT' : /SPAYLATER/.test(r) ? 'SPAYLATER' : r;
+    s = 'FIN - ' + (/HOME CREDIT/.test(r) ? 'HOME CREDIT INDONESIA' : r);
+  }
+  else if (/QRIS/.test(s)) g = 'qris';
+  else if (s==='CASH') g = 'cash';
+  else if (/^VOUCHER|POINT MYERASPACE/.test(s)) g = 'voucher';
+  else if (/^CLICK AND PICKUP/.test(s)) g = 'cnp';
+  else if (/TRADE IN/.test(s)) g = 'tradein';
+  else if (/RETURN REPLACEMENT/.test(s)) g = 'return';
+  else if (/^JB\b|PAYMENT LINK/.test(s)) g = 'other';
+  else if (/DEBIT/.test(s)) g = 'debit';
+  else if (/0%/.test(s)){
+    g = 'cicil';
+    sub = s.replace(/^(BCA|MANDIRI|BNI|BRI|CIMB)\s*-?\s*/,'').replace(/0%\s*(\d+\s*BLN)?/,'').replace(/\s+/g,' ').replace(/^-\s*|\s*-$/g,'').trim();
+  }
+  else if (/REGULAR|REG OFF|BCA CARD/.test(s)) g = 'kk';
+  else g = 'other';
+  return {g:g, lab:s, acq:acq, tenor:tenor, sub:sub, prov:prov};
+}
+
+/* ---- Baca Excel payment (sheet bernama *payment* atau sheet mana pun yang headernya cocok) ---- */
+function payParseWorkbook(wb, fileName, onlyNamed){
+  const names = wb.SheetNames.filter(function(n){ return !onlyNamed || /payment/i.test(n); }).sort(function(a,b){ return (/payment/i.test(b)?1:0)-(/payment/i.test(a)?1:0); });
+  for (let si=0; si<names.length; si++){
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[names[si]], {header:1, defval:null, raw:true});
+    let hi = -1, nm = [];
+    for (let i=0;i<Math.min(rows.length,20);i++){
+      nm = (rows[i]||[]).map(function(c){ return c!=null ? String(c).trim().toLowerCase() : ''; });
+      if (nm.some(function(c){ return c==='transaction date'; }) && nm.some(function(c){ return /^main issuer/.test(c); })){ hi = i; break; }
+    }
+    if (hi===-1) continue;
+    const ix = function(re){ return nm.findIndex(function(c){ return re.test(c); }); };
+    const cS = ix(/^site$/), cN = ix(/^site desc/), cO = ix(/pos number|order number/), cD = ix(/^transaction date/), cI = ix(/^main issuer/), cA = ix(/^amount/);
+    if (cS===-1 || cD===-1 || cI===-1 || cA===-1) continue;
+    const issuers = [], imap = {}, sites = {}, out = [];
+    for (let i=hi+1;i<rows.length;i++){
+      const r = rows[i]; if (!r || r[cS]==null || r[cD]==null) continue;
+      const d = excelDateToISO(r[cD]); if (!d) continue;
+      const amt = Number(r[cA]); if (!isFinite(amt)) continue;
+      const iss = String(r[cI]==null?'':r[cI]).trim();
+      if (!(iss in imap)){ imap[iss] = issuers.length; issuers.push(iss); }
+      const code = String(r[cS]).trim();
+      if (!sites[code]) sites[code] = cN!==-1 && r[cN]!=null ? String(r[cN]).trim() : code;
+      out.push([d, code, cO!==-1&&r[cO]!=null ? String(r[cO]).trim() : (d+'|'+code+'|'+i), imap[iss], Math.round(amt)]);
+    }
+    if (out.length) return {file:fileName||PAY_FILE, sites:sites, issuers:issuers, rows:out};
+  }
+  return null;
+}
+function payReset(){ payS.prep = null; payS.memo = null; payS.store = ''; payS.from = ''; payS.to = ''; payS.sort = null; }
+function payTryWb(wb, fileName, onlyNamed){
+  const raw = payParseWorkbook(wb, fileName, onlyNamed);
+  if (raw){ payS.raw = raw; payReset(); if (onlyNamed) payS.fromMaster = true; }
+  return !!raw;
+}
+function payUpload(evt){
+  const file = evt.target.files && evt.target.files[0]; if (!file) return;
+  const rd = new FileReader();
+  rd.onload = function(e){
+    try{
+      const wb = XLSX.read(fixZip64Local(new Uint8Array(e.target.result)), {type:'array'});
+      if (!payTryWb(wb, file.name)) throw new Error('kolom Site, Transaction Date, Main Issuer Desc. & Amount tidak ditemukan');
+      render();
+    }catch(err){ alert('Gagal membaca data payment: '+err.message); }
+    evt.target.value = '';
+  };
+  rd.onerror = function(){ alert('Gagal membaca file.'); evt.target.value = ''; };
+  rd.readAsArrayBuffer(file);
+}
+async function payAutoLoad(){
+  try{
+    if (payS.fromMaster) return; // sheet "By Payment" di Master Data sudah termuat -> itu sumber utama
+    const resp = await fetch(PAY_FILE + '?v=' + Date.now(), {cache:'no-store'});
+    if (!resp.ok) return;
+    if (payS.fromMaster) return;
+    const wb = XLSX.read(fixZip64Local(new Uint8Array(await resp.arrayBuffer())), {type:'array'});
+    if (payTryWb(wb, PAY_FILE)) render();
+  }catch(err){ console.warn('Auto-load payment gagal:', err); }
+}
+if (typeof AUTO_LOAD_MASTER !== 'undefined' && AUTO_LOAD_MASTER) window.addEventListener('load', payAutoLoad);
+
+/* ---- Data turunan ---- */
+function payPrep(){
+  const R = payS.raw; if (!R || !R.rows || !R.rows.length) return null;
+  if (payS.prep && payS.prep.R===R) return payS.prep;
+  let mn = '9999-99-99', mx = '0000-00-00';
+  R.rows.forEach(function(r){ if (r[0]<mn) mn = r[0]; if (r[0]>mx) mx = r[0]; });
+  return (payS.prep = {R:R, cls:R.issuers.map(payClassify), min:mn, max:mx});
+}
+function payCodeNames(){ // kode SAP -> nama toko di master dashboard (supaya nama & area sama dgn slide lain)
+  const f = state.rawFull, m = {};
+  if (f && f.sapCodes) Object.keys(f.sapCodes).forEach(function(n){ m[f.sapCodes[n]] = n; });
+  Object.keys(SAP_CODE_FALLBACK).forEach(function(n){ const c = SAP_CODE_FALLBACK[n]; if (c && !m[c]) m[c] = n; });
+  return m;
+}
+function payScopeSet(){ // null = semua toko; selain itu set nama toko yang lolos filter Area/Channel/Toko header
+  const f = state.rawFull; if (!f || !f.stores) return null;
+  if (!state.selectedArea && !chainFilterOn() && !state.selectedStore) return null;
+  const set = {};
+  ((state.raw && state.raw.stores) || []).forEach(function(s){
+    if (state.selectedStore && s.site_desc!==state.selectedStore) return;
+    set[payNK(s.site_desc)] = 1; set[payNK(canonStoreName(s.site_desc))] = 1;
+  });
+  return set;
+}
+function payInScope(scope, nm, fileNm){ return !scope || scope[payNK(canonStoreName(nm))] || scope[payNK(canonStoreName(fileNm))]; }
+function payStoreList(){ // toko di data payment yang lolos filter header (untuk dropdown)
+  const P = payPrep(); if (!P) return [];
+  const c2n = payCodeNames(), scope = payScopeSet(), out = [];
+  Object.keys(P.R.sites).forEach(function(code){
+    const nm = c2n[code] || P.R.sites[code];
+    if (payInScope(scope, nm, P.R.sites[code])) out.push(nm);
+  });
+  return out.sort(function(a,b){ return a.localeCompare(b); });
+}
+function payRows(){
+  const P = payPrep(); if (!P) return [];
+  const f = state.rawFull, c2n = payCodeNames(), scope = payScopeSet();
+  const from = payS.from || P.min, to = payS.to || P.max;
+  const sig = [P.R.rows.length, from, to, payS.noOther?1:0, payS.store, state.selectedArea, (state.selectedChains||[]).join(','), state.selectedStore, f?(f.stores||[]).length:0].join('|');
+  if (payS.memo && payS.memo.R===P.R && payS.memo.sig===sig) return payS.memo.rows;
+  const out = [];
+  P.R.rows.forEach(function(r){
+    if (r[0]<from || r[0]>to) return;
+    const cl = P.cls[r[3]];
+    if (payS.noOther && (cl.g==='other' || cl.g==='tradein' || cl.g==='return')) return;
+    const code = r[1], fileNm = P.R.sites[code] || code, nm = c2n[code] || fileNm;
+    if (!payInScope(scope, nm, fileNm)) return;
+    if (payS.store && nm!==payS.store) return;
+    out.push({d:r[0], code:code, nm:nm, o:r[2], a:r[4], g:cl.g, lab:cl.lab, acq:cl.acq, t:cl.tenor, sub:cl.sub, prov:cl.prov});
+  });
+  payS.memo = {R:P.R, sig:sig, rows:out};
+  return out;
+}
+function payAgg(rows){
+  const A = {v:0, o:{}, g:{}, st:{}, dy:{}, me:{}};
+  rows.forEach(function(r){
+    A.v += r.a; A.o[r.o] = 1;
+    const g = A.g[r.g] || (A.g[r.g] = {v:0, o:{}}); g.v += r.a; g.o[r.o] = 1;
+    const s = A.st[r.nm] || (A.st[r.nm] = {nm:r.nm, v:0, o:{}, g:{}});
+    s.v += r.a; s.o[r.o] = 1;
+    const sg = s.g[r.g] || (s.g[r.g] = {v:0, o:{}}); sg.v += r.a; sg.o[r.o] = 1;
+    const dy = A.dy[r.d] || (A.dy[r.d] = {v:0, g:{}}); dy.v += r.a; dy.g[r.g] = (dy.g[r.g]||0) + r.a;
+    const m = A.me[r.lab] || (A.me[r.lab] = {lab:r.lab, g:r.g, v:0, o:{}, st:{}}); m.v += r.a; m.o[r.o] = 1; m.st[r.nm] = 1;
+  });
+  return A;
+}
+
+/* ---- Interaksi ---- */
+function paySet(k, v){ payS[k] = v; if (k==='view'||k==='mode') payS.sort = null; render(); }
+function payIn(k, el){ payS[k] = el.value; scheduleRender(250); }
+function payPick(enc){ payS.store = decodeURIComponent(enc); payS.view = 'sum'; render(); }
+function paySort(k){
+  const s = payS.sort;
+  payS.sort = (s && s.k===k) ? {k:k, dir:-s.dir} : {k:k, dir:(k==='nm'||k==='area') ? 1 : -1};
+  render();
+}
+function payPreset(p){
+  const P = payPrep(); if (!P) return;
+  if (p==='all'){ payS.from = ''; payS.to = ''; }
+  else {
+    const n = p==='last' ? 1 : 7;
+    const days = {}; P.R.rows.forEach(function(r){ days[r[0]] = 1; });
+    const ds = Object.keys(days).sort(); payS.from = ds[Math.max(0, ds.length-n)]; payS.to = P.max;
+  }
+  render();
+}
+
+/* ---- Tampilan ---- */
+function payStackBar(items, total){
+  return '<div class="pay-stack">'+items.filter(function(x){ return x.v>0; }).map(function(x){
+    return '<span style="width:'+(x.v/total*100)+'%;background:'+x.c+';" title="'+payEsc(x.t)+' · '+pf(x.v/total*100)+'% · Rp '+fmt(x.v)+'"></span>';
+  }).join('')+'</div>';
+}
+function payKpi(l, v, col){ return '<div class="stk-kpi"><div class="stk-kl">'+l+'</div><div class="stk-kv"'+(col?' style="color:'+col+'"':'')+'>'+v+'</div></div>'; }
+function payDot(g){ return '<span class="pay-dot" style="background:'+PAY_G[g].c+';"></span>'; }
+function payTh(cols){
+  const s = payS.sort;
+  return '<tr>'+cols.map(function(c){
+    return '<th style="cursor:pointer;text-align:'+(c.l?'left':'right')+';" onclick="paySort(\''+c.k+'\')">'+c.t+(s&&s.k===c.k?(s.dir<0?' ▼':' ▲'):'')+'</th>';
+  }).join('')+'</tr>';
+}
+function payDaily(A){
+  const days = Object.keys(A.dy).sort();
+  if (!days.length) return '';
+  const mx = Math.max.apply(null, days.map(function(d){ return A.dy[d].v; })) || 1;
+  const best = days.reduce(function(b,d){ return A.dy[d].v>A.dy[b].v ? d : b; }, days[0]);
+  return '<div class="pay-h">📅 PAYMENT HARIAN (tinggi = total Rp, warna = jenis pembayaran)</div>'
+    +'<div class="pay-days">'+days.map(function(d){
+      const o = A.dy[d];
+      const segs = PAY_GROUPS.filter(function(g){ return o.g[g.k]; }).map(function(g){ return '<i style="height:'+(o.g[g.k]/o.v*100)+'%;background:'+g.c+';"></i>'; }).join('');
+      return '<div class="pay-day" title="'+payEsc(formatDateLabelShort(d)+' · Rp '+fmt(o.v))+'"><div class="pay-plot"><div class="pay-col" style="height:'+(o.v/mx*100)+'%;">'+segs+'</div></div><b>'+Number(d.slice(8))+'</b></div>';
+    }).join('')+'</div>'
+    +'<div class="pay-note">Tertinggi: <b>'+payEsc(formatDateLabelShort(best))+'</b> · Rp '+payRp(A.dy[best].v)+' · rata-rata/hari Rp '+payRp(A.v/days.length)+' ('+days.length+' hari)</div>';
+}
+function payLegend(){
+  return '<div style="display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11px;color:var(--text-mid);margin:2px 0 6px;">'
+    +PAY_GROUPS.map(function(g){ return '<span title="'+payEsc(g.t)+'">'+payDot(g.k)+payEsc(g.s)+'</span>'; }).join('')+'</div>';
+}
+
+function payViewSum(A){
+  const nota = payN(A.o), gp = function(k){ return A.g[k] ? A.g[k].v/A.v*100 : 0; };
+  const kpis = '<div class="stk-kpis">'
+    +payKpi('Total Payment','Rp '+payRp(A.v))+payKpi('Jumlah Nota',fmt(nota))+payKpi('Rata-rata / Nota','Rp '+payRp(nota?A.v/nota:0))
+    +payKpi('Toko Aktif',fmt(payN(A.st)))+payKpi('QRIS',pf(gp('qris'))+'%',PAY_G.qris.c)+payKpi('Cicilan 0% + Paylater',pf(gp('cicil')+gp('fin'))+'%',PAY_G.cicil.c)+payKpi('Tunai',pf(gp('cash'))+'%',PAY_G.cash.c)
+    +'</div>';
+  const gs = PAY_GROUPS.filter(function(g){ return A.g[g.k]; }).sort(function(a,b){ return A.g[b.k].v-A.g[a.k].v; });
+  const mx = gs.length ? A.g[gs[0].k].v : 1;
+  const gt = gs.map(function(g){
+    const x = A.g[g.k], n = payN(x.o);
+    return '<tr><td style="text-align:left;">'+payDot(g.k)+payEsc(g.t)+'</td><td>'+fmt(n)+'</td><td title="Rp '+fmt(x.v)+'">'+payRp(x.v)+'</td>'
+      +'<td style="white-space:nowrap;">'+pf(x.v/A.v*100)+'%<span class="pay-bar" style="width:'+Math.max(2,x.v/mx*70)+'px;background:'+g.c+';"></span></td><td>'+payRp(n?x.v/n:0)+'</td></tr>';
+  }).join('');
+  const top = Object.keys(A.me).map(function(k){ return A.me[k]; }).sort(function(a,b){ return b.v-a.v; }).slice(0,10);
+  const tt = top.map(function(m){
+    return '<tr><td style="text-align:left;">'+payDot(m.g)+payEsc(m.lab)+'</td><td>'+fmt(payN(m.o))+'</td><td title="Rp '+fmt(m.v)+'">'+payRp(m.v)+'</td><td>'+pf(m.v/A.v*100)+'%</td><td>'+payN(m.st)+'</td></tr>';
+  }).join('');
+  return kpis+payStackBar(gs.map(function(g){ return {v:A.g[g.k].v, c:g.c, t:g.t}; }), A.v)+payLegend()
+    +'<div class="stk-scroll" style="max-height:none;"><table class="stk-tbl pay-tbl"><tr><th style="text-align:left;">Jenis Pembayaran</th><th>Nota</th><th>Value (Rp)</th><th style="text-align:left;">% Value</th><th>Rata² / Nota</th></tr>'+gt+'</table></div>'
+    +payDaily(A)
+    +'<div class="pay-h">🏅 TOP 10 METODE DETAIL</div>'
+    +'<div class="stk-scroll" style="max-height:none;"><table class="stk-tbl pay-tbl"><tr><th style="text-align:left;">Metode</th><th>Nota</th><th>Value (Rp)</th><th>% Value</th><th>Toko</th></tr>'+tt+'</table></div>';
+}
+
+function payTshMap(){ return Object.assign({}, (state.rawFull && state.rawFull.tshByArea) || {}, (state.raw && state.raw.tshByArea) || {}); }
+function payViewStores(A){
+  const mode = payS.mode, tot = A.v;
+  const gs = PAY_GROUPS.filter(function(g){ return A.g[g.k]; });
+  const am = (state.rawFull && state.rawFull.areaByStore) || null;
+  const rows = Object.keys(A.st).map(function(k){ const s = A.st[k]; return {nm:s.nm, area:am?(am[s.nm]||''):'', v:s.v, n:payN(s.o), g:s.g}; });
+  const gv = function(r,k){ const x = r.g[k]; if (!x) return 0; return mode==='nota' ? payN(x.o) : mode==='val' ? x.v : (r.v>0 ? x.v/r.v*100 : 0); };
+  const so = payS.sort || {k:'v', dir:-1};
+  rows.sort(function(a,b){
+    if (so.k==='nm' || so.k==='area') return so.dir*String(a[so.k]).localeCompare(String(b[so.k]));
+    const x = so.k==='v' ? a.v : so.k==='n' ? a.n : gv(a,so.k), y = so.k==='v' ? b.v : so.k==='n' ? b.n : gv(b,so.k);
+    return so.dir*(x-y) || a.nm.localeCompare(b.nm);
+  });
+  const cell = function(g, x, pct, qn){
+    if (!x) return '<td style="color:var(--muted-2);">–</td>';
+    const bg = 'background:'+payTint(g.c, Math.min(0.5, pct/100*0.9))+';';
+    return '<td style="'+bg+'">'+(mode==='nota' ? fmt(x) : mode==='val' ? payJt(x) : pf(x)+'%')+(mode==='nota' ? '' : '<small style="display:block;opacity:.75;">'+fmt(qn||0)+' qty</small>')+'</td>';
+  };
+  const cols = [{k:'nm',t:'TSH / Store',l:1},{k:'v',t:'Total (Rp jt)'},{k:'n',t:'Qty (Nota)'}].concat(gs.map(function(g){ return {k:g.k, t:'<span class="pay-dot" style="background:'+g.c+';"></span>'+payEsc(g.s)}; }));
+  const tshMap = payTshMap();
+  const gcells = function(o){ // o = {v, o, g}
+    return gs.map(function(g){ const x = o.g[g.k]; return cell(g, !x ? 0 : mode==='nota'?payN(x.o):mode==='val'?x.v:(o.v>0?x.v/o.v*100:0), x&&o.v>0 ? x.v/o.v*100 : 0, x?payN(x.o):0); }).join('');
+  };
+  const totRow = '<tr class="pay-tot"><td style="text-align:left;">SEMUA TOKO ('+rows.length+')</td><td>'+payJt(tot)+'</td><td>'+fmt(payN(A.o))+'</td>'
+    +gs.map(function(g){ const x = A.g[g.k]; return cell(g, mode==='nota'?payN(x.o):mode==='val'?x.v:x.v/tot*100, x.v/tot*100, payN(x.o)); }).join('')+'</tr>';
+  const G = {};
+  rows.forEach(function(r){
+    const key = am ? (r.area || 'TANPA AREA') : 'SEMUA TOKO';
+    const g = G[key] || (G[key] = {ar:key, list:[], v:0, o:{}, g:{}});
+    g.list.push(r); g.v += r.v;
+    Object.keys(A.st[r.nm].o).forEach(function(o){ g.o[o] = 1; });
+    Object.keys(r.g).forEach(function(k){ const x = g.g[k] || (g.g[k] = {v:0, o:{}}); x.v += r.g[k].v; Object.keys(r.g[k].o).forEach(function(o){ x.o[o] = 1; }); });
+  });
+  const gl = Object.keys(G).sort(function(a,b){ return a==='TANPA AREA' ? 1 : b==='TANPA AREA' ? -1 : a.localeCompare(b); });
+  const grpStyle = 'background:rgba(245,158,11,.20);border-top:2px solid #E0A526;border-bottom:2px solid #E0A526;color:var(--text-strong);font-weight:700;';
+  const body = gl.map(function(k){
+    const g = G[k];
+    let h = '<tr class="pay-grp"><td>'+payEsc(k+(tshMap[k]?' · '+String(tshMap[k]).toUpperCase():''))+'</td><td>'+payJt(g.v)+'</td><td>'+fmt(payN(g.o))+'</td>'+gcells(g)+'</tr>';
+    h += g.list.map(function(r){
+      return '<tr class="pay-click pay-st" onclick="payPick(\''+encodeURIComponent(r.nm)+'\')"><td>▸ '+payEsc(String(r.nm).toUpperCase())+'</td><td>'+payJt(r.v)+'</td><td>'+fmt(r.n)+'</td>'
+        +gs.map(function(g){ const x = r.g[g.k]; return cell(g, gv(r,g.k), x&&r.v>0 ? x.v/r.v*100 : 0, x?payN(x.o):0); }).join('')+'</tr>';
+    }).join('');
+    return h;
+  }).join('');
+  return payLegend()
+    +'<div class="stk-scroll"><table class="stk-tbl pay-tbl">'+payTh(cols)+totRow+body+'</table></div>'
+    +'<div class="pay-note">💡 '+(mode==='pct'?'Angka = <b>% komposisi payment tiap toko</b> (baris = 100%); ':mode==='val'?'Angka = <b>Rp juta</b> per jenis pembayaran; ':'Angka = <b>jumlah nota</b> per jenis pembayaran; ')+'<b>Qty</b> = jumlah nota per jenis pembayaran (kolom Qty (Nota) = total nota toko); warna makin pekat = porsi makin besar. Dikelompokkan per Area / TSH; klik judul kolom untuk mengurutkan toko di dalam tiap TSH, klik baris toko untuk membedah payment toko itu.</div>';
+}
+
+function payViewBank(A, rows){
+  const BANKS = ['BCA','MANDIRI','BNI','BRI','CIMB'];
+  const bk = function(r){ return r.acq || 'LAINNYA'; };
+  // 1) Bank x jenis kartu
+  const kinds = ['qris','debit','kk','cicil'], bt = {};
+  rows.forEach(function(r){
+    if (kinds.indexOf(r.g)<0) return;
+    const b = bt[bk(r)] || (bt[bk(r)] = {v:0, g:{}}); b.v += r.a; b.g[r.g] = (b.g[r.g]||0) + r.a;
+  });
+  const bl = Object.keys(bt).sort(function(a,b){ return bt[b].v-bt[a].v; });
+  const bsum = bl.reduce(function(s,k){ return s+bt[k].v; }, 0) || 1;
+  const t1 = bl.map(function(k){
+    return '<tr><td style="text-align:left;">'+payEsc(k)+'</td>'+kinds.map(function(g){ const x = bt[k].g[g]||0; return '<td style="'+(x?'background:'+payTint(PAY_G[g].c, Math.min(0.5, x/bt[k].v*0.9))+';':'')+'">'+payJt(x)+(x?'<small>'+pf(x/bt[k].v*100)+'%</small>':'')+'</td>'; }).join('')
+      +'<td>'+payJt(bt[k].v)+'</td><td>'+pf(bt[k].v/bsum*100)+'%</td></tr>';
+  }).join('');
+  // 2) Cicilan 0% per tenor
+  const ct = {}, tenors = {};
+  rows.forEach(function(r){
+    if (r.g!=='cicil') return;
+    tenors[r.t] = 1;
+    const b = ct[bk(r)] || (ct[bk(r)] = {v:0, t:{}}); b.v += r.a;
+    const x = b.t[r.t] || (b.t[r.t] = {v:0, o:{}}); x.v += r.a; x.o[r.o] = 1;
+  });
+  const tl = Object.keys(tenors).map(Number).sort(function(a,b){ return a-b; });
+  const cl = Object.keys(ct).sort(function(a,b){ return ct[b].v-ct[a].v; });
+  const ctot = cl.reduce(function(s,k){ return s+ct[k].v; }, 0);
+  const tsum = {}; tl.forEach(function(t){ tsum[t] = cl.reduce(function(s,k){ return s+((ct[k].t[t]||{}).v||0); }, 0); });
+  const t2 = cl.map(function(k){
+    return '<tr><td style="text-align:left;">'+payEsc(k)+'</td>'+tl.map(function(t){ const x = ct[k].t[t]; return '<td>'+(x?payJt(x.v)+'<small>'+fmt(payN(x.o))+' nota</small>':'–')+'</td>'; }).join('')+'<td>'+payJt(ct[k].v)+'</td></tr>';
+  }).join('');
+  const t2f = ctot ? '<tr class="pay-tot"><td style="text-align:left;">% per tenor</td>'+tl.map(function(t){ return '<td>'+pf(tsum[t]/ctot*100)+'%</td>'; }).join('')+'<td>'+payJt(ctot)+'</td></tr>' : '';
+  // 3) Paylater & kredit non-kartu
+  const ft = {};
+  rows.forEach(function(r){ if (r.g!=='fin') return; const x = ft[r.prov] || (ft[r.prov] = {v:0, o:{}}); x.v += r.a; x.o[r.o] = 1; });
+  const fl = Object.keys(ft).sort(function(a,b){ return ft[b].v-ft[a].v; });
+  const fsum = fl.reduce(function(s,k){ return s+ft[k].v; }, 0) || 1;
+  const t3 = fl.map(function(k){ const n = payN(ft[k].o); return '<tr><td style="text-align:left;">'+payEsc(k)+'</td><td>'+fmt(n)+'</td><td>'+payRp(ft[k].v)+'</td><td>'+pf(ft[k].v/fsum*100)+'%</td><td>'+payRp(ft[k].v/n)+'</td></tr>'; }).join('');
+  // 4) Partner kartu cicilan (mis. Mandiri - UOB / CITI)
+  const pt = {};
+  rows.forEach(function(r){ if (r.g!=='cicil') return; const k = bk(r)+' · '+(r.sub || 'Kartu '+bk(r)); const x = pt[k] || (pt[k] = {v:0, o:{}}); x.v += r.a; x.o[r.o] = 1; });
+  const pl = Object.keys(pt).sort(function(a,b){ return pt[b].v-pt[a].v; });
+  const t4 = pl.map(function(k){ const n = payN(pt[k].o); return '<tr><td style="text-align:left;">'+payEsc(k)+'</td><td>'+fmt(n)+'</td><td>'+payRp(pt[k].v)+'</td><td>'+(ctot?pf(pt[k].v/ctot*100):'0,0')+'%</td></tr>'; }).join('');
+  const tb = function(h, b){ return '<div class="stk-scroll" style="max-height:340px;"><table class="stk-tbl pay-tbl">'+h+b+'</table></div>'; };
+  return '<div class="pay-h">🏦 BANK / ACQUIRER × JENIS KARTU (Rp juta · angka kecil = % dalam bank itu)</div>'
+    +tb('<tr><th style="text-align:left;">Bank</th>'+kinds.map(function(g){ return '<th>'+payDot(g)+payEsc(PAY_G[g].s)+'</th>'; }).join('')+'<th>Total</th><th>% Total</th></tr>', t1 || '<tr><td colspan="7" style="text-align:center;color:var(--muted-2);">Tidak ada data</td></tr>')
+    +'<div class="pay-h">💳 CICILAN 0% PER BANK × TENOR (Rp juta · angka kecil = jumlah nota)</div>'
+    +tb('<tr><th style="text-align:left;">Bank</th>'+tl.map(function(t){ return '<th>'+t+' bln</th>'; }).join('')+'<th>Total</th></tr>', (t2+t2f) || '<tr><td colspan="7" style="text-align:center;color:var(--muted-2);">Tidak ada cicilan 0%</td></tr>')
+    +'<div class="pay-grid2"><div><div class="pay-h">📱 PAYLATER & KREDIT NON-KARTU</div>'
+      +tb('<tr><th style="text-align:left;">Provider</th><th>Nota</th><th>Value (Rp)</th><th>%</th><th>Rata² / Nota</th></tr>', t3 || '<tr><td colspan="5" style="text-align:center;color:var(--muted-2);">Tidak ada data</td></tr>')+'</div>'
+    +'<div><div class="pay-h">🤝 PARTNER CICILAN 0% KARTU KREDIT</div>'
+      +tb('<tr><th style="text-align:left;">Bank · Partner</th><th>Nota</th><th>Value (Rp)</th><th>% cicilan</th></tr>', t4 || '<tr><td colspan="4" style="text-align:center;color:var(--muted-2);">Tidak ada data</td></tr>')+'</div></div>'
+    + payBankOther(rows, A);
+}
+
+
+
+/* Tab Trade In: hanya metode Trade-In, format pivot TSH/Store (Qty & Value) + pembanding Device dari Master Data */
+function payViewTradeIn(A, rows){
+  const P = payPrep(), f = state.rawFull;
+  const T = {}, fnm = {};
+  rows.forEach(function(r){
+    fnm[r.nm] = P.R.sites[r.code] || r.nm;
+    if (r.g!=='tradein') return;
+    const x = T[r.nm] || (T[r.nm] = {q:0, v:0}); x.q++; x.v += r.a;
+  });
+  const from = payS.from || P.min, to = payS.to || P.max;
+  const hasDev = !!(f && f.records && f.records.length), dev = {};
+  if (hasDev) f.records.forEach(function(r){
+    if (r[2]!=='Device' || r[0]<from || r[0]>to) return;
+    const k = payNK(canonStoreName(r[1])), x = dev[k] || (dev[k] = {q:0, v:0}); x.q += r[4]; x.v += r[5];
+  });
+  const am = (f && f.areaByStore) || null, tsh = payTshMap();
+  const G = {};
+  Object.keys(A.st).forEach(function(nm){
+    if (chainOfStore(nm)==='ERABLUE' || chainOfStore(fnm[nm]||nm)==='ERABLUE') return; // toko ERABLUE di-take out
+    const ar = am ? (am[nm] || 'TANPA AREA') : 'SEMUA TOKO';
+    const d = dev[payNK(canonStoreName(nm))] || dev[payNK(canonStoreName(fnm[nm]))] || {q:0, v:0};
+    const t = T[nm] || {q:0, v:0};
+    const g = G[ar] || (G[ar] = {ar:ar, list:[], tq:0, tv:0, dq:0, dv:0});
+    g.list.push({nm:nm, tq:t.q, tv:t.v, dq:d.q, dv:d.v});
+    g.tq += t.q; g.tv += t.v; g.dq += d.q; g.dv += d.v;
+  });
+  const gl = Object.keys(G).sort(function(a,b){ return a==='TANPA AREA' ? 1 : b==='TANPA AREA' ? -1 : a.localeCompare(b); });
+  const tot = gl.reduce(function(s,k){ const g = G[k]; s.tq += g.tq; s.tv += g.tv; s.dq += g.dq; s.dv += g.dv; return s; }, {tq:0, tv:0, dq:0, dv:0});
+  if (!tot.tq) return '<div class="pay-note">Tidak ada transaksi Trade-In pada filter ini.</div>';
+  const nf = function(n){ return n ? fmt(n) : '0'; };
+  const pc = function(a, b){ return hasDev && b>0 ? pf(a/b*100)+'%' : '–'; };
+  const cells = function(o){
+    return '<td>'+(hasDev?nf(o.dq):'–')+'</td><td>'+(hasDev?nf(o.dv):'–')+'</td><td>'+nf(o.tq)+'</td><td>'+nf(o.tv)+'</td><td>'+pc(o.tq,o.dq)+'</td><td>'+pc(o.tv,o.dv)+'</td>';
+  };
+  let body = '';
+  gl.forEach(function(k){
+    const g = G[k];
+    body += '<tr class="pv-grp"><td>'+payEsc(k+(tsh[k]?' · '+String(tsh[k]).toUpperCase():''))+'</td>'+cells(g)+'</tr>';
+    g.list.sort(function(a,b){ return a.nm.localeCompare(b.nm,'id'); }).forEach(function(s){
+      body += '<tr class="pv-st pay-click" onclick="payPick(\''+encodeURIComponent(s.nm)+'\')"><td>▸ '+payEsc(String(s.nm).toUpperCase())+'</td>'+cells(s)+'</tr>';
+    });
+  });
+  const kpis = '<div class="stk-kpis">'+payKpi('Qty Device',hasDev?fmt(tot.dq):'–')+payKpi('Value Device',hasDev?'Rp '+payRp(tot.dv):'–')
+    +payKpi('Qty Trade-In',fmt(tot.tq),PAY_G.tradein.c)+payKpi('Value Trade-In','Rp '+payRp(tot.tv),PAY_G.tradein.c)
+    +payKpi('Trade-In vs Device (Qty)',pc(tot.tq,tot.dq))+payKpi('Trade-In vs Device (Value)',pc(tot.tv,tot.dv))+'</div>';
+  const head = '<thead><tr><th rowspan="2" style="min-width:210px;text-align:left;">TSH / Store</th><th colspan="2">Device</th><th colspan="2">Trade-In</th><th colspan="2">Trade-In vs Device</th></tr>'
+    +'<tr><th>Qty</th><th>Value</th><th>Qty</th><th>Value</th><th>% Qty</th><th>% Value</th></tr></thead>';
+  const foot = '<tfoot><tr><td>Grand Total</td>'+cells(tot)+'</tr></tfoot>';
+  return kpis+'<div class="pay-pvwrap"><table class="pay-pv">'+head+'<tbody>'+body+'</tbody>'+foot+'</table></div>'
+    +'<div class="pay-note">💡 <b>Device</b> = Qty &amp; Value kategori Device dari Master Data pada periode yang sama. <b>Trade-In</b> = jumlah transaksi (Qty) dan nilai (Value, Rp) dengan metode pembayaran Trade-In dari file payment. '
+    +'<b>% Qty</b> = Qty Trade-In ÷ Qty Device, <b>% Value</b> = Value Trade-In ÷ Value Device.'+(hasDev?'':' <b>Master Data belum termuat</b>, jadi kolom Device belum bisa diisi.')+' Klik baris toko untuk membedah payment toko itu.</div>';
+}
+
+/* Pembayaran non-kartu: Trade-In, Return, Voucher, Tunai, Click & Pickup, JB (+ top toko Trade-In) */
+function payBankOther(rows, A){
+  const ks = ['tradein','return','voucher','cnp','cash','other'], gt = {};
+  rows.forEach(function(r){
+    if (ks.indexOf(r.g)<0) return;
+    const x = gt[r.g] || (gt[r.g] = {v:0, o:{}, st:{}}); x.v += r.a; x.o[r.o] = 1; x.st[r.nm] = 1;
+  });
+  const t1 = ks.filter(function(k){ return gt[k]; }).sort(function(a,b){ return gt[b].v-gt[a].v; }).map(function(k){
+    const x = gt[k], n = payN(x.o);
+    return '<tr><td style="text-align:left;">'+payDot(k)+payEsc(PAY_G[k].t)+'</td><td>'+fmt(n)+'</td><td title="Rp '+fmt(x.v)+'">'+payRp(x.v)+'</td><td>'+pf(x.v/A.v*100)+'%</td><td>'+payRp(n?x.v/n:0)+'</td><td>'+payN(x.st)+'</td></tr>';
+  }).join('');
+  const ti = {};
+  rows.forEach(function(r){ if (r.g!=='tradein') return; const x = ti[r.nm] || (ti[r.nm] = {v:0, o:{}}); x.v += r.a; x.o[r.o] = 1; });
+  const tl = Object.keys(ti).sort(function(a,b){ return ti[b].v-ti[a].v; }), tsum = tl.reduce(function(s,k){ return s+ti[k].v; }, 0) || 1;
+  const t2 = tl.slice(0,15).map(function(k){
+    const st = A.st[k], n = payN(ti[k].o);
+    return '<tr><td style="text-align:left;">'+payEsc(k)+'</td><td>'+fmt(n)+'</td><td>'+payRp(ti[k].v)+'</td><td>'+pf(ti[k].v/tsum*100)+'%</td><td>'+(st&&st.v>0?pf(ti[k].v/st.v*100)+'%':'–')+'</td></tr>';
+  }).join('');
+  const tb = function(h, b){ return '<div class="stk-scroll" style="max-height:340px;"><table class="stk-tbl pay-tbl">'+h+b+'</table></div>'; };
+  return '<div class="pay-grid2"><div><div class="pay-h">🔄 TRADE-IN & PEMBAYARAN NON-KARTU LAIN</div>'
+      +tb('<tr><th style="text-align:left;">Jenis</th><th>Nota</th><th>Value (Rp)</th><th>% Total</th><th>Rata² / Nota</th><th>Toko</th></tr>', t1 || '<tr><td colspan="6" style="text-align:center;color:var(--muted-2);">Tidak ada data</td></tr>')+'</div>'
+    +'<div><div class="pay-h">🔄 TOP TOKO TRADE-IN (15 teratas)</div>'
+      +tb('<tr><th style="text-align:left;">Toko</th><th>Nota</th><th>Value (Rp)</th><th>% Trade-In</th><th>% thd payment toko</th></tr>', t2 || '<tr><td colspan="5" style="text-align:center;color:var(--muted-2);">Tidak ada Trade-In</td></tr>')+'</div></div>';
+}
+
+/* Detail Metode: dikelompokkan per tipe pembayaran (klik grup untuk buka/tutup rincian metodenya) */
+const PAY_DG = [
+  {k:'kredit', t:'💳 Kartu Kredit (Reguler & Cicilan 0%)', c:'#FBBF24'},
+  {k:'fin',    t:'📱 Financing / Paylater',               c:'#F472B6'},
+  {k:'debit',  t:'🏧 Kartu Debit',                        c:'#818CF8'},
+  {k:'qris',   t:'📲 QRIS',                               c:'#38BDF8'},
+  {k:'cash',   t:'💵 Tunai',                              c:'#34D399'},
+  {k:'tradein',t:'🔄 Trade-In',                           c:'#94A3B8'},
+  {k:'return', t:'↩️ Return Replacement',                 c:'#A3A3A3'},
+  {k:'voucher',t:'🎟️ Voucher & Poin',                     c:'#FB923C'},
+  {k:'cnp',    t:'🛍️ Click & Pickup (Online)',            c:'#2DD4BF'},
+  {k:'jb',     t:'🏪 JB / Payment Link / Lainnya',        c:'#64748B'}
+];
+function payDgOf(m){
+  if (m.g==='kk' || m.g==='cicil') return 'kredit';
+  if (m.g==='other') return 'jb';
+  return m.g;
+}
+function payToggle(k){ payS.open = payS.open || {}; payS.open[k] = !payS.open[k]; render(); }
+function payOpenAll(on){ payS.open = {}; if (on) PAY_DG.forEach(function(g){ payS.open[g.k] = true; }); render(); }
+function payViewMeth(A){
+  const q = payNK(payS.q), open = payS.open || {};
+  const G = {};
+  Object.keys(A.me).forEach(function(k){
+    const m = A.me[k];
+    if (q && payNK(m.lab+' '+PAY_G[m.g].s).indexOf(q)<0) return;
+    const dk = payDgOf(m), x = G[dk] || (G[dk] = {v:0, o:{}, st:{}, list:[]});
+    x.v += m.v; x.list.push(m);
+    Object.keys(m.o).forEach(function(o){ x.o[o] = 1; }); Object.keys(m.st).forEach(function(s){ x.st[s] = 1; });
+  });
+  const defs = PAY_DG.filter(function(g){ return G[g.k]; }).sort(function(a,b){ return G[b.k].v-G[a.k].v; });
+  const body = defs.map(function(g){
+    const x = G[g.k], isOpen = !!open[g.k] || !!q;
+    let h = '<tr class="pay-tot pay-click" onclick="payToggle(\''+g.k+'\')"><td style="text-align:left;"><span style="display:inline-block;width:14px;">'+(isOpen?'▼':'▶')+'</span><span class="pay-dot" style="background:'+g.c+';"></span>'+payEsc(g.t)+' <small>'+x.list.length+' metode</small></td>'
+      +'<td>'+fmt(payN(x.o))+'</td><td title="Rp '+fmt(x.v)+'">'+payRp(x.v)+'</td><td>'+pf(x.v/A.v*100)+'%</td><td>'+payN(x.st)+'</td></tr>';
+    if (isOpen) h += x.list.sort(function(a,b){ return b.v-a.v; }).map(function(m){
+      return '<tr><td style="text-align:left;padding-left:34px;">'+payEsc(m.lab)+'</td><td>'+fmt(payN(m.o))+'</td><td title="Rp '+fmt(m.v)+'">'+payRp(m.v)+'</td><td>'+pf(m.v/A.v*100)+'%</td><td>'+payN(m.st)+'</td></tr>';
+    }).join('');
+    return h;
+  }).join('');
+  return '<div class="stk-scroll"><table class="stk-tbl pay-tbl"><tr><th style="text-align:left;">Tipe Pembayaran / Metode</th><th>Nota</th><th>Value (Rp)</th><th>% Value</th><th>Toko</th></tr>'+(body||'<tr><td colspan="5" style="text-align:center;color:var(--muted-2);">Tidak ada metode yang cocok</td></tr>')+'</table></div>'
+    +'<div class="pay-note">💡 Klik baris tipe pembayaran (Kartu Kredit, Financing, Trade-In, dst.) untuk membuka rincian metodenya. Kode toko di depan nama issuer digabung otomatis.</div>';
+}
+
+function renderPaymentCard(d){
+  const key = 'payment', P = payPrep();
+  const upl = '';
+  let body;
+  if (!P){
+    body = '<div class="pay-note">Data payment belum ada. '+(state.locked
+      ? 'Isi sheet <b>By Payment</b> di Master Data (atau letakkan file <b>'+PAY_FILE+'</b> di folder yang sama) lalu muat ulang halaman.'
+      : 'Isi sheet <b>By Payment</b> di Master Data (atau letakkan file <b>'+PAY_FILE+'</b> di folder yang sama dengan dashboard).')+'</div>';
+    return '<div class="card'+(state.collapsed[key]?' collapsed':'')+'">'+sectionTitleWithToggle(key,'💳 PAYMENT ANALYSIS',upl)+collapsibleBody(key,body)+'</div>';
+  }
+  const stores = payStoreList();
+  if (payS.store && stores.indexOf(payS.store)<0) payS.store = '';
+  const rows = payRows(), A = payAgg(rows);
+  const tabs = [['sum','📊 Ringkasan'],['stores','🏬 Per Toko'],['tradein','🔄 Trade In']].map(function(t){
+    return '<button class="stk-tab'+(payS.view===t[0]?' on':'')+'" onclick="paySet(\'view\',\''+t[0]+'\')">'+t[1]+'</button>';
+  }).join('');
+  const sel = function(k, opts, v){ return '<select class="stk-in" onchange="paySet(\''+k+'\',this.value)">'+opts.map(function(o){ return '<option value="'+payEsc(o[0])+'"'+(o[0]===v?' selected':'')+'>'+payEsc(o[1])+'</option>'; }).join('')+'</select>'; };
+  const dt = function(k, v){ return '<input class="stk-in" type="date" value="'+(v||'')+'" min="'+P.min+'" max="'+P.max+'" onchange="paySet(\''+k+'\',this.value)">'; };
+  const ctl = '<div class="stk-bar">'+tabs+'</div><div class="stk-bar">'
+    +'<span style="font-size:11px;color:var(--muted);">Dari</span>'+dt('from', payS.from||P.min)+'<span style="font-size:11px;color:var(--muted);">Sampai</span>'+dt('to', payS.to||P.max)
+    +(state.selectedStore ? '' : sel('store', [['','Semua toko ('+stores.length+')']].concat(stores.map(function(s){ return [s,s]; })), payS.store))
+    +(payS.view==='stores' ? sel('mode', [['pct','Tampil: % komposisi'],['val','Tampil: Rp juta'],['nota','Tampil: jumlah nota']], payS.mode) : '')
+    +(payS.view==='meth' ? '<input class="stk-in" data-focuskey="payq" value="'+payEsc(payS.q)+'" placeholder="🔎 Cari metode / bank" oninput="payIn(\'q\',this)">' : '')
+    +'</div>';
+  const scopeBits = [];
+  if (state.selectedArea) scopeBits.push('Area '+state.selectedArea);
+  if (chainFilterOn()) scopeBits.push('Channel '+state.selectedChains.join(', '));
+  if (state.selectedStore) scopeBits.push(state.selectedStore);
+  const chips = (payS.store ? '<span class="pay-chip">🏬 '+payEsc(payS.store)+' <a href="#" onclick="paySet(\'store\',\'\');return false;" title="Tampilkan semua toko">✕</a></span> ' : '')
+    +(scopeBits.length ? '<span class="pay-chip">🔎 Mengikuti filter dashboard: '+payEsc(scopeBits.join(' · '))+'</span>' : '');
+  let main;
+  if (!rows.length) main = '<div class="pay-note">Tidak ada transaksi payment pada filter ini.'+(scopeBits.length?' Pastikan kode/nama toko di file payment sama dengan Master Data.':'')+'</div>';
+  else main = payS.view==='stores' ? payViewStores(A) : payS.view==='tradein' ? payViewTradeIn(A, rows) : payS.view==='meth' ? payViewMeth(A) : payViewSum(A);
+  const src = '<div class="pay-note">Sumber: <b>'+payEsc(P.R.file||PAY_FILE)+'</b> · '+payEsc(formatDateLabelShort(payS.from||P.min))+' – '+payEsc(formatDateLabelShort(payS.to||P.max))+' · '+fmt(rows.length)+' baris payment. Nota dihitung unik per nomor POS (satu nota bisa dibayar dengan beberapa metode, jadi jumlah nota per jenis bisa lebih besar dari total nota).</div>';
+  body = ctl+(chips?'<div class="stk-bar">'+chips+'</div>':'')+main+src;
+  return '<div class="card'+(state.collapsed[key]?' collapsed':'')+'">'+sectionTitleWithToggle(key,'💳 PAYMENT ANALYSIS')+collapsibleBody(key,body)+'</div>';
 }
 
 render();
