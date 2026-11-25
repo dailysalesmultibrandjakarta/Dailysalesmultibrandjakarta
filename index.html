@@ -9160,7 +9160,7 @@ function payParseWorkbook(wb, fileName, onlyNamed){
     }
     if (hi===-1) continue;
     const ix = function(re){ return nm.findIndex(function(c){ return re.test(c); }); };
-    const cS = ix(/^site$/), cN = ix(/^site desc/), cO = ix(/pos number|order number/), cD = ix(/^transaction date/), cI = ix(/^main issuer/), cA = ix(/^amount/);
+    const cS = ix(/^site$/), cN = ix(/^site desc/), cO = (ix(/^pos\s*(number|no)/)!==-1 ? ix(/^pos\s*(number|no)/) : ix(/pos number|order number/)), cO2 = ix(/order\s*(number|no)/), cD = ix(/^transaction date/), cI = ix(/^main issuer/), cA = ix(/^amount/);
     if (cS===-1 || cD===-1 || cI===-1 || cA===-1) continue;
     const issuers = [], imap = {}, sites = {}, out = [];
     for (let i=hi+1;i<rows.length;i++){
@@ -9171,7 +9171,7 @@ function payParseWorkbook(wb, fileName, onlyNamed){
       if (!(iss in imap)){ imap[iss] = issuers.length; issuers.push(iss); }
       const code = String(r[cS]).trim();
       if (!sites[code]) sites[code] = cN!==-1 && r[cN]!=null ? String(r[cN]).trim() : code;
-      out.push([d, code, cO!==-1&&r[cO]!=null ? String(r[cO]).trim() : (d+'|'+code+'|'+i), imap[iss], Math.round(amt)]);
+      out.push([d, code, cO!==-1&&r[cO]!=null ? String(r[cO]).trim() : (d+'|'+code+'|'+i), imap[iss], Math.round(amt), (cO2!==-1 && cO2!==cO && r[cO2]!=null) ? String(r[cO2]).trim() : '']);
     }
     if (out.length) return {file:fileName||PAY_FILE, sites:sites, issuers:issuers, rows:out};
   }
@@ -9257,7 +9257,7 @@ function payRows(){
     const code = r[1], fileNm = P.R.sites[code] || code, nm = c2n[code] || fileNm;
     if (!payInScope(scope, nm, fileNm)) return;
     if (payS.store && nm!==payS.store) return;
-    out.push({d:r[0], code:code, nm:nm, o:r[2], a:r[4], g:cl.g, lab:cl.lab, acq:cl.acq, t:cl.tenor, sub:cl.sub, prov:cl.prov});
+    out.push({d:r[0], code:code, nm:nm, o:r[2], alt:r[5]||'', a:r[4], g:cl.g, lab:cl.lab, acq:cl.acq, t:cl.tenor, sub:cl.sub, prov:cl.prov});
   });
   payS.memo = {R:P.R, sig:sig, rows:out};
   return out;
@@ -9481,6 +9481,104 @@ function payViewBank(A, rows){
 
 
 
+/* Detail per toko (Trade In & Click&Pickup): no. invoice, qty, value payment, dan detail barang dari Master Data (dicocokkan lewat no. invoice) */
+function payInvToggle(view, enc){ const k = view+'|'+decodeURIComponent(enc); payS.invOpen = payS.invOpen || {}; payS.invOpen[k] = !payS.invOpen[k]; render(); }
+function payInvKeys(v){
+  const a = String(v==null?'':v).toUpperCase().replace(/[^A-Z0-9]/g,''); if (!a) return [];
+  // Format POS SAP: 2 huruf + kode toko 3 digit + periode + urutan 6 digit. Master Data memakai periode yymm (SE0272610000004),
+  // file payment memakai yyyymm (SE164202611000288) -> disamakan ke yymm supaya keduanya cocok.
+  const ks = [], pm = a.match(/^([A-Z]{2})(\d{3})(\d+)$/);
+  if (pm){ let r = pm[3]; if (r.length===12 && r.slice(0,2)==='20') r = r.slice(2); ks.push(pm[1]+pm[2]+r); }
+  if (ks.indexOf(a)<0) ks.push(a);
+  const d = a.replace(/\D/g,'');
+  if (d.length>=5){ const z = '#'+d.replace(/^0+/,''); if (z.length>1 && ks.indexOf(z)<0) ks.push(z); }
+  return ks;
+}
+function payInvIndex(){
+  const f = state.rawFull; if (!f || !f.records || !f.records.length) return null;
+  if (payS.invIdx && payS.invIdx.src===f.records && payS.invIdx.n===f.records.length) return payS.invIdx;
+  const map = {}, gmap = {}, byStore = {}, byDay = {}, objs = {};
+  f.records.forEach(function(r){
+    const ik = payInvKeys(r[11]); if (!ik.length) return;
+    const sk = payNK(canonStoreName(r[1])), id = sk+'\u0001'+ik[0];
+    let o = objs[id];
+    if (!o){
+      o = objs[id] = {items:[], tw:0, te:0, d:r[0], raw:String(r[11]).trim()};
+      ik.forEach(function(k){ map[sk+'\u0001'+k] = o; if (k.charAt(0)!=='#') gmap[k] = o; });
+      (byStore[sk] || (byStore[sk] = [])).push({o:o, keys:ik});
+      (byDay[sk+'\u0001'+r[0]] || (byDay[sk+'\u0001'+r[0]] = [])).push(o);
+    }
+    o.items.push({item:String(r[7]==null?'':r[7]).trim(), q:Number(r[4])||0, v:Number(r[5])||0, c:r[2]});
+    o.tw += Number(r[8])||0; o.te += Number(r[5])||0;
+  });
+  return payS.invIdx = {src:f.records, n:f.records.length, map:map, gmap:gmap, byStore:byStore, byDay:byDay};
+}
+/* Cari invoice Master Data untuk satu nota payment: (1) no. nota persis, (2) akhiran no. nota, (3) toko + tanggal + nilai pembayaran sama */
+function payInvFind(IX, sks, x, payTot){
+  const cands = [x.o, x.alt].filter(function(c){ return c; });
+  let i, j, k, e;
+  for (j=0;j<cands.length;j++){ const gk = payInvKeys(cands[j]); for (k=0;k<gk.length;k++){ if (gk[k].charAt(0)!=='#' && IX.gmap[gk[k]]) return {o:IX.gmap[gk[k]], how:''}; } }
+  for (i=0;i<sks.length;i++) for (j=0;j<cands.length;j++){
+    const ks = payInvKeys(cands[j]);
+    for (k=0;k<ks.length;k++){ const o = IX.map[sks[i]+'\u0001'+ks[k]]; if (o) return {o:o, how:''}; }
+  }
+  for (i=0;i<sks.length;i++) for (j=0;j<cands.length;j++){
+    const a = payInvKeys(cands[j])[0]; if (!a || a.length<6) continue;
+    const L = IX.byStore[sks[i]] || [];
+    for (e=0;e<L.length;e++) for (k=0;k<L[e].keys.length;k++){
+      const m = L[e].keys[k]; if (m.length>=6 && (m.slice(-a.length)===a || a.slice(-m.length)===m)) return {o:L[e].o, how:'≈ akhiran no. invoice'};
+    }
+  }
+  for (i=0;i<sks.length;i++){
+    const L = (IX.byDay[sks[i]+'\u0001'+x.d] || []).filter(function(o){ return Math.abs(o.tw-payTot)<=1000 || Math.abs(o.te-payTot)<=1000; });
+    if (L.length===1) return {o:L[0], how:'≈ tanggal & nilai'};
+  }
+  return null;
+}
+function payInvRow(view, s, cells, rows){
+  const open = !!(payS.invOpen && payS.invOpen[view+'|'+s.nm]);
+  let h = '<tr class="pv-st pay-click" onclick="payInvToggle(\''+view+'\',\''+encodeURIComponent(s.nm)+'\')" title="Klik untuk '+(open?'tutup':'lihat')+' no. invoice &amp; detail barang"><td>'+(open?'▾ ':'▸ ')+payEsc(String(s.nm).toUpperCase())+'</td>'+cells(s)+'</tr>';
+  if (open) h += '<tr class="pay-det"><td colspan="7" style="text-align:left;padding:8px 10px 12px 26px;background:transparent;">'+payInvDetail(view, s.nm, rows)+'</td></tr>';
+  return h;
+}
+function payInvDetail(view, nm, rows){
+  const g = view==='tradein' ? 'tradein' : 'cnp', P = payPrep(), IX = payInvIndex();
+  const inv = {}, pt = {};
+  rows.forEach(function(r){
+    pt[r.code+'|'+r.o] = (pt[r.code+'|'+r.o]||0) + r.a;
+    if (r.nm!==nm || r.g!==g) return;
+    const x = inv[r.o] || (inv[r.o] = {o:r.o, alt:r.alt, d:r.d, v:0, code:r.code});
+    x.v += r.a; if (r.d<x.d) x.d = r.d;
+  });
+  const list = Object.keys(inv).map(function(k){ return inv[k]; }).sort(function(a,b){ return a.d<b.d ? -1 : a.d>b.d ? 1 : String(a.o).localeCompare(String(b.o)); });
+  let tq = 0, tv = 0, miss = 0, fz = 0, ex = '';
+  const body = list.map(function(x){
+    const fn = P.R.sites[x.code] || nm;
+    const sks = [payNK(canonStoreName(nm)), payNK(canonStoreName(fn))].filter(function(v,i,a){ return a.indexOf(v)===i; });
+    const hit = IX ? payInvFind(IX, sks, x, pt[x.code+'|'+x.o]) : null;
+    let q = 0, det;
+    if (hit){
+      if (hit.how) fz++;
+      hit.o.items.forEach(function(b){ q += b.q; });
+      det = hit.o.items.map(function(b){ return '<div>• '+payEsc(b.item||'(tanpa nama barang)')+' <small>×'+fmt(b.q)+' · Rp '+fmt(b.v)+'</small></div>'; }).join('')
+        + (hit.how ? '<div><small style="color:var(--muted-2);">'+payEsc(hit.how)+' · invoice Master Data: '+payEsc(hit.o.raw)+'</small></div>' : '');
+    } else {
+      miss++;
+      if (!ex && IX){ const L = IX.byStore[sks[0]] || IX.byStore[sks[1]] || []; ex = ' Contoh: no. di payment <b>'+payEsc(String(x.o))+(x.alt?' / '+payEsc(String(x.alt)):'')+'</b>; no. di Master Data toko ini <b>'+(L.slice(0,3).map(function(e){ return payEsc(e.o.raw); }).join(', ')||'(kosong)')+'</b>.'; }
+      det = '<span style="color:var(--muted-2);">'+(IX ? 'Tidak ditemukan di Master Data' : 'Master Data belum termuat')+'</span>';
+    }
+    tq += q; tv += x.v;
+    return '<tr><td style="text-align:left;white-space:nowrap;">'+payEsc(String(x.o))+'</td><td style="white-space:nowrap;">'+payEsc(formatDateLabelShort(x.d))+'</td><td>'+(hit?fmt(q):'–')+'</td><td title="Rp '+fmt(x.v)+'">'+fmt(x.v)+'</td><td style="text-align:left;">'+det+'</td></tr>';
+  }).join('');
+  const foot = list.length ? '<tr class="pay-tot"><td style="text-align:left;">Total ('+fmt(list.length)+' invoice)</td><td></td><td>'+fmt(tq)+'</td><td>'+fmt(tv)+'</td><td></td></tr>' : '';
+  return '<div class="pay-h">'+payDot(g)+'DETAIL '+(g==='cnp'?'CLICK&amp;PICKUP':'TRADE-IN')+' · '+payEsc(String(nm).toUpperCase())+' <a href="#" style="font-size:11px;margin-left:8px;" onclick="event.stopPropagation();payPick(\''+encodeURIComponent(nm)+'\');return false;">🔎 Bedah semua payment toko ini</a></div>'
+    +'<div class="stk-scroll" style="max-height:360px;" onclick="event.stopPropagation()"><table class="stk-tbl pay-tbl"><tr><th style="text-align:left;">No. Invoice</th><th>Tanggal</th><th>Qty</th><th>Value Payment (Rp)</th><th style="text-align:left;">Detail Barang</th></tr>'
+    +(body || '<tr><td colspan="5" style="text-align:center;color:var(--muted-2);">Tidak ada transaksi</td></tr>')+foot+'</table></div>'
+    +(IX && !(IX && Object.keys(IX.byStore).length) ? '<div class="pay-note">⚠️ Master Data tidak memiliki kolom no. invoice / pos_number, jadi barang tidak bisa dicocokkan.</div>' : '')
+    +(miss && IX ? '<div class="pay-note">'+fmt(miss)+' invoice belum cocok dengan Master Data.'+ex+'</div>' : '')
+    +(fz ? '<div class="pay-note">'+fmt(fz)+' invoice dicocokkan secara perkiraan (akhiran no. invoice, atau toko + tanggal + nilai yang sama), lihat keterangan di kolom Detail Barang.</div>' : '');
+}
+
 /* Tab Trade In: hanya metode Trade-In, format pivot TSH/Store (Qty & Value) + pembanding Device dari Master Data */
 function payViewTradeIn(A, rows){
   const P = payPrep(), f = state.rawFull;
@@ -9520,7 +9618,7 @@ function payViewTradeIn(A, rows){
     const g = G[k];
     body += '<tr class="pv-grp"><td>'+payEsc(k+(tsh[k]?' · '+String(tsh[k]).toUpperCase():''))+'</td>'+cells(g)+'</tr>';
     g.list.sort(function(a,b){ return a.nm.localeCompare(b.nm,'id'); }).forEach(function(s){
-      body += '<tr class="pv-st pay-click" onclick="payPick(\''+encodeURIComponent(s.nm)+'\')"><td>▸ '+payEsc(String(s.nm).toUpperCase())+'</td>'+cells(s)+'</tr>';
+      body += payInvRow('tradein', s, cells, rows);
     });
   });
   const kpis = '<div class="stk-kpis">'+payKpi('Qty Device',hasDev?fmt(tot.dq):'–')+payKpi('Value Device',hasDev?'Rp '+payRp(tot.dv):'–')
@@ -9531,7 +9629,7 @@ function payViewTradeIn(A, rows){
   const foot = '<tfoot><tr><td>Grand Total</td>'+cells(tot)+'</tr></tfoot>';
   return kpis+'<div class="pay-pvwrap"><table class="pay-pv">'+head+'<tbody>'+body+'</tbody>'+foot+'</table></div>'
     +'<div class="pay-note">💡 <b>Device</b> = Qty &amp; Value kategori Device dari Master Data pada periode yang sama. <b>Trade-In</b> = jumlah transaksi (Qty) dan nilai (Value, Rp) dengan metode pembayaran Trade-In dari file payment. '
-    +'<b>% Qty</b> = Qty Trade-In ÷ Qty Device, <b>% Value</b> = Value Trade-In ÷ Value Device.'+(hasDev?'':' <b>Master Data belum termuat</b>, jadi kolom Device belum bisa diisi.')+' Klik baris toko untuk membedah payment toko itu.</div>';
+    +'<b>% Qty</b> = Qty Trade-In ÷ Qty Device, <b>% Value</b> = Value Trade-In ÷ Value Device.'+(hasDev?'':' <b>Master Data belum termuat</b>, jadi kolom Device belum bisa diisi.')+' Klik nama toko untuk melihat no. invoice, qty, value dan detail barangnya.</div>';
 }
 
 /* Tab Click&Pickup: hanya metode Click & Pickup (Online) semua toko, format pivot TSH/Store (Nota & Value) + pembanding Total Payment toko */
@@ -9567,7 +9665,7 @@ function payViewCnp(A, rows){
     const g = G[k];
     body += '<tr class="pv-grp"><td>'+payEsc(k+(tsh[k]?' · '+String(tsh[k]).toUpperCase():''))+'</td>'+cells(g)+'</tr>';
     g.list.sort(function(a,b){ return a.nm.localeCompare(b.nm,'id'); }).forEach(function(s){
-      body += '<tr class="pv-st pay-click" onclick="payPick(\''+encodeURIComponent(s.nm)+'\')"><td>▸ '+payEsc(String(s.nm).toUpperCase())+'</td>'+cells(s)+'</tr>';
+      body += payInvRow('cnp', s, cells, rows);
     });
   });
   const nTk = gl.reduce(function(s,k){ return s+G[k].list.filter(function(x){ return x.cq>0; }).length; }, 0);
@@ -9579,7 +9677,7 @@ function payViewCnp(A, rows){
   const foot = '<tfoot><tr><td>Grand Total</td>'+cells(tot)+'</tr></tfoot>';
   return kpis+'<div class="pay-pvwrap"><table class="pay-pv">'+head+'<tbody>'+body+'</tbody>'+foot+'</table></div>'
     +'<div class="pay-note">💡 <b>Click&amp;Pickup</b> = jumlah nota unik dan nilai (Value, Rp) dengan metode pembayaran Click &amp; Pickup (Online) dari file payment, semua toko pada filter aktif. '
-    +'<b>Total Payment</b> = seluruh pembayaran toko pada periode yang sama. <b>% Nota</b> = Nota C&amp;P ÷ Nota Total Payment, <b>% Value</b> = Value C&amp;P ÷ Value Total Payment. Klik baris toko untuk membedah payment toko itu.</div>';
+    +'<b>Total Payment</b> = seluruh pembayaran toko pada periode yang sama. <b>% Nota</b> = Nota C&amp;P ÷ Nota Total Payment, <b>% Value</b> = Value C&amp;P ÷ Value Total Payment. Klik nama toko untuk melihat no. invoice, qty, value dan detail barangnya.</div>';
 }
 
 /* Pembayaran non-kartu: Trade-In, Return, Voucher, Tunai, Click & Pickup, JB (+ top toko Trade-In) */
