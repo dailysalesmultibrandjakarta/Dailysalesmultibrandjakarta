@@ -705,6 +705,9 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
 .cat-detail table.pivot-tbl.pv-hp tr.ero-expand-row .pv-btn{color:var(--text-strong) !important;}
 .cat-detail table.pivot-tbl.pv-hp tr.ero-expand-row .pv-btn.on{color:#fff !important;}
 
+/* Baris ERO di tabel simulasi (muncul saat nama toko diklik) */
+.cat-detail table.pivot-tbl.pv-hp tbody tr.sim-ero td{background:rgba(255,200,60,.10) !important;font-size:11px;}
+.cat-detail table.pivot-tbl.pv-hp tbody tr.sim-ero td.cat-nm{padding-left:44px !important;border-left:4px solid #eab308 !important;}
 /* Baris TSH di tabel simulasi: seluruh kolom diberi warna beda (teal solid, tulisan putih) supaya jelas terpisah dari baris toko */
 .cat-detail table.pivot-tbl.pv-hp tbody tr.area-hdr.sim-tsh td,.cat-detail table.pivot-tbl.pv-hp tbody tr.area-hdr.sim-tsh td[style]{background:#0f766e !important;color:#ffffff !important;font-weight:900 !important;font-size:11.5px;border-top:3px solid #5eead4 !important;border-bottom:2px solid #5eead4 !important;border-left:1px solid rgba(255,255,255,.35) !important;border-right:1px solid rgba(255,255,255,.35) !important;}
 .cat-detail table.pivot-tbl.pv-hp tbody tr.area-hdr.sim-tsh td.cat-nm{background:#134e4a !important;font-size:13px;text-transform:uppercase;letter-spacing:.5px;border-left:8px solid #5eead4 !important;}
@@ -1560,7 +1563,7 @@ let state = {
   dailySelectedDate: null, // tanggal yang sedang dipilih/diklik di chart Daily Sales (null = otomatis pilih hari dgn value terbesar)
   vlInvOpen: false, vlInvFilter: 'all', // tombol 🧾 Invoice Vidio Lite di By ERO Operator
   vlMode: 'real', // Vidio Lite di slide Operator by Store: 'real' (Qty Vidio Lite / Qty Device) | 'adj' (Tablet di-take out, 1 invoice = 1 Device)
-  catSimOn: false, catSimMode: 'ar', simByTsh: false, opSimPct: 100, opSimSel: 1, catSimTarget: {Accessories:150, Operator:25}, rcSimOn: false, rcSimTarget: 0, rcSimTgt: {}, rcSimMode: 'ar', rcSimPct: 0, // Simulasi Target AR Repair Contract (tombol 🎯 di popup Repair Contract by Store)
+  catSimOn: false, catSimStore: null, catSimMode: 'ar', simByTsh: false, opSimPct: 100, opSimSel: 1, catSimTarget: {Accessories:150, Operator:25}, rcSimOn: false, rcSimTarget: 0, rcSimTgt: {}, rcSimMode: 'ar', rcSimPct: 0, // Simulasi Target AR Repair Contract (tombol 🎯 di popup Repair Contract by Store)
   catRcTakeOut: false, // true = rincian Repair Contract TANPA unit Device/CE borongan (satu invoice berisi >=3 unit Device/handphone; RC tetap dihitung)
   catOpOpen: false, // true = popup Tabel Operator (XL / Indosat / Telkomsel per toko: Target, MTD, Estimasi, GAP, %) terbuka
   topEroSel: null, // nama ERO yang diklik di slide TOP 10 BY ERO -> menampilkan top 10 penjualan ERO tsb
@@ -2500,7 +2503,7 @@ function toggleCategoryDetail(cat){
   // rincian by Store/by ERO tetap bisa dibuka lewat tombol "Rincian" di popup pivot.
   // (dinonaktifkan) Accessories & Repair Contract kini membuka popup rincian yang sama dengan Laptop; Tabel Pivot tetap bisa dibuka lewat tombol "📊 Tabel Pivot".
   state.catTopOpen = false;
-  state.catPivotOpen = false; state.catOpOpen = false; state.catRcTakeOut = false; state.catSimOn = false; state.catSimMode = 'ar'; state.catDetailKey = (state.catDetailKey===cat) ? null : cat; state.catDetailStore = null; state.catDetailView = 'store'; state.catTypeQ = ''; render(); }
+  state.catPivotOpen = false; state.catOpOpen = false; state.catRcTakeOut = false; state.catSimOn = false; state.catSimStore = null; state.catSimMode = 'ar'; state.catDetailKey = (state.catDetailKey===cat) ? null : cat; state.catDetailStore = null; state.catDetailView = 'store'; state.catTypeQ = ''; render(); }
 // Popup Top 15 barang Accessories terlaris area Jakpus 2: dibuka lewat tombol 🏅 Top 15 (di sebelah 📊 By ERO), cara kerja sama dengan By ERO.
 function openCatTop(){ state.catTopSel = null; state.catTopBy = 'qty'; state.catTopOpen = true; state.catPivotOpen = false; state.catOpOpen = false; state.catDetailKey = null; state.catDetailStore = null; render(); }
 function closeCatTop(){ state.catTopOpen = false; state.catTopSel = null; render(); }
@@ -2530,7 +2533,7 @@ let _catFitTimer = null;
 window.addEventListener('resize', function(){ clearTimeout(_catFitTimer); _catFitTimer = setTimeout(fitCatPopupTables, 150); });
 function openCatOperator(){ state.opSel = null; state.racingSel = null; state.catOpOpen = true; state.catPivotOpen = false; state.catDetailKey = null; state.catDetailStore = null; render(); }
 function toggleRcTakeOut(){ state.catRcTakeOut = !state.catRcTakeOut; render(); }
-function toggleRcSim(){ state.rcSimOn = !state.rcSimOn; render(); }
+function toggleRcSim(){ state.catSimStore = null; state.rcSimOn = !state.rcSimOn; render(); }
 function setRcSimTgt(code, v){ if (!state.rcSimTgt) state.rcSimTgt = {}; const n = parseFloat(String(v).replace(/\./g,'').replace(',','.')); if (String(v).trim()==='' || !isFinite(n)) delete state.rcSimTgt[code]; else state.rcSimTgt[code] = Math.max(0,n); render(); }
 function setRcSimMode(m){ state.rcSimMode = (m==='val') ? 'val' : 'ar'; render(); }
 function setRcSimPct(v){ const n = parseFloat(String(v).replace(',','.')); if (isFinite(n) && n>=0 && n<=1000) state.rcSimPct = n; render(); }
@@ -2606,7 +2609,7 @@ function opSimHtml(d){
     const manualT = Number(opT[st.site_code+'|'+G.key])||0;
     const tm = manualT>0 ? manualT : opRacingSheetTarget(st.site_code, G.key);
     const pp = periodPct(tm, a.v, d);
-    return {name:st.site_desc, t:pp.target, q:a.q, v:a.v, eq:Math.round(a.q*factor), ev:pp.compareValue, gap:a.v-pp.target, pct:pp.hasTarget?pp.pct:null};
+    return {code:st.site_code, tm:tm, name:st.site_desc, t:pp.target, q:a.q, v:a.v, eq:Math.round(a.q*factor), ev:pp.compareValue, gap:a.v-pp.target, pct:pp.hasTarget?pp.pct:null};
   }).filter(function(r){ return r.t>0 || r.q>0; });
   const avgAll = allQ>0 ? allV/allQ : 0;
   rows.forEach(function(r){
@@ -2646,7 +2649,39 @@ function opSimHtml(d){
     +'<tr><th style="'+st+'">QTY</th><th style="'+st+'">VALUE</th><th style="'+st+'">QTY</th><th style="'+st+'">VALUE</th>'
     +'<th style="'+sim+'">Value<br>dibutuhkan</th><th style="'+sim+'">Tambah<br>Qty</th><th style="'+sim+'">Tambah Value<br>(Rp)</th><th style="'+sim+'">% Achv<br>hasil</th></tr></thead>';
   const byAdd = function(a,b){ return (b.addV-a.addV) || (b.v-a.v); };
-  function storeRow(r){ return '<tr><td class="cat-nm" style="text-align:left;font-weight:600;">'+escapeHtml(r.name)+'</td>'+cells(r, true)+'</tr>'; }
+  // Baris ERO (muncul saat nama toko diklik): target ERO = target toko / jumlah ERO yang bertransaksi di toko itu (sama dengan tabel Pencapaian per Sales)
+  const eroAgg = {}, eroSet = {};
+  (d.filtered||[]).forEach(function(x){
+    const sx_ = byCode[x[1]]; if (!sx_ || !x[6]) return;
+    (eroSet[sx_.site_code] = eroSet[sx_.site_code] || {})[x[6]] = 1;
+    if (x[2]!=='Operator' || operatorBrandLabel(x[3])!==G.key || !racingOpCounts(x)) return;
+    const m_ = eroAgg[sx_.site_code] = eroAgg[sx_.site_code] || {};
+    const o_ = m_[x[6]] = m_[x[6]] || {q:0, v:0}; o_.q += x[4]; o_.v += racingOpVal(x);
+  });
+  function eroRowsOf(r){
+    const names = Object.keys(eroSet[r.code]||{}), n = names.length;
+    const avgSt = r.q>0 ? r.v/r.q : avgAll;
+    return names.map(function(nm){
+      const a = (eroAgg[r.code]||{})[nm] || {q:0, v:0};
+      const pp = periodPct(n>0 ? r.tm/n : 0, a.v, d);
+      const o = {name:nm, t:pp.target, q:a.q, v:a.v, eq:Math.round(a.q*factor), ev:pp.compareValue, gap:a.v-pp.target, pct:pp.hasTarget?pp.pct:null};
+      const avg = a.q>0 ? a.v/a.q : avgSt;
+      o.needV = o.t>0 ? o.t*PCT/100 : 0; o.addV = o.t>0 ? Math.max(0, o.needV - o.v) : 0;
+      o.addQ = (o.t>0 && avg>0) ? Math.ceil(o.addV/avg - 1e-9) : 0;
+      return o;
+    }).filter(function(o){ return o.t>0 || o.q>0; }).sort(byAdd);
+  }
+  function storeRow(r){
+    const open = state.catSimStore===r.code;
+    const k = String(r.code).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    let h = '<tr class="store-row-click'+(open?' store-row-active':'')+'" onclick="toggleCatSimStore(\''+k+'\')" title="Klik untuk lihat simulasi per ERO toko ini"><td class="cat-nm" style="text-align:left;font-weight:600;cursor:pointer;">'+(open?'\u25BE ':'\u25B8 ')+escapeHtml(r.name)+'</td>'+cells(r, true)+'</tr>';
+    if (open){
+      const eros = eroRowsOf(r);
+      if (!eros.length) h += '<tr class="sim-ero"><td class="cat-nm" colspan="12" style="text-align:left;font-style:italic;">Belum ada data ERO untuk toko ini.</td></tr>';
+      eros.forEach(function(e){ h += '<tr class="sim-ero"><td class="cat-nm" style="text-align:left;font-weight:500;">\uD83D\uDC64 '+escapeHtml(e.name)+'</td>'+cells(e, true)+'</tr>'; });
+    }
+    return h;
+  }
   let body = '';
   if (grp){
     grp.forEach(function(g){
@@ -2668,7 +2703,7 @@ function opSimHtml(d){
     +kpi('Kekurangan (tiap toko)', 'Rp '+num(tot.addV), '\u2248 '+num(tot.addQ)+' qty '+G.label, true)
     +'</div>'
     +'<div class="pivot-wrap"><table class="pivot-tbl pv-hp">'+head+'<tbody>'+body+'</tbody><tfoot><tr class="pv-total"><td style="text-align:left;font-weight:800;">GRAND TOTAL</td>'+cells(tot, false)+'</tr></tfoot></table></div>'
-    +'<div class="cat-hint x-note" style="margin-top:4px;">Kolom Target, MTD, Estimasi, GAP dan % sama dengan tombol \uD83C\uDFC1 Racing Operator (target otomatis dari sheet Target Racing; isian manual target Operator tetap diutamakan; Indosat hanya paket Platinum yang masuk racing). Pilih operator (Indosat / XL / Telkomsel) di atas tabel. <b>Value dibutuhkan</b> = Target &times; % yang dikejar. <b>Tambah Value</b> = Value dibutuhkan &minus; Value MTD (toko yang sudah tercapai = 0). <b>Tambah Qty</b> = Tambah Value &divide; rata-rata harga '+G.label+' toko itu (dibulatkan ke atas; toko tanpa penjualan memakai rata-rata semua toko). Toko tanpa target tidak dihitung. Data dikelompokkan per TSH (baris berwarna = subtotal TSH).</div></div>';
+    +'<div class="cat-hint x-note" style="margin-top:4px;">Kolom Target, MTD, Estimasi, GAP dan % sama dengan tombol \uD83C\uDFC1 Racing Operator (target otomatis dari sheet Target Racing; isian manual target Operator tetap diutamakan; Indosat hanya paket Platinum yang masuk racing). Pilih operator (Indosat / XL / Telkomsel) di atas tabel. <b>Value dibutuhkan</b> = Target &times; % yang dikejar. <b>Tambah Value</b> = Value dibutuhkan &minus; Value MTD (toko yang sudah tercapai = 0). <b>Tambah Qty</b> = Tambah Value &divide; rata-rata harga '+G.label+' toko itu (dibulatkan ke atas; toko tanpa penjualan memakai rata-rata semua toko). Toko tanpa target tidak dihitung. Data dikelompokkan per TSH (baris berwarna = subtotal TSH). Klik nama toko untuk melihat simulasi per ERO (target ERO = target toko &divide; jumlah ERO yang bertransaksi di toko itu).</div></div>';
 }
 
 function setCatSimMode(m){ state.catSimMode = (m==='val') ? 'val' : 'ar'; render(); }
@@ -2749,7 +2784,8 @@ function accSimHtml(d, storeRows){
     +'<div class="pivot-wrap"><table class="pivot-tbl pv-hp">'+head+'<tbody>'+body+'</tbody><tfoot><tr class="pv-total"><td style="text-align:left;font-weight:800;">GRAND TOTAL</td>'+cells(tot)+'</tr></tfoot></table></div>'
     +'<div class="cat-hint x-note" style="margin-top:4px;">SOB = Value Accessories (semua transaksi) &divide; Value Device. <b>Value Acc dibutuhkan</b> = Target SOB &times; Value Device toko. <b>Tambah Value</b> = Value dibutuhkan &minus; Value Accessories MTD (toko yang sudah mencapai target = 0). <b>Tambah Qty</b> = Tambah Value &divide; rata-rata harga Accessories toko itu (dibulatkan ke atas; toko tanpa penjualan memakai rata-rata semua toko). <b>Hasil SOB</b> = (Value MTD + Tambah Value) &divide; Value Device. Data dikelompokkan per TSH (baris berwarna = subtotal TSH).</div></div>';
 }
-function toggleCatSim(){ state.catSimOn = !state.catSimOn; if (state.catSimOn) state.catSimMode = (state.catDetailKey==='Operator') ? 'val' : 'ar'; render(); }
+function toggleCatSimStore(k){ state.catSimStore = (state.catSimStore===k) ? null : k; render(); }
+function toggleCatSim(){ state.catSimStore = null; state.catSimOn = !state.catSimOn; if (state.catSimOn) state.catSimMode = (state.catDetailKey==='Operator') ? 'val' : 'ar'; render(); }
 function setCatSimTarget(cat, v){ const n = parseFloat(String(v).replace(',','.')); if (isFinite(n) && n>=0 && n<=1000){ if (!state.catSimTarget) state.catSimTarget = {}; state.catSimTarget[cat] = n; } render(); }
 // Simulasi AR Aksesoris / Operator: berapa Qty & Value tambahan per toko agar AR (Qty kategori / Qty Device) mencapai target %.
 function catSimHtml(d, cat, storeRows){
@@ -2766,7 +2802,7 @@ function catSimHtml(d, cat, storeRows){
     const cq = isOp ? (a.opQ3!==undefined ? a.opQ3 : ((a.catQty&&a.catQty.Operator)||0)) : (a.accQty10k||0);
     const cv = isOp ? (a.opP!==undefined ? a.opP : ((a.cat&&a.cat.Operator)||0)) : (a.accValAll||0);
     allQ += cq; allV += cv;
-    return {name:r.name, dq:dq, dv:dv, cq:cq, cv:cv};
+    return {name:r.name, achvKey:r.achvKey, dq:dq, dv:dv, cq:cq, cv:cv};
   }).filter(function(r){ return r && (r.dq>0 || r.cq>0); });
   const avgAll = allQ>0 ? allV/allQ : 0;
   rows.forEach(function(r){
@@ -2804,7 +2840,29 @@ function catSimHtml(d, cat, storeRows){
     +'<tr><th style="'+th+'">Qty</th><th style="'+th+'">Value</th><th style="'+th+'">Qty</th><th style="'+th+'">Value</th>'
     +'<th style="'+sim+'">'+label+'<br>dibutuhkan</th><th style="'+sim+'">Tambah<br>Qty</th><th style="'+sim+'">Tambah Value<br>(Rp)</th><th style="'+sim+'">AR hasil<br>simulasi</th></tr></thead>';
   const byAdd = function(a,b){ return (b.add-a.add) || (b.dq-a.dq); };
-  function storeRow(r){ return '<tr><td class="cat-nm" style="text-align:left;font-weight:600;">'+escapeHtml(r.name)+'</td>'+cells(r)+'</tr>'; }
+  function eroRowsOf(r){
+    const src = (d.catAchvEroByStore||{})[r.achvKey] || [];
+    const avgSt = r.cq>0 ? r.cv/r.cq : avgAll;
+    return src.map(function(e){
+      const dq = e.deviceQty||0, dv = e.deviceVal||0;
+      const cq = isOp ? (e.opQ3!==undefined ? e.opQ3 : ((e.catQty&&e.catQty.Operator)||0)) : (e.accQty10k||0);
+      const cv = isOp ? (e.opP!==undefined ? e.opP : ((e.cat&&e.cat.Operator)||0)) : (e.accValAll||0);
+      const avg = cq>0 ? cv/cq : avgSt;
+      const need = Math.ceil(f*dq - 1e-9), add = Math.max(0, need - cq);
+      return {name:e.name, dq:dq, dv:dv, cq:cq, cv:cv, need:need, add:add, val:add*avg};
+    }).filter(function(e){ return e.dq>0 || e.cq>0; }).sort(byAdd);
+  }
+  function storeRow(r){
+    const open = state.catSimStore===r.achvKey;
+    const k = String(r.achvKey).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    let h = '<tr class="store-row-click'+(open?' store-row-active':'')+'" onclick="toggleCatSimStore(\''+k+'\')" title="Klik untuk lihat simulasi per ERO toko ini"><td class="cat-nm" style="text-align:left;font-weight:600;cursor:pointer;">'+(open?'\u25BE ':'\u25B8 ')+escapeHtml(r.name)+'</td>'+cells(r)+'</tr>';
+    if (open){
+      const eros = eroRowsOf(r);
+      if (!eros.length) h += '<tr class="sim-ero"><td class="cat-nm" colspan="10" style="text-align:left;font-style:italic;">Belum ada data ERO untuk toko ini.</td></tr>';
+      eros.forEach(function(e){ h += '<tr class="sim-ero"><td class="cat-nm" style="text-align:left;font-weight:500;">\uD83D\uDC64 '+escapeHtml(e.name)+'</td>'+cells(e)+'</tr>'; });
+    }
+    return h;
+  }
   let body = '';
   if (grp){
     grp.forEach(function(g){
@@ -2825,7 +2883,7 @@ function catSimHtml(d, cat, storeRows){
     +kpi('Kekurangan (tiap toko)', '+'+num(tot.add)+' qty', '\u2248 Rp '+num(tot.val), true)
     +'</div>'
     +'<div class="pivot-wrap"><table class="pivot-tbl pv-hp">'+head+'<tbody>'+body+'</tbody><tfoot><tr class="pv-total"><td style="text-align:left;font-weight:800;">GRAND TOTAL</td>'+cells(tot)+'</tr></tfoot></table></div>'
-    +'<div class="cat-hint x-note" style="margin-top:4px;">'+note+' Tambah Qty = Qty dibutuhkan &minus; Qty sekarang (toko yang sudah di atas target = 0). Tambah Value = Tambah Qty &times; rata-rata harga '+label+' toko itu (toko tanpa penjualan memakai rata-rata semua toko). Target AR bisa diubah bebas.</div></div>';
+    +'<div class="cat-hint x-note" style="margin-top:4px;">'+note+' Tambah Qty = Qty dibutuhkan &minus; Qty sekarang (toko yang sudah di atas target = 0). Tambah Value = Tambah Qty &times; rata-rata harga '+label+' toko itu (toko tanpa penjualan memakai rata-rata semua toko). Target AR bisa diubah bebas. Klik nama toko untuk melihat simulasi per ERO.</div></div>';
 }
 // Simulasi Target AR Repair Contract: berapa Qty & Value RC tambahan agar AR (Qty RC / (Qty Device + Qty CE)) mencapai target %.
 function rcSimHtml(d){
@@ -2897,7 +2955,40 @@ function rcSimHtml(d){
   }
   const grp = racingGroupByArea(rows, function(r){ return r.name; });
   let body = '';
-  function storeRow(r){ return '<tr><td class="cat-nm" style="text-align:left;font-weight:600;">'+escapeHtml(r.name)+'</td>'+cells(r,false)+'</tr>'; }
+  // Baris ERO (muncul saat nama toko diklik): target ERO = target toko / jumlah ERO yang bertransaksi di toko itu (sama dengan tabel Pencapaian per Sales)
+  const ea = {};
+  (raw.records||[]).forEach(function(x){
+    if (x[0]<c.start || x[0]>c.end) return;
+    const row = byName[x[1]]; if (!row || !x[6]) return;
+    if (x[2]==='Repair Contract' && !isRcZeroExcluded(x)){ const m_ = ea[row.code] = ea[row.code] || {}; const o_ = m_[x[6]] = m_[x[6]] || {q:0, v:0}; o_.q += x[4]; o_.v += racingVal(x); }
+  });
+  function eroRowsOf(r){
+    const src = (d.catAchvEroByStore||{})[r.code] || [], n = src.length;
+    const avgSt = r.rq>0 ? r.rv/r.rq : avgAll;
+    return src.map(function(e){
+      const dq = (e.deviceQty||0)+(e.ceQty||0), dv = e.deviceVal||0, rq = e.rcQty||0, rv = e.rcVal||0;
+      const x = (ea[r.code]||{})[e.name] || {q:0, v:0};
+      const tv = (r.tv>0 && n>0) ? r.tv/n : 0;
+      const avg = rq>0 ? rv/rq : avgSt;
+      const need = Math.ceil(f*dq - 1e-9), add = Math.max(0, need - rq);
+      const addV = tv>0 ? Math.max(0, tv*PCT/100 - rv) : 0;
+      return {name:e.name, tv:tv, aq:x.q, av:x.v, eq:Math.round(x.q*fct), ev:x.v*fct, gap:x.v-tv, pct:tv>0 ? x.v*fct/tv*100 : null,
+        dq:dq, dv:dv, rq:rq, rv:rv, ar:dq>0 ? rq/dq*100 : null, need:need, add:add, val:add*avg,
+        needV:tv>0 ? tv*PCT/100 : 0, addV:addV, addQ:(tv>0 && avg>0) ? Math.ceil(addV/avg - 1e-9) : 0};
+    }).filter(function(e){ return e.dq>0 || e.rq>0 || e.aq!==0; })
+      .sort(function(a,b){ return VMODE ? (b.addV-a.addV || b.dq-a.dq) : (b.add-a.add || b.dq-a.dq); });
+  }
+  function storeRow(r){
+    const open = state.catSimStore===r.code;
+    const k = String(r.code).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    let h = '<tr class="store-row-click'+(open?' store-row-active':'')+'" onclick="if(!event.target.closest(\'input,button\'))toggleCatSimStore(\''+k+'\')" title="Klik nama toko untuk lihat simulasi per ERO toko ini"><td class="cat-nm" style="text-align:left;font-weight:600;cursor:pointer;">'+(open?'\u25BE ':'\u25B8 ')+escapeHtml(r.name)+'</td>'+cells(r,false)+'</tr>';
+    if (open){
+      const eros = eroRowsOf(r), nc = VMODE ? 16 : 15;
+      if (!eros.length) h += '<tr class="sim-ero"><td class="cat-nm" colspan="'+nc+'" style="text-align:left;font-style:italic;">Belum ada data ERO untuk toko ini.</td></tr>';
+      eros.forEach(function(e){ h += '<tr class="sim-ero"><td class="cat-nm" style="text-align:left;font-weight:500;">\uD83D\uDC64 '+escapeHtml(e.name)+'</td>'+cells(e,false)+'</tr>'; });
+    }
+    return h;
+  }
   if (grp){
     grp.forEach(function(g){
       const list = g.idx.map(function(i){ return rows[i]; }).sort(function(a,b){ return VMODE ? (b.addV-a.addV || b.dq-a.dq) : (b.add-a.add || b.dq-a.dq); });
